@@ -1,0 +1,23 @@
+<div class="flex min-h-dvh bg-background text-foreground">
+  <nav class="flex w-56 flex-col gap-1 border-r border-border bg-sidebar p-4 text-sidebar-foreground" aria-label="Primary">
+    <a routerLink="/" class="mb-4 text-lg font-semibold tracking-tight">openJournal</a>
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
+    >Dashboard</a>
+    <a
+      routerLink="/trades"
+      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
+    >Trades</a>
+    <a
+      routerLink="/journal"
+      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
+    >Journal</a>
+  </nav>
+  <main class="flex-1 p-6">
+    <router-outlet />
+  </main>
+</div>
