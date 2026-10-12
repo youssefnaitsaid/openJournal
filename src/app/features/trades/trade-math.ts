@@ -2,6 +2,8 @@ import type { Side, Trade, TradeInput } from './trade';
 
 export type Outcome = 'Win' | 'Loss' | 'Breakeven';
 
+const SIGN: Record<Side, number> = { Long: 1, Short: -1 };
+
 export function grossPnl(
   side: Side,
   entryPrice: number,
@@ -9,8 +11,7 @@ export function grossPnl(
   quantity: number,
   multiplier: number,
 ): number {
-  const difference = side === 'Long' ? exitPrice - entryPrice : entryPrice - exitPrice;
-  return difference * quantity * multiplier;
+  return SIGN[side] * (exitPrice - entryPrice) * quantity * multiplier;
 }
 
 export function netPnl(gross: number, fees: number): number {
@@ -25,9 +26,7 @@ export function defaultRisked(
   multiplier: number,
 ): number {
   if (stopPrice === null) return 0;
-  const distance =
-    side === 'Long' ? entryPrice - stopPrice : stopPrice - entryPrice;
-  return Math.abs(distance) * quantity * multiplier;
+  return Math.abs(SIGN[side] * (entryPrice - stopPrice)) * quantity * multiplier;
 }
 
 export function rMultiple(net: number, risked: number): number {

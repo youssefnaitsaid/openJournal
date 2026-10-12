@@ -2,31 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Journal } from './journal';
 import { TradesStore } from '../trades/trades-store';
-import type { TradeInput } from '../trades/trade';
-
-function input(overrides: Partial<TradeInput>): TradeInput {
-  return {
-    asset: 'A',
-    market: 'Stocks',
-    side: 'Long',
-    quantity: 10,
-    multiplier: 1,
-    entryPrice: 100,
-    exitPrice: 100,
-    stopPrice: null,
-    takePrice: null,
-    fees: 0,
-    openedAt: '2026-10-01T13:30:00.000Z',
-    closedAt: '2026-10-01T14:30:00.000Z',
-    setup: 'Breakout',
-    emotionBefore: 'Calm',
-    emotionAfter: 'Disciplined',
-    mistake: 'None-followed-plan',
-    chartUrl: '',
-    notes: '',
-    ...overrides,
-  };
-}
+import { tradeInput } from '../trades/trade-fixtures';
 
 describe('Journal', () => {
   beforeEach(() => {
@@ -38,7 +14,7 @@ describe('Journal', () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade({
-      ...input({
+      ...tradeInput({
         asset: 'AAPL',
         exitPrice: 110,
         fees: 1,
@@ -48,7 +24,7 @@ describe('Journal', () => {
       }),
     });
     store.addTrade({
-      ...input({
+      ...tradeInput({
         asset: 'TSLA',
         exitPrice: 90,
         fees: 5,
@@ -137,5 +113,35 @@ describe('Journal', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Opening-drive');
+  });
+
+  it('styles loss days as destructive and prefixes gains with +', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('+99');
+    const destructive = [...compiled.querySelectorAll('.text-destructive')].map(
+      (el) => el.textContent,
+    );
+    expect(destructive.some((t) => t?.includes('-105'))).toBe(true);
+  });
+
+  it('renders local dates without raw ISO', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    component.selectedDay.set('2026-10-01');
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).not.toContain('T14:30:00.000Z');
+    // Day detail must render the close date in local medium format.
+    const detail =
+      compiled.textContent?.replace(/\s+/g, ' ') ??
+      '';
+    expect(detail).toMatch(/Oct 1, 2026/);
   });
 });

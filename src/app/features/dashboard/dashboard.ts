@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
@@ -19,7 +20,7 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 }
 
 @Component({
-  imports: [],
+  imports: [DatePipe],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',
   templateUrl: './dashboard.html',
@@ -42,7 +43,7 @@ export class Dashboard {
     toChartPoints(this.metrics().balanceCurve),
   );
 
-  readonly rate = (value: number): string => value.toFixed(2);
+  readonly formatPercent = (value: number): string => value.toFixed(2);
 
   onBalanceInput(event: Event): void {
     const value = Number((event.target as HTMLInputElement).value);

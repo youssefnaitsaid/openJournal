@@ -1,4 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -9,6 +11,7 @@ import {
 import {
   EMOTIONS,
   MARKETS,
+  MARKET_MULTIPLIERS,
   MISTAKES,
   SETUPS,
 } from './trade';
@@ -35,7 +38,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   selector: 'app-trades',
   styleUrl: './trades.css',
   templateUrl: './trades.html',
@@ -43,6 +46,7 @@ function chartUrlValidator(
 export class Trades {
   readonly store = inject(TradesStore);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly markets: readonly Market[] = MARKETS;
 
@@ -101,6 +105,14 @@ export class Trades {
     chartUrl: ['', chartUrlValidator],
     notes: [''],
   });
+
+  constructor() {
+    this.form.controls.market.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((market) => {
+        this.form.controls.multiplier.setValue(MARKET_MULTIPLIERS[market]);
+      });
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {

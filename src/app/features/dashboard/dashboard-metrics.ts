@@ -35,10 +35,14 @@ export function computeMetrics(
     (a, b) => +new Date(a.closedAt) - +new Date(b.closedAt),
   );
   let balance = startingBalance;
-  const balanceCurve = byCloseAsc.map((t) => {
+  const stepped = byCloseAsc.map((t) => {
     balance += t.net;
     return { closedAt: t.closedAt, balance };
   });
+  const balanceCurve =
+    byCloseAsc.length === 0
+      ? []
+      : [{ closedAt: byCloseAsc[0]!.closedAt, balance: startingBalance }, ...stepped];
 
   const dayNets = new Map<string, number>();
   for (const t of trades) {

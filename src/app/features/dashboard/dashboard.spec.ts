@@ -2,31 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Dashboard } from './dashboard';
 import { TradesStore } from '../trades/trades-store';
-import type { TradeInput } from '../trades/trade';
-
-function input(overrides: Partial<TradeInput>): TradeInput {
-  return {
-    asset: 'A',
-    market: 'Stocks',
-    side: 'Long',
-    quantity: 10,
-    multiplier: 1,
-    entryPrice: 100,
-    exitPrice: 100,
-    stopPrice: null,
-    takePrice: null,
-    fees: 0,
-    openedAt: '2026-10-01T13:30:00.000Z',
-    closedAt: '2026-10-01T14:30:00.000Z',
-    setup: 'Breakout',
-    emotionBefore: 'Calm',
-    emotionAfter: 'Calm',
-    mistake: 'None-followed-plan',
-    chartUrl: '',
-    notes: '',
-    ...overrides,
-  };
-}
+import { tradeInput } from '../trades/trade-fixtures';
 
 describe('Dashboard', () => {
   beforeEach(() => {
@@ -38,10 +14,10 @@ describe('Dashboard', () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade({
-      ...input({ asset: 'AAPL', exitPrice: 110, fees: 1 }),
+      ...tradeInput({ asset: 'AAPL', exitPrice: 110, fees: 1 }),
     });
     store.addTrade({
-      ...input({
+      ...tradeInput({
         asset: 'TSLA',
         exitPrice: 90,
         fees: 5,
@@ -96,10 +72,28 @@ describe('Dashboard', () => {
   it('shows Infinity as ∞ when there are wins but no losses', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
-    store.addTrade({ ...input({ asset: 'AAPL', exitPrice: 110 }) });
+    store.addTrade({ ...tradeInput({ asset: 'AAPL', exitPrice: 110 }) });
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('∞');
+  });
+
+  it('shows a Total trades KPI card', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Total trades');
+    expect(content).toContain('2');
+  });
+
+  it('renders local dates without raw ISO', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).not.toContain('T14:30:00.000Z');
   });
 });

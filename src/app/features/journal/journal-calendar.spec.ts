@@ -1,37 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { deriveTrade } from '../trades/trade-math';
-import type { TradeInput } from '../trades/trade';
+import { tradeFixture } from '../trades/trade-fixtures';
 import { buildMonth, monthSummary } from './journal-calendar';
-
-let n = 0;
-
-function input(overrides: Partial<TradeInput>): TradeInput {
-  return {
-    asset: 'A',
-    market: 'Stocks',
-    side: 'Long',
-    quantity: 10,
-    multiplier: 1,
-    entryPrice: 100,
-    exitPrice: 100,
-    stopPrice: null,
-    takePrice: null,
-    fees: 0,
-    openedAt: '2026-10-01T13:30:00.000Z',
-    closedAt: '2026-10-01T14:30:00.000Z',
-    setup: 'Breakout',
-    emotionBefore: 'Calm',
-    emotionAfter: 'Calm',
-    mistake: 'None-followed-plan',
-    chartUrl: '',
-    notes: '',
-    ...overrides,
-  };
-}
-
-function trade(overrides: Partial<TradeInput>) {
-  return deriveTrade(input(overrides), `j${++n}`);
-}
 
 describe('buildMonth', () => {
   it('starts October 2026 on Thursday with leading blanks (UTC)', () => {
@@ -42,8 +11,8 @@ describe('buildMonth', () => {
   });
 
   it('buckets Trades by close day with day Net', () => {
-    const win = trade({ asset: 'WIN', exitPrice: 110, fees: 1 });
-    const loss = trade({
+    const win = tradeFixture({ asset: 'WIN', exitPrice: 110, fees: 1 });
+    const loss = tradeFixture({
       asset: 'LOSS',
       exitPrice: 90,
       fees: 5,
@@ -60,7 +29,7 @@ describe('buildMonth', () => {
   });
 
   it('keeps months without Trades empty', () => {
-    const win = trade({ asset: 'WIN', exitPrice: 110 });
+    const win = tradeFixture({ asset: 'WIN', exitPrice: 110 });
     const weeks = buildMonth([win], 2026, 10);
     expect(
       weeks.flat().every((c) => c === null || c.trades.length === 0),
@@ -71,8 +40,8 @@ describe('buildMonth', () => {
 describe('monthSummary', () => {
   it('sums month Net and ends balance from the shared derivation', () => {
     const oct = [
-      trade({ asset: 'A', exitPrice: 110, fees: 1 }),
-      trade({
+      tradeFixture({ asset: 'A', exitPrice: 110, fees: 1 }),
+      tradeFixture({
         asset: 'B',
         exitPrice: 90,
         fees: 5,
@@ -80,7 +49,7 @@ describe('monthSummary', () => {
       }),
     ];
     const nov = [
-      trade({
+      tradeFixture({
         asset: 'C',
         side: 'Short',
         entryPrice: 50,

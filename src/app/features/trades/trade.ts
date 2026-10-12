@@ -38,6 +38,16 @@ export const MARKETS: readonly Market[] = [
   'Forex',
 ];
 
+// Editable defaults for the contract multiplier per market.
+// Futures uses the MES convention (5); Options uses the standard 100-share contract.
+export const MARKET_MULTIPLIERS: Record<Market, number> = {
+  Stocks: 1,
+  Crypto: 1,
+  Forex: 1,
+  Futures: 5,
+  Options: 100,
+};
+
 export const SETUPS: readonly Setup[] = [
   'Breakout',
   'Pullback',

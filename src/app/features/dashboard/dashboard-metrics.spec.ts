@@ -1,40 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { deriveTrade } from '../trades/trade-math';
-import type { TradeInput } from '../trades/trade';
+import { tradeFixture } from '../trades/trade-fixtures';
 import { computeMetrics } from './dashboard-metrics';
 
-let n = 0;
-
-function input(overrides: Partial<TradeInput>): TradeInput {
-  return {
-    asset: 'A',
-    market: 'Stocks',
-    side: 'Long',
-    quantity: 1,
-    multiplier: 1,
-    entryPrice: 100,
-    exitPrice: 100,
-    stopPrice: null,
-    takePrice: null,
-    fees: 0,
-    openedAt: '2026-10-01T13:30:00.000Z',
-    closedAt: '2026-10-01T14:30:00.000Z',
-    setup: 'Breakout',
-    emotionBefore: 'Calm',
-    emotionAfter: 'Calm',
-    mistake: 'None-followed-plan',
-    chartUrl: '',
-    notes: '',
-    ...overrides,
-  };
-}
-
-function trade(overrides: Partial<TradeInput>) {
-  return deriveTrade(input(overrides), `t${++n}`);
-}
-
 const WIN_A = () =>
-  trade({
+  tradeFixture({
     asset: 'WIN-A',
     quantity: 10,
     entryPrice: 100,
@@ -43,7 +12,7 @@ const WIN_A = () =>
     closedAt: '2026-10-01T14:30:00.000Z',
   });
 const WIN_B = () =>
-  trade({
+  tradeFixture({
     asset: 'WIN-B',
     side: 'Short',
     quantity: 10,
@@ -52,7 +21,7 @@ const WIN_B = () =>
     closedAt: '2026-10-01T15:30:00.000Z',
   });
 const LOSS = () =>
-  trade({
+  tradeFixture({
     asset: 'LOSS',
     quantity: 10,
     entryPrice: 100,
@@ -61,7 +30,7 @@ const LOSS = () =>
     closedAt: '2026-10-02T14:30:00.000Z',
   });
 const FLAT = () =>
-  trade({ asset: 'FLAT', quantity: 10, closedAt: '2026-10-03T14:30:00.000Z' });
+  tradeFixture({ asset: 'FLAT', quantity: 10, closedAt: '2026-10-03T14:30:00.000Z' });
 
 describe('computeMetrics', () => {
   it('is all zeros on an empty journal', () => {
@@ -104,7 +73,7 @@ describe('computeMetrics', () => {
   it('steps Account Balance by close-time order from the starting balance', () => {
     const m = computeMetrics([LOSS(), WIN_B(), FLAT(), WIN_A()], 10000);
     expect(m.balanceCurve.map((p) => p.balance)).toEqual([
-      10099, 10149, 10044, 10044,
+      10000, 10099, 10149, 10044, 10044,
     ]);
   });
 

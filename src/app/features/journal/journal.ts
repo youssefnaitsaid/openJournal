@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
 import { loadStartingBalance } from '../../settings';
 
 @Component({
-  imports: [],
+  imports: [DatePipe],
   selector: 'app-journal',
   styleUrl: './journal.css',
   templateUrl: './journal.html',

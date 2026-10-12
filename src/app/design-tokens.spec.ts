@@ -7,8 +7,38 @@ const templates = import.meta.glob('./**/*.html', {
   eager: true,
 });
 
-const BANNED_PALETTE =
-  /#[0-9a-fA-F]{3,8}|rgb\(|oklch\(|bg-(red|green|blue|white|black)-|text-(red|green|blue|white|black)-|\[#[0-9a-fA-F]+\]/;
+const HUES = [
+  'red',
+  'orange',
+  'amber',
+  'yellow',
+  'lime',
+  'green',
+  'emerald',
+  'teal',
+  'cyan',
+  'sky',
+  'blue',
+  'indigo',
+  'violet',
+  'purple',
+  'fuchsia',
+  'pink',
+  'rose',
+  'slate',
+  'gray',
+  'zinc',
+  'neutral',
+  'stone',
+  'white',
+  'black',
+];
+
+const HUE_PATTERN = HUES.join('|');
+
+const BANNED_PALETTE = new RegExp(
+  `#[0-9a-fA-F]{3,8}|rgb\\(|oklch\\(|bg-(${HUE_PATTERN})-|text-(${HUE_PATTERN})-|\\[#[0-9a-fA-F]+\\]`,
+);
 
 describe('design tokens', () => {
   it('uses theme tokens, no hard-coded palette in templates', () => {

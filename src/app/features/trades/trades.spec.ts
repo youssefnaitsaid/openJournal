@@ -103,4 +103,82 @@ describe('Trades', () => {
       ).setup,
     ).toContain('Opening-drive');
   });
+
+  it('defaults multiplier from market but keeps manual edits until next switch', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    await fixture.whenStable();
+    expect(component.form.controls.multiplier.value).toBe(1);
+    component.form.controls.market.setValue('Futures');
+    expect(component.form.controls.multiplier.value).toBe(5);
+    component.form.controls.market.setValue('Options');
+    expect(component.form.controls.multiplier.value).toBe(100);
+    component.form.controls.multiplier.setValue(7);
+    expect(component.form.controls.multiplier.value).toBe(7);
+    component.form.controls.market.setValue('Stocks');
+    expect(component.form.controls.multiplier.value).toBe(1);
+  });
+
+  it('shows full trade columns in the table', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const header =
+      compiled.querySelector('thead tr')?.textContent?.replace(/\s+/g, ' ') ??
+      '';
+    for (const label of [
+      'Quantity',
+      'Entry',
+      'Exit',
+      'Gross',
+      'Fees',
+      'Stop',
+      'Take',
+      'Risked',
+      'Emotion before',
+      'Emotion after',
+      'Mistake',
+      'Multiplier',
+      'R-Multiple',
+    ]) {
+      expect(header).toContain(label);
+    }
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(1);
+    for (const value of [
+      '10',
+      '100',
+      '110',
+      '100',
+      '1',
+      '98',
+      '115',
+      '20',
+      'Calm',
+      'Disciplined',
+      'None-followed-plan',
+    ]) {
+      expect(rows[0]).toContain(value);
+    }
+    expect(compiled.querySelector('.overflow-x-auto')).not.toBeNull();
+  });
+
+  it('renders local dates without raw ISO', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).not.toContain('.000Z');
+    expect(compiled.textContent).not.toContain('2026-10-01T');
+  });
 });
