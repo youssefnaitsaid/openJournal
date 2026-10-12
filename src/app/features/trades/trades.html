@@ -4,6 +4,9 @@
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid max-w-3xl grid-cols-2 gap-3">
     <label class="flex flex-col gap-1 text-sm">Asset
       <input formControlName="asset" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
+        <span class="text-sm text-destructive">Asset is required.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Market
       <select formControlName="market" class="rounded-md border border-input bg-background px-2 py-1">
@@ -18,9 +21,15 @@
     </label>
     <label class="flex flex-col gap-1 text-sm">Quantity
       <input type="number" step="any" min="0" formControlName="quantity" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+        <span class="text-sm text-destructive">Quantity must be above zero.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Multiplier
       <input type="number" step="any" min="0" formControlName="multiplier" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
+        <span class="text-sm text-destructive">Multiplier must be above zero.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Entry price
       <input type="number" step="any" formControlName="entryPrice" class="rounded-md border border-input bg-background px-2 py-1" />
@@ -30,6 +39,9 @@
     </label>
     <label class="flex flex-col gap-1 text-sm">Fees
       <input type="number" step="any" min="0" formControlName="fees" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.fees.touched && form.controls.fees.invalid) {
+        <span class="text-sm text-destructive">Fees cannot be negative.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Stop price (optional)
       <input type="number" step="any" formControlName="stopPrice" class="rounded-md border border-input bg-background px-2 py-1" />
@@ -42,9 +54,15 @@
     </label>
     <label class="flex flex-col gap-1 text-sm">Opened at
       <input type="datetime-local" formControlName="openedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
+        <span class="text-sm text-destructive">Opened at is required.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Closed at
       <input type="datetime-local" formControlName="closedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
+        <span class="text-sm text-destructive">Closed at is required.</span>
+      }
     </label>
     <label class="flex flex-col gap-1 text-sm">Setup
       <select formControlName="setup" class="rounded-md border border-input bg-background px-2 py-1">

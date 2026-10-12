@@ -70,8 +70,24 @@ describe('Trades', () => {
     expect(compiled.textContent).toContain('No trades yet');
   });
 
-  it('offers a user-added setup without code changes', async () => {
+  it('explains what is missing when submitted empty', async () => {
     const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.controls.quantity.setValue(0);
+    component.onSubmit();
+    await fixture.whenStable();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades().length).toBe(0);
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Asset is required');
+    expect(content).toContain('Quantity must be above zero');
+    expect(content).toContain('Opened at is required');
+    expect(content).toContain('Closed at is required');
+  });
+
+  it('offers a user-added setup without code changes', async () => {    const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     component.addCustomSetup('Opening-drive');
     await fixture.whenStable();

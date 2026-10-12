@@ -45,9 +45,6 @@ export class Trades {
   private readonly fb = inject(FormBuilder);
 
   readonly markets: readonly Market[] = MARKETS;
-  readonly setups: readonly Setup[] = SETUPS;
-  readonly emotions: readonly Emotion[] = EMOTIONS;
-  readonly mistakes: readonly Mistake[] = MISTAKES;
 
   private readonly taxonomyVersion = signal(0);
 
