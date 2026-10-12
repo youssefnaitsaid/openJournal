@@ -9,7 +9,8 @@ export type Setup =
   | 'Mean-reversion'
   | 'Gap-and-go'
   | 'News-driven'
-  | 'Other';
+  | 'Other'
+  | (string & {});
 
 export type Emotion =
   | 'Calm'
@@ -17,7 +18,8 @@ export type Emotion =
   | 'Anxious'
   | 'FOMO'
   | 'Frustrated'
-  | 'Disciplined';
+  | 'Disciplined'
+  | (string & {});
 
 export type Mistake =
   | 'None-followed-plan'
@@ -25,7 +27,8 @@ export type Mistake =
   | 'Moved-stop'
   | 'Left-early'
   | 'Overleveraged'
-  | 'Revenge-trade';
+  | 'Revenge-trade'
+  | (string & {});
 
 export const MARKETS: readonly Market[] = [
   'Stocks',

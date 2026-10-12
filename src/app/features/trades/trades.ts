@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -22,6 +22,11 @@ import type {
 } from './trade';
 import { isValidChartUrl } from './trade-math';
 import { TradesStore } from './trades-store';
+import {
+  addTaxonomyValue,
+  taxonomyOptions,
+} from '../journal/taxonomy';
+import type { TaxonomyKind } from '../journal/taxonomy';
 
 function chartUrlValidator(
   control: AbstractControl<string | null>,
@@ -43,6 +48,38 @@ export class Trades {
   readonly setups: readonly Setup[] = SETUPS;
   readonly emotions: readonly Emotion[] = EMOTIONS;
   readonly mistakes: readonly Mistake[] = MISTAKES;
+
+  private readonly taxonomyVersion = signal(0);
+
+  readonly setupOptions = computed(() => {
+    this.taxonomyVersion();
+    return taxonomyOptions('setup', SETUPS);
+  });
+  readonly emotionOptions = computed(() => {
+    this.taxonomyVersion();
+    return taxonomyOptions('emotion', EMOTIONS);
+  });
+  readonly mistakeOptions = computed(() => {
+    this.taxonomyVersion();
+    return taxonomyOptions('mistake', MISTAKES);
+  });
+
+  addCustom(kind: TaxonomyKind, value: string): void {
+    addTaxonomyValue(kind, value);
+    this.taxonomyVersion.update((v) => v + 1);
+  }
+
+  addCustomSetup(value: string): void {
+    const trimmed = value.trim();
+    this.addCustom('setup', trimmed);
+    if (trimmed !== '') this.form.controls.setup.setValue(trimmed);
+  }
+
+  addCustomMistake(value: string): void {
+    const trimmed = value.trim();
+    this.addCustom('mistake', trimmed);
+    if (trimmed !== '') this.form.controls.mistake.setValue(trimmed);
+  }
 
   readonly rows = computed(() => this.store.byCloseDesc());
 

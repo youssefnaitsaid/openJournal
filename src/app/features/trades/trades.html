@@ -48,22 +48,22 @@
     </label>
     <label class="flex flex-col gap-1 text-sm">Setup
       <select formControlName="setup" class="rounded-md border border-input bg-background px-2 py-1">
-        @for (s of setups; track s) { <option [value]="s">{{ s }}</option> }
+        @for (s of setupOptions(); track s) { <option [value]="s">{{ s }}</option> }
       </select>
     </label>
     <label class="flex flex-col gap-1 text-sm">Emotion before
       <select formControlName="emotionBefore" class="rounded-md border border-input bg-background px-2 py-1">
-        @for (e of emotions; track e) { <option [value]="e">{{ e }}</option> }
+        @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
       </select>
     </label>
     <label class="flex flex-col gap-1 text-sm">Emotion after
       <select formControlName="emotionAfter" class="rounded-md border border-input bg-background px-2 py-1">
-        @for (e of emotions; track e) { <option [value]="e">{{ e }}</option> }
+        @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
       </select>
     </label>
     <label class="flex flex-col gap-1 text-sm">Mistake
       <select formControlName="mistake" class="rounded-md border border-input bg-background px-2 py-1">
-        @for (m of mistakes; track m) { <option [value]="m">{{ m }}</option> }
+        @for (m of mistakeOptions(); track m) { <option [value]="m">{{ m }}</option> }
       </select>
     </label>
     <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
@@ -77,6 +77,22 @@
     </label>
     <div class="col-span-2">
       <button type="submit" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Log trade</button>
+    </div>
+  </form>
+
+  <form class="flex max-w-3xl flex-col gap-2" aria-label="Custom tags">
+    <h2 class="text-sm font-medium">Custom tags</h2>
+    <div class="flex gap-2">
+      <input #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustomSetup(newSetup.value); newSetup.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add setup</button>
+    </div>
+    <div class="flex gap-2">
+      <input #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add emotion</button>
+    </div>
+    <div class="flex gap-2">
+      <input #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustomMistake(newMistake.value); newMistake.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add mistake</button>
     </div>
   </form>
 

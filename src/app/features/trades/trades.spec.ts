@@ -69,4 +69,22 @@ describe('Trades', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('No trades yet');
   });
+
+  it('offers a user-added setup without code changes', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    component.addCustomSetup('Opening-drive');
+    await fixture.whenStable();
+    expect(component.setupOptions()).toContain('Opening-drive');
+    const compiled = fixture.nativeElement as HTMLElement;
+    const setup = compiled.querySelector(
+      'select[formControlName="setup"]',
+    ) as HTMLSelectElement;
+    expect([...setup.options].map((o) => o.value)).toContain('Opening-drive');
+    expect(
+      JSON.parse(
+        localStorage.getItem('openjournal-taxonomy') ?? '{}',
+      ).setup,
+    ).toContain('Opening-drive');
+  });
 });

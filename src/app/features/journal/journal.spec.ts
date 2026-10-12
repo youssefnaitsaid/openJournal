@@ -1,21 +1,141 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Journal } from './journal';
+import { TradesStore } from '../trades/trades-store';
+import type { TradeInput } from '../trades/trade';
+
+function input(overrides: Partial<TradeInput>): TradeInput {
+  return {
+    asset: 'A',
+    market: 'Stocks',
+    side: 'Long',
+    quantity: 10,
+    multiplier: 1,
+    entryPrice: 100,
+    exitPrice: 100,
+    stopPrice: null,
+    takePrice: null,
+    fees: 0,
+    openedAt: '2026-10-01T13:30:00.000Z',
+    closedAt: '2026-10-01T14:30:00.000Z',
+    setup: 'Breakout',
+    emotionBefore: 'Calm',
+    emotionAfter: 'Disciplined',
+    mistake: 'None-followed-plan',
+    chartUrl: '',
+    notes: '',
+    ...overrides,
+  };
+}
 
 describe('Journal', () => {
-  let component: Journal;
-  let fixture: ComponentFixture<Journal>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Journal],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(Journal);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({});
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  async function seed() {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({
+      ...input({
+        asset: 'AAPL',
+        exitPrice: 110,
+        fees: 1,
+        emotionAfter: 'Disciplined',
+        chartUrl: 'https://example.com/aapl.png',
+        notes: 'Followed plan',
+      }),
+    });
+    store.addTrade({
+      ...input({
+        asset: 'TSLA',
+        exitPrice: 90,
+        fees: 5,
+        setup: 'Opening-drive',
+        emotionBefore: 'FOMO',
+        emotionAfter: 'Frustrated',
+        mistake: 'Left-early',
+        closedAt: '2026-10-03T14:30:00.000Z',
+      }),
+    });
+  }
+
+  function october(fixture: { componentInstance: Journal }) {
+    fixture.componentInstance.cursor.set({ year: 2026, month: 9 });
+  }
+
+  it('buckets Trades by close day with day Net', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('99');
+    expect(content).toContain('-105');
+  });
+
+  it('paginates months and returns to this month', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const label = () =>
+      compiled.querySelector('[aria-label="Current month"]')?.textContent;
+    expect(label()).toContain('October 2026');
+    (
+      compiled.querySelector('[aria-label="Next month"]') as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+    expect(label()).toContain('November 2026');
+    (
+      compiled.querySelector('[aria-label="This month"]') as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+    expect(compiled.querySelector('[aria-label="Current month"]')).not.toBeNull();
+  });
+
+  it('shows psychology and evidence for the selected day', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    component.selectedDay.set('2026-10-01');
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Breakout');
+    expect(content).toContain('Calm');
+    expect(content).toContain('Disciplined');
+    expect(content).toContain('None-followed-plan');
+    expect(content).toContain('Followed plan');
+    const link = compiled.querySelector(
+      'a[href="https://example.com/aapl.png"]',
+    );
+    expect(link).not.toBeNull();
+  });
+
+  it('summarises month Net and balance from the shared setting', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('-6');
+    expect(content).toContain('9994');
+  });
+
+  it('renders user-added tag values with no code change', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    component.selectedDay.set('2026-10-03');
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Opening-drive');
   });
 });
