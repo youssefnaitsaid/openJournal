@@ -1,1 +1,181 @@
-<p>trades works!</p>
+<section class="flex flex-col gap-6">
+  <h1 class="text-2xl font-semibold tracking-tight">Trades</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid max-w-3xl grid-cols-2 gap-3">
+    <label class="flex flex-col gap-1 text-sm">Asset
+      <input formControlName="asset" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
+        <span class="text-sm text-destructive">Asset is required.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Market
+      <select formControlName="market" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (m of markets; track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Side
+      <select formControlName="side" class="rounded-md border border-input bg-background px-2 py-1">
+        <option value="Long">Long</option>
+        <option value="Short">Short</option>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Quantity
+      <input type="number" step="any" min="0" formControlName="quantity" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+        <span class="text-sm text-destructive">Quantity must be above zero.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Multiplier
+      <input type="number" step="any" min="0" formControlName="multiplier" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
+        <span class="text-sm text-destructive">Multiplier must be above zero.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Entry price
+      <input type="number" step="any" formControlName="entryPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Exit price
+      <input type="number" step="any" formControlName="exitPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Fees
+      <input type="number" step="any" min="0" formControlName="fees" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.fees.touched && form.controls.fees.invalid) {
+        <span class="text-sm text-destructive">Fees cannot be negative.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Stop price (optional)
+      <input type="number" step="any" formControlName="stopPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Take price (optional)
+      <input type="number" step="any" formControlName="takePrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Risked override (optional)
+      <input type="number" step="any" min="0" formControlName="riskedAmount" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Opened at
+      <input type="datetime-local" formControlName="openedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
+        <span class="text-sm text-destructive">Opened at is required.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Closed at
+      <input type="datetime-local" formControlName="closedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
+        <span class="text-sm text-destructive">Closed at is required.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Setup
+      <select formControlName="setup" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (s of setupOptions(); track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Emotion before
+      <select formControlName="emotionBefore" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Emotion after
+      <select formControlName="emotionAfter" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Mistake
+      <select formControlName="mistake" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (m of mistakeOptions(); track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
+      <input formControlName="chartUrl" inputmode="url" placeholder="https://…" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
+        <span class="text-sm text-destructive">Enter a valid URL starting with http(s), or leave empty.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Notes
+      <input formControlName="notes" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <div class="col-span-2">
+      <button type="submit" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Log trade</button>
+    </div>
+  </form>
+
+  <form class="flex max-w-3xl flex-col gap-2" aria-label="Custom tags">
+    <h2 class="text-sm font-medium">Custom tags</h2>
+    <div class="flex gap-2">
+      <input #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustomSetup(newSetup.value); newSetup.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add setup</button>
+    </div>
+    <div class="flex gap-2">
+      <input #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add emotion</button>
+    </div>
+    <div class="flex gap-2">
+      <input #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+      <button type="button" (click)="addCustomMistake(newMistake.value); newMistake.value = ''" class="rounded-md border border-border px-3 py-1 text-sm">Add mistake</button>
+    </div>
+  </form>
+
+  @if (rows().length === 0) {
+    <p class="text-sm text-muted-foreground">No trades yet. Log your first trade above.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-muted-foreground">
+            <th class="py-1 pr-3">Open date</th>
+            <th class="py-1 pr-3">Close date</th>
+            <th class="py-1 pr-3">Asset</th>
+            <th class="py-1 pr-3">Market</th>
+            <th class="py-1 pr-3">Side</th>
+            <th class="py-1 pr-3">Quantity</th>
+            <th class="py-1 pr-3">Multiplier</th>
+            <th class="py-1 pr-3">Entry</th>
+            <th class="py-1 pr-3">Exit</th>
+            <th class="py-1 pr-3">Gross</th>
+            <th class="py-1 pr-3">Fees</th>
+            <th class="py-1 pr-3">Net P&amp;L</th>
+            <th class="py-1 pr-3">Stop</th>
+            <th class="py-1 pr-3">Take</th>
+            <th class="py-1 pr-3">Risked</th>
+            <th class="py-1 pr-3">R-Multiple</th>
+            <th class="py-1 pr-3">Setup</th>
+            <th class="py-1 pr-3">Emotion before</th>
+            <th class="py-1 pr-3">Emotion after</th>
+            <th class="py-1 pr-3">Mistake</th>
+            <th class="py-1 pr-3">Chart</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (trade of rows(); track trade.id) {
+            <tr class="border-t border-border">
+              <td class="py-1 pr-3">{{ trade.openedAt | date:'medium' }}</td>
+              <td class="py-1 pr-3">{{ trade.closedAt | date:'medium' }}</td>
+              <td class="py-1 pr-3">{{ trade.asset }}</td>
+              <td class="py-1 pr-3">{{ trade.market }}</td>
+              <td class="py-1 pr-3">{{ trade.side }}</td>
+              <td class="py-1 pr-3">{{ trade.quantity }}</td>
+              <td class="py-1 pr-3">{{ trade.multiplier }}</td>
+              <td class="py-1 pr-3">{{ trade.entryPrice }}</td>
+              <td class="py-1 pr-3">{{ trade.exitPrice }}</td>
+              <td class="py-1 pr-3">{{ trade.gross }}</td>
+              <td class="py-1 pr-3">{{ trade.fees }}</td>
+              <td class="py-1 pr-3">{{ trade.net }}</td>
+              <td class="py-1 pr-3">{{ trade.stopPrice }}</td>
+              <td class="py-1 pr-3">{{ trade.takePrice }}</td>
+              <td class="py-1 pr-3">{{ trade.risked }}</td>
+              <td class="py-1 pr-3">{{ trade.rMultiple }}</td>
+              <td class="py-1 pr-3">{{ trade.setup }}</td>
+              <td class="py-1 pr-3">{{ trade.emotionBefore }}</td>
+              <td class="py-1 pr-3">{{ trade.emotionAfter }}</td>
+              <td class="py-1 pr-3">{{ trade.mistake }}</td>
+              <td class="py-1 pr-3">
+                @if (trade.chartUrl !== '') {
+                  <a [href]="trade.chartUrl" target="_blank" rel="noopener">chart</a>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

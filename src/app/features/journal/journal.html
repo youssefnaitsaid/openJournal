@@ -1,1 +1,65 @@
-<p>journal works!</p>
+<section class="flex flex-col gap-4">
+  <h1 class="text-2xl font-semibold tracking-tight">Journal</h1>
+
+  <div class="flex items-center gap-2">
+    <button type="button" aria-label="Previous month" (click)="prev()" class="rounded-md border border-border px-3 py-1 text-sm">‹ Prev</button>
+    <h2 aria-label="Current month" class="min-w-44 text-center text-lg font-medium">{{ monthLabel() }}</h2>
+    <button type="button" aria-label="Next month" (click)="next()" class="rounded-md border border-border px-3 py-1 text-sm">Next ›</button>
+    <button type="button" aria-label="This month" (click)="goToCurrent()" class="rounded-md border border-border px-3 py-1 text-sm">This month</button>
+  </div>
+
+  <p class="text-sm text-muted-foreground">
+    Month Net: <strong class="text-foreground">{{ summary().monthNet }}</strong>
+    · Balance at month end: <strong class="text-foreground">{{ summary().balanceEnd }}</strong>
+  </p>
+
+  <div class="grid grid-cols-7 gap-1" role="grid" aria-label="Month calendar">
+    @for (label of dayLabels; track label) {
+      <div class="py-1 text-center text-xs font-medium text-muted-foreground">{{ label }}</div>
+    }
+    @for (week of weeks(); track $index) {
+      @for (cell of week; track cell?.date ?? $index) {
+        @if (cell === null) {
+          <span></span>
+        } @else {
+          <button
+            type="button"
+            (click)="selectedDay.set(cell.date)"
+            class="flex min-h-16 flex-col items-start rounded-md border border-border p-1 text-left text-sm hover:bg-sidebar-accent"
+          >
+            <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
+            @if (cell.dayNet !== 0) {
+              <span class="font-medium" [class.text-destructive]="cell.dayNet < 0">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
+            }
+          </button>
+        }
+      }
+    }
+  </div>
+
+  <section class="flex flex-col gap-2">
+    <h2 class="text-lg font-medium">Day detail</h2>
+    @if (selectedTrades().length === 0) {
+      <p class="text-sm text-muted-foreground">No trades this day.</p>
+    } @else {
+      @for (trade of selectedTrades(); track trade.id) {
+        <article class="rounded-lg border border-border bg-card p-3 text-sm">
+          <h3 class="font-medium">{{ trade.asset }} · {{ trade.side }} · Net {{ trade.net }}</h3>
+          <p class="text-xs text-muted-foreground">{{ trade.openedAt | date:'medium' }} → {{ trade.closedAt | date:'medium' }}</p>
+          <dl class="mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
+            <dt class="text-muted-foreground">Setup</dt><dd>{{ trade.setup }}</dd>
+            <dt class="text-muted-foreground">Emotion before</dt><dd>{{ trade.emotionBefore }}</dd>
+            <dt class="text-muted-foreground">Emotion after</dt><dd>{{ trade.emotionAfter }}</dd>
+            <dt class="text-muted-foreground">Mistake</dt><dd>{{ trade.mistake }}</dd>
+          </dl>
+          @if (trade.chartUrl !== '') {
+            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="mt-1 inline-block underline">chart</a>
+          }
+          @if (trade.notes !== '') {
+            <p class="mt-1 text-muted-foreground">{{ trade.notes }}</p>
+          }
+        </article>
+      }
+    }
+  </section>
+</section>
