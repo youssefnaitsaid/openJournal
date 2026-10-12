@@ -1,0 +1,37 @@
+# openJournal facts — atomic behavioral spec (MVP, integration/spec-1-mvp @ 54faa3a)
+
+## Trade derivation (trade-math)
+- Gross P&L is signed price difference times Quantity times multiplier: Long uses exit minus entry, Short inverts it.
+- Net P&L is Gross P&L minus Fees.
+- Default Risked Amount is absolute entry-to-stop distance times Quantity times multiplier; it is 0 when no stop price is set.
+- An explicit Risked Amount override replaces the default; derived Gross/Net never change because of it.
+- R-Multiple is Net P&L divided by Risked Amount, and is 0 when nothing was risked (never NaN or Infinity).
+- A Trade is a Win when Net P&L is above 0, a Loss when below 0, Breakeven when exactly 0.
+- An empty chart URL is valid; a non-empty one must be http(s), so ftp and javascript schemes are rejected.
+
+## Dashboard derivation (computeMetrics, the single shared seam)
+- Total Trades counts every logged Trade.
+- Win Rate is Wins divided by Wins plus Losses times 100; Breakeven never moves it and an empty journal reads 0.
+- Net total is the plain sum of Net P&L, so Short, multiplier, and Fees flow through unchanged.
+- Average Win and Average Loss are Net means of their buckets; each reads 0 when its bucket is empty.
+- Profit Factor is summed Win Net over absolute summed Loss Net; it is Infinity with wins but no losses and 0 with no wins.
+- Day Win Rate buckets Net by UTC close day and rates winning days over nonzero days times 100; flat days are excluded, mirroring Win Rate.
+- The balance curve anchors at the starting balance on the first close, then steps close-time-ordered cumulative Net; an empty journal has no curve.
+- Recent Trades are newest close first, capped at 10.
+- Profit Factor renders as `∞` when infinite, rates render with two decimals.
+
+## Store and settings
+- Trades persist in the `openjournal-trades` SignalDB collection (localStorage) and survive reloads; readers must await readiness first.
+- Trades list newest close first.
+- Starting balance is USD-only, defaults to 10000, persists under `openjournal-starting-balance`; missing, negative, or corrupt values fall back to default.
+- Setup/Emotion/Mistake seeds always offered; user-added values persist under `openjournal-taxonomy`, merge after seeds, and survive reloads; blanks and duplicates are ignored.
+- The multiplier defaults by market (Stocks/Crypto/Forex 1, Futures 5, Options 100) on market change and stays editable afterwards.
+
+## Views
+- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent), /trades (log form, full table, custom tags), /journal (month calendar, day detail, month summary); unknown paths redirect to /dashboard.
+- Empty states read `No trades yet`, `No recent trades yet`, `No trades this day`.
+- Empty submit logs nothing and names each missing field (Asset, positive Quantity/Multiplier, non-negative Fees, both timestamps, valid URL).
+- Dates are stored UTC ISO and displayed in local format, never raw ISO.
+- Calendar days key off UTC close date; loss days render destructive, gains show a `+` prefix.
+- Month Net sums the month's Net; month-end balance equals starting balance plus cumulative Net through month end, matching Dashboard math.
+- Templates use Spartan zinc theme tokens only; no hard-coded palette (enforced by design-tokens.spec.ts).
