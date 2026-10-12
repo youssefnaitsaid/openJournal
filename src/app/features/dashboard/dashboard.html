@@ -1,1 +1,76 @@
-<p>dashboard works!</p>
+<section class="flex flex-col gap-6">
+  <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+
+  <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <article class="rounded-lg border border-border bg-card p-4">
+      <h2 class="text-sm text-muted-foreground">Net P&amp;L</h2>
+      <p class="text-2xl font-semibold">{{ metrics().netTotal }}</p>
+    </article>
+    <article class="rounded-lg border border-border bg-card p-4">
+      <h2 class="text-sm text-muted-foreground">Trade win %</h2>
+      <p class="text-2xl font-semibold">{{ rate(metrics().winRate) }}</p>
+    </article>
+    <article class="rounded-lg border border-border bg-card p-4">
+      <h2 class="text-sm text-muted-foreground">Profit factor</h2>
+      <p class="text-2xl font-semibold">{{ profitFactorText() }}</p>
+    </article>
+    <article class="rounded-lg border border-border bg-card p-4">
+      <h2 class="text-sm text-muted-foreground">Day win %</h2>
+      <p class="text-2xl font-semibold">{{ rate(metrics().dayWinRate) }}</p>
+    </article>
+    <article class="rounded-lg border border-border bg-card p-4">
+      <h2 class="text-sm text-muted-foreground">Avg win / loss</h2>
+      <p class="text-2xl font-semibold">{{ metrics().avgWin }} / {{ metrics().avgLoss }}</p>
+    </article>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    <label class="flex max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
+      <input
+        type="number"
+        min="0"
+        step="any"
+        aria-label="Starting balance"
+        [value]="startingBalance()"
+        (input)="onBalanceInput($event)"
+        class="rounded-md border border-input bg-background px-2 py-1"
+      />
+    </label>
+
+    @if (chartPoints() !== '') {
+      <figure class="rounded-lg border border-border bg-card p-4">
+        <figcaption class="text-sm text-muted-foreground">Account balance</figcaption>
+        <svg viewBox="0 0 100 40" class="h-40 w-full" role="img" aria-label="Account balance over time">
+          <polyline [attr.points]="chartPoints()" fill="none" stroke="currentColor" stroke-width="1" />
+        </svg>
+        <p class="text-2xl font-semibold">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
+      </figure>
+    }
+  </div>
+
+  <section class="flex flex-col gap-2">
+    <h2 class="text-lg font-medium">Recent trades</h2>
+    @if (metrics().recent.length === 0) {
+      <p class="text-sm text-muted-foreground">No recent trades yet.</p>
+    } @else {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-muted-foreground">
+            <th class="py-1 pr-3">Close date</th>
+            <th class="py-1 pr-3">Asset</th>
+            <th class="py-1 pr-3">Net P&amp;L</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (trade of metrics().recent; track trade.id) {
+            <tr class="border-t border-border">
+              <td class="py-1 pr-3">{{ trade.closedAt }}</td>
+              <td class="py-1 pr-3">{{ trade.asset }}</td>
+              <td class="py-1 pr-3">{{ trade.net }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</section>
