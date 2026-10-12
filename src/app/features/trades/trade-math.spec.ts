@@ -1,0 +1,156 @@
+import { describe, expect, it } from 'vitest';
+import {
+  classify,
+  defaultRisked,
+  deriveTrade,
+  grossPnl,
+  isValidChartUrl,
+  netPnl,
+  rMultiple,
+} from './trade-math';
+
+describe('grossPnl', () => {
+  it('derives a Long win from price difference times Quantity times multiplier', () => {
+    expect(grossPnl('Long', 100, 110, 10, 1)).toBe(100);
+  });
+
+  it('derives a Long loss as negative', () => {
+    expect(grossPnl('Long', 110, 100, 10, 1)).toBe(-100);
+  });
+
+  it('inverts the difference for a Short win', () => {
+    expect(grossPnl('Short', 50, 45, 20, 1)).toBe(100);
+  });
+
+  it('derives a Short loss as negative', () => {
+    expect(grossPnl('Short', 45, 50, 20, 1)).toBe(-100);
+  });
+
+  it('applies the contract multiplier (MES-style)', () => {
+    expect(grossPnl('Long', 5000, 5010, 2, 5)).toBe(100);
+  });
+});
+
+describe('netPnl', () => {
+  it('subtracts Fees from Gross P&L', () => {
+    expect(netPnl(100, 1.5)).toBe(98.5);
+  });
+});
+
+describe('defaultRisked', () => {
+  it('derives Long risk from entry-to-stop distance', () => {
+    expect(defaultRisked('Long', 100, 98, 10, 1)).toBe(20);
+  });
+
+  it('derives Short risk from stop-to-entry distance', () => {
+    expect(defaultRisked('Short', 50, 55, 20, 1)).toBe(100);
+  });
+
+  it('is zero when no stop was set', () => {
+    expect(defaultRisked('Long', 100, null, 10, 1)).toBe(0);
+  });
+});
+
+describe('rMultiple', () => {
+  it('divides Net P&L by Risked Amount', () => {
+    expect(rMultiple(99, 20)).toBeCloseTo(4.95, 10);
+  });
+
+  it('is negative on losses', () => {
+    expect(rMultiple(-50, 25)).toBe(-2);
+  });
+
+  it('is zero when nothing was risked instead of NaN or Infinity', () => {
+    expect(rMultiple(99, 0)).toBe(0);
+    expect(rMultiple(-50, 0)).toBe(0);
+  });
+});
+
+describe('classify', () => {
+  it('calls Net above zero a Win, below zero a Loss, exactly zero Breakeven', () => {
+    expect(classify(0.01)).toBe('Win');
+    expect(classify(-0.01)).toBe('Loss');
+    expect(classify(0)).toBe('Breakeven');
+  });
+});
+
+describe('isValidChartUrl', () => {
+  it('allows empty evidence', () => {
+    expect(isValidChartUrl('')).toBe(true);
+  });
+
+  it('allows http and https chart links', () => {
+    expect(isValidChartUrl('https://example.com/chart.png')).toBe(true);
+    expect(isValidChartUrl('http://example.com/c')).toBe(true);
+  });
+
+  it('rejects non-links and unsafe schemes', () => {
+    expect(isValidChartUrl('not-a-url')).toBe(false);
+    expect(isValidChartUrl('ftp://example.com/chart.png')).toBe(false);
+    expect(isValidChartUrl('javascript:alert(1)')).toBe(false);
+  });
+});
+
+describe('deriveTrade', () => {
+  it('derives Gross, Net, Risked, and R-Multiple from a Trade input', () => {
+    const trade = deriveTrade(
+      {
+        asset: 'AAPL',
+        market: 'Stocks',
+        side: 'Long',
+        quantity: 10,
+        multiplier: 1,
+        entryPrice: 100,
+        exitPrice: 110,
+        stopPrice: 98,
+        takePrice: 115,
+        fees: 1,
+        openedAt: '2026-10-01T13:30:00.000Z',
+        closedAt: '2026-10-01T14:30:00.000Z',
+        setup: 'Breakout',
+        emotionBefore: 'Calm',
+        emotionAfter: 'Disciplined',
+        mistake: 'None-followed-plan',
+        chartUrl: '',
+        notes: '',
+      },
+      'trade-1',
+    );
+    expect(trade.gross).toBe(100);
+    expect(trade.net).toBe(99);
+    expect(trade.risked).toBe(20);
+    expect(trade.rMultiple).toBeCloseTo(4.95, 10);
+    expect(trade.id).toBe('trade-1');
+  });
+
+  it('honours a Risked Amount override', () => {
+    const trade = deriveTrade(
+      {
+        asset: 'MES',
+        market: 'Futures',
+        side: 'Long',
+        quantity: 2,
+        multiplier: 5,
+        entryPrice: 5000,
+        exitPrice: 5010,
+        stopPrice: 4990,
+        takePrice: 5020,
+        riskedAmount: 50,
+        fees: 2.5,
+        openedAt: '2026-10-01T13:30:00.000Z',
+        closedAt: '2026-10-01T14:30:00.000Z',
+        setup: 'Trend-continuation',
+        emotionBefore: 'Confident',
+        emotionAfter: 'Calm',
+        mistake: 'None-followed-plan',
+        chartUrl: '',
+        notes: '',
+      },
+      'trade-2',
+    );
+    expect(trade.gross).toBe(100);
+    expect(trade.net).toBe(97.5);
+    expect(trade.risked).toBe(50);
+    expect(trade.rMultiple).toBeCloseTo(1.95, 10);
+  });
+});

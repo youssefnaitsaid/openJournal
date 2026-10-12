@@ -1,1 +1,117 @@
-<p>trades works!</p>
+<section class="flex flex-col gap-6">
+  <h1 class="text-2xl font-semibold tracking-tight">Trades</h1>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid max-w-3xl grid-cols-2 gap-3">
+    <label class="flex flex-col gap-1 text-sm">Asset
+      <input formControlName="asset" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Market
+      <select formControlName="market" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (m of markets; track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Side
+      <select formControlName="side" class="rounded-md border border-input bg-background px-2 py-1">
+        <option value="Long">Long</option>
+        <option value="Short">Short</option>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Quantity
+      <input type="number" step="any" min="0" formControlName="quantity" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Multiplier
+      <input type="number" step="any" min="0" formControlName="multiplier" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Entry price
+      <input type="number" step="any" formControlName="entryPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Exit price
+      <input type="number" step="any" formControlName="exitPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Fees
+      <input type="number" step="any" min="0" formControlName="fees" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Stop price (optional)
+      <input type="number" step="any" formControlName="stopPrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Take price (optional)
+      <input type="number" step="any" formControlName="takePrice" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Risked override (optional)
+      <input type="number" step="any" min="0" formControlName="riskedAmount" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Opened at
+      <input type="datetime-local" formControlName="openedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Closed at
+      <input type="datetime-local" formControlName="closedAt" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Setup
+      <select formControlName="setup" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (s of setups; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Emotion before
+      <select formControlName="emotionBefore" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (e of emotions; track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Emotion after
+      <select formControlName="emotionAfter" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (e of emotions; track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Mistake
+      <select formControlName="mistake" class="rounded-md border border-input bg-background px-2 py-1">
+        @for (m of mistakes; track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
+      <input formControlName="chartUrl" inputmode="url" placeholder="https://…" class="rounded-md border border-input bg-background px-2 py-1" />
+      @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
+        <span class="text-sm text-destructive">Enter a valid URL starting with http(s), or leave empty.</span>
+      }
+    </label>
+    <label class="flex flex-col gap-1 text-sm">Notes
+      <input formControlName="notes" class="rounded-md border border-input bg-background px-2 py-1" />
+    </label>
+    <div class="col-span-2">
+      <button type="submit" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Log trade</button>
+    </div>
+  </form>
+
+  @if (rows().length === 0) {
+    <p class="text-sm text-muted-foreground">No trades yet. Log your first trade above.</p>
+  } @else {
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-muted-foreground">
+          <th class="py-1 pr-3">Close date</th>
+          <th class="py-1 pr-3">Asset</th>
+          <th class="py-1 pr-3">Side</th>
+          <th class="py-1 pr-3">Net P&amp;L</th>
+          <th class="py-1 pr-3">R</th>
+          <th class="py-1 pr-3">Setup</th>
+          <th class="py-1 pr-3">Chart</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (trade of rows(); track trade.id) {
+          <tr class="border-t border-border">
+            <td class="py-1 pr-3">{{ trade.closedAt }}</td>
+            <td class="py-1 pr-3">{{ trade.asset }}</td>
+            <td class="py-1 pr-3">{{ trade.side }}</td>
+            <td class="py-1 pr-3">{{ trade.net }}</td>
+            <td class="py-1 pr-3">{{ trade.rMultiple }}</td>
+            <td class="py-1 pr-3">{{ trade.setup }}</td>
+            <td class="py-1 pr-3">
+              @if (trade.chartUrl !== '') {
+                <a [href]="trade.chartUrl" target="_blank" rel="noopener">chart</a>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
