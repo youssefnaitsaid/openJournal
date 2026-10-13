@@ -32,6 +32,11 @@ export type Mistake =
 
 export type Grade = 'A' | 'B' | 'C' | 'D';
 
+export interface RuleCheck {
+  text: string;
+  followed: boolean;
+}
+
 export const MARKETS: readonly Market[] = [
   'Stocks',
   'Futures',
@@ -99,6 +104,7 @@ export interface TradeInput {
   emotionAfter: Emotion;
   mistake: Mistake;
   grade?: Grade | '';
+  rules?: RuleCheck[];
   chartUrl: string;
   notes: string;
   tags?: string[];
@@ -107,7 +113,8 @@ export interface TradeInput {
 export interface Trade extends TradeInput {
   id: string;
   grade: Grade | '';
-  tags: string[];
+  rules: RuleCheck[];
+  compliance: number | null;  tags: string[];
   gross: number;
   net: number;
   risked: number;

@@ -334,4 +334,72 @@ describe('Trades', () => {
     component.gradeFilter.set('A');
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
   });
+
+  it('logs unscored when the playbook checklist is untouched', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.addRule('risk ≤ 1%');
+    component.addRule('entry on retest');
+    expect(component.checks()).toHaveLength(2);
+    component.form.setValue(validValues());
+    component.onSubmit();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()).toHaveLength(1);
+    expect(store.trades()[0]!.rules).toEqual([]);
+    expect(store.trades()[0]!.compliance).toBeNull();
+  });
+
+  it('freezes a touched checklist as the Trade snapshot with compliance', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.addRule('risk ≤ 1%');
+    component.addRule('entry on retest');
+    component.form.setValue(validValues());
+    component.toggleCheck(0);
+    component.onSubmit();
+    await fixture.whenStable();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()[0]!.rules).toEqual([
+      { text: 'risk ≤ 1%', followed: true },
+      { text: 'entry on retest', followed: false },
+    ]);
+    expect(store.trades()[0]!.compliance).toBeCloseTo(50, 10);
+    const compiled = fixture.nativeElement as HTMLElement;
+    const header =
+      compiled.querySelector('thead tr')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(header).toContain('Compliance');
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows[0]).toContain('50.00%');
+  });
+
+  it('keeps the snapshot frozen when playbook rules change later', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.addRule('risk ≤ 1%');
+    component.form.setValue(validValues());
+    component.toggleCheck(0);
+    component.onSubmit();
+    component.addRule('entry on retest');
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()[0]!.rules).toEqual([{ text: 'risk ≤ 1%', followed: true }]);
+    expect(store.trades()[0]!.compliance).toBe(100);
+  });
+
+  it('hides archived setups from the picker while keeping history', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    expect(component.setupOptions()).toContain('Breakout');
+    component.togglePlaybookArchived();
+    expect(component.setupOptions()).not.toContain('Breakout');
+    expect(component.archivedPlaybooks()).toContain('Breakout');
+    component.unarchivePlaybook('Breakout');
+    expect(component.setupOptions()).toContain('Breakout');
+    expect(component.archivedPlaybooks()).not.toContain('Breakout');
+  });
 });

@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { Collection } from '@signaldb/core';
 import createLocalStorageAdapter from '@signaldb/localstorage';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { deriveTrade } from './trade-math';
+import { tradeInput } from './trade-fixtures';
 import { TradesStore } from './trades-store';
 import type { Trade, TradeInput } from './trade';
 
@@ -85,5 +87,28 @@ describe('TradesStore', () => {
     store.resetFilter();
     expect(store.isFiltering()).toBe(false);
     expect(store.filteredTrades().length).toBe(2);
+  });
+
+  it('trusts the stored frozen Compliance on reload instead of recomputing', async () => {
+    const raw = new Collection<Trade, string>({
+      persistence: createLocalStorageAdapter<Trade, string>(
+        'openjournal-trades',
+      ),
+    });
+    await raw.isReady();
+    const frozen = deriveTrade(
+      tradeInput({
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: false },
+        ],
+      }),
+      'frozen-1',
+    );
+    raw.insert({ ...frozen, compliance: 75 });
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    expect(store.trades()).toHaveLength(1);
+    expect(store.trades()[0]!.compliance).toBe(75);
   });
 });

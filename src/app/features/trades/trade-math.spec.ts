@@ -6,6 +6,7 @@ import {
   grossPnl,
   isValidChartUrl,
   netPnl,
+  normalizeRuleChecks,
   normalizeTags,
   rMultiple,
 } from './trade-math';
@@ -204,5 +205,95 @@ describe('deriveTrade tags', () => {
       'tags-1',
     );
     expect(trade.tags).toEqual(['FOMC']);
+  });
+});
+
+describe('normalizeRuleChecks', () => {
+  it('trims texts and drops blanks while preserving casing', () => {
+    expect(
+      normalizeRuleChecks([
+        { text: ' risk ≤ 1% ', followed: true },
+        { text: '  ', followed: true },
+        { text: 'entry on retest', followed: false },
+      ]),
+    ).toEqual([
+      { text: 'risk ≤ 1%', followed: true },
+      { text: 'entry on retest', followed: false },
+    ]);
+  });
+
+  it('dedupes exact-case duplicate rule texts keeping the first check', () => {
+    expect(
+      normalizeRuleChecks([
+        { text: 'risk ≤ 1%', followed: true },
+        { text: 'risk ≤ 1%', followed: false },
+        { text: 'Risk ≤ 1%', followed: false },
+      ]),
+    ).toEqual([
+      { text: 'risk ≤ 1%', followed: true },
+      { text: 'Risk ≤ 1%', followed: false },
+    ]);
+  });
+
+  it('reads missing or non-array rules as empty', () => {
+    expect(normalizeRuleChecks(undefined)).toEqual([]);
+    expect(normalizeRuleChecks('risk')).toEqual([]);
+  });
+});
+
+describe('deriveTrade compliance', () => {
+  it('defaults a pre-playbook Trade input to unscored', () => {
+    const { rules: _dropped, ...legacy } = tradeInput();
+    const trade = deriveTrade(legacy, 'legacy-rules-1');
+    expect(trade.rules).toEqual([]);
+    expect(trade.compliance).toBeNull();
+  });
+
+  it('scores a touched checklist as followed over total times 100', () => {
+    const trade = deriveTrade(
+      tradeInput({
+        rules: [
+          { text: 'risk ≤ 1%', followed: true },
+          { text: 'entry on retest', followed: true },
+          { text: 'no FOMO entry', followed: false },
+        ],
+      }),
+      'compliance-1',
+    );
+    expect(trade.rules).toEqual([
+      { text: 'risk ≤ 1%', followed: true },
+      { text: 'entry on retest', followed: true },
+      { text: 'no FOMO entry', followed: false },
+    ]);
+    expect(trade.compliance).toBeCloseTo((2 / 3) * 100, 10);
+  });
+
+  it('scores an empty rule list as unscored, never zero', () => {
+    const trade = deriveTrade(tradeInput({ rules: [] }), 'compliance-empty-1');
+    expect(trade.rules).toEqual([]);
+    expect(trade.compliance).toBeNull();
+  });
+
+  it('scores all-skipped as zero and all-followed as one hundred', () => {
+    const skipped = deriveTrade(
+      tradeInput({
+        rules: [
+          { text: 'a', followed: false },
+          { text: 'b', followed: false },
+        ],
+      }),
+      'compliance-zero-1',
+    );
+    expect(skipped.compliance).toBe(0);
+    const full = deriveTrade(
+      tradeInput({
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: true },
+        ],
+      }),
+      'compliance-full-1',
+    );
+    expect(full.compliance).toBe(100);
   });
 });
