@@ -144,4 +144,83 @@ describe('Journal', () => {
       '';
     expect(detail).toMatch(/Oct 1, 2026/);
   });
+
+  it('renders the month report card with metrics and copy control', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Month report card');
+    expect(content).toContain('Total Trades');
+    expect(content).toContain('Net P&L');
+    expect(content).toContain('Win-rate');
+    expect(content).toContain('Profit Factor');
+    expect(content).toContain('Best Setup');
+    expect(content).toContain('Worst Setup');
+    expect(content).toContain('Top Mistake');
+    expect(content).toContain('Compliance');
+    expect(
+      compiled.querySelector('[aria-label="Copy month report card"]'),
+    ).not.toBeNull();
+  });
+
+  it('keeps the report card on full-month data while filtering', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    await fixture.whenStable();
+    component.store.setFilter({ asset: 'ZZZ-no-match' });
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled
+      .querySelector('[aria-label="Month report card"]')
+      ?.textContent?.replace(/\s+/g, ' ');
+    expect(card).toContain('Trades: 2');
+  });
+
+  it('navigates the report card with the month cursor', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    await fixture.whenStable();
+    component.next();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled
+      .querySelector('[aria-label="Month report card"]')
+      ?.textContent?.replace(/\s+/g, ' ');
+    expect(card).toContain('Trades: 0');
+  });
+
+  it('copies the card markdown to the clipboard with confirmation', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const written: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: (text: string) => { written.push(text); return Promise.resolve(); } },
+      configurable: true,
+    });
+    const compiled = fixture.nativeElement as HTMLElement;
+    (
+      compiled.querySelector('[aria-label="Copy month report card"]') as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+    expect(written).toEqual([
+      [
+        'OpenJournal — 2026-10 report card',
+        'Trades: 2 · Net: -$6.00 · Win-rate: 50.00% · PF: 0.94',
+        'Best Setup: Breakout (+$99.00) · Worst Setup: Opening-drive (-$105.00)',
+        'Top Mistake: None-followed-plan ×1 · Compliance: — (0/2 scored)',
+      ].join('\n'),
+    ]);
+    expect(
+      compiled.querySelector('[aria-label="Copy month report card"]')?.textContent,
+    ).toContain('Copied');
+  });
 });

@@ -5,9 +5,16 @@ import {
   lucideCalendarDays,
   lucideChevronLeft,
   lucideChevronRight,
+  lucideClipboardCheck,
+  lucideClipboardCopy,
+  lucideScrollText,
 } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
+import {
+  computeMonthReportCard,
+  formatMonthReportCard,
+} from './journal-report-card';
 import { loadStartingBalance } from '../../settings';
 import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
@@ -15,7 +22,14 @@ import { PageHero } from '../../ui/page-hero';
 @Component({
   imports: [DatePipe, NgIcon, EmptyState, PageHero],
   providers: [
-    provideIcons({ lucideCalendarDays, lucideChevronLeft, lucideChevronRight }),
+    provideIcons({
+      lucideCalendarDays,
+      lucideChevronLeft,
+      lucideChevronRight,
+      lucideClipboardCheck,
+      lucideClipboardCopy,
+      lucideScrollText,
+    }),
   ],
   selector: 'app-journal',
   styleUrl: './journal.css',
@@ -52,6 +66,20 @@ export class Journal {
     ),
   );
 
+  readonly reportCard = computed(() =>
+    computeMonthReportCard(
+      this.store.trades(),
+      this.cursor().year,
+      this.cursor().month,
+    ),
+  );
+
+  readonly reportMarkdown = computed(() =>
+    formatMonthReportCard(this.reportCard()),
+  );
+
+  readonly copied = signal(false);
+
   readonly monthLabel = computed(() =>
     new Date(Date.UTC(this.cursor().year, this.cursor().month, 1)).toLocaleString(
       'en-US',
@@ -69,6 +97,7 @@ export class Journal {
 
   prev(): void {
     const { year, month } = this.cursor();
+    this.copied.set(false);
     this.cursor.set(
       month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 },
     );
@@ -76,6 +105,7 @@ export class Journal {
 
   next(): void {
     const { year, month } = this.cursor();
+    this.copied.set(false);
     this.cursor.set(
       month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 },
     );
@@ -83,9 +113,52 @@ export class Journal {
 
   goToCurrent(): void {
     const now = new Date();
+    this.copied.set(false);
     this.cursor.set({
       year: now.getUTCFullYear(),
       month: now.getUTCMonth(),
     });
   }
+
+  copyReport(): void {
+    const text = this.reportMarkdown();
+    const done = () => this.copied.set(true);
+    const clipboard = (
+      navigator as Navigator & {
+        clipboard?: { writeText: (text: string) => Promise<void> };
+      }
+    ).clipboard;
+    if (clipboard) {
+      void clipboard.writeText(text).then(done, () => undefined);
+    } else {
+      done();
+    }
+  }
+
+  readonly formatPercent = (value: number): string => value.toFixed(2);
+
+  readonly profitFactorText = (value: number): string =>
+    Number.isFinite(value) ? value.toFixed(2) : '∞';
+
+  readonly signedDollars = (value: number): string => {
+    const abs = Math.abs(value).toFixed(2);
+    if (value > 0) return `+$${abs}`;
+    if (value < 0) return `-$${abs}`;
+    return `$0.00`;
+  };
+
+  readonly setupText = (entry: { value: string; netTotal: number } | null): string =>
+    entry === null ? '—' : `${entry.value} (${this.signedDollars(entry.netTotal)})`;
+
+  readonly mistakeText = (
+    entry: { value: string; trades: number } | null,
+  ): string => (entry === null ? '—' : `${entry.value} ×${entry.trades}`);
+
+  readonly complianceText = (): string => {
+    const card = this.reportCard();
+    const fraction = `(${card.scored}/${card.totalTrades} scored)`;
+    return card.avgCompliance === null
+      ? `— ${fraction}`
+      : `${card.avgCompliance.toFixed(2)}% ${fraction}`;
+  };
 }
