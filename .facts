@@ -58,6 +58,6 @@
 - Empty states read `No trades yet`, `No recent trades yet`, `No trades this day`.
 - Empty submit logs nothing and names each missing field (Asset, positive Quantity/Multiplier, non-negative Fees, both timestamps, valid URL).
 - Dates are stored UTC ISO and displayed in local format, never raw ISO.
-- Calendar days key off UTC close date; loss days render destructive, gains show a `+` prefix.
+- Calendar days key off UTC close date; loss days render destructive, gains show a `+` prefix, flat days with Trades show `0` neutral, empty days show no Net.
 - Month Net sums the month's Net; month-end balance equals starting balance plus cumulative Net through month end, matching Dashboard math.
 - Templates use Spartan zinc theme tokens only; no hard-coded palette (enforced by design-tokens.spec.ts).

@@ -46,6 +46,53 @@
     </div>
   </div>
 
+  <section aria-label="Month report card" class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
+    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
+      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+        <ng-icon name="lucideScrollText" class="size-5" />
+      </span>
+      <span class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">Month report card</h2>
+        <p class="text-sm text-muted-foreground">Auto-generated from this month's closed Trades.</p>
+      </span>
+      <button
+        type="button"
+        aria-label="Copy month report card"
+        (click)="copyReport()"
+        class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+      >
+        @if (copied()) {
+          <ng-icon name="lucideClipboardCheck" class="size-4" />
+          Copied
+        } @else {
+          <ng-icon name="lucideClipboardCopy" class="size-4" />
+          Copy
+        }
+      </button>
+    </div>
+    <div class="px-4 py-6 sm:px-6">
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <dt class="text-muted-foreground">Total Trades</dt>
+        <dd class="text-foreground">Trades: {{ reportCard().totalTrades }}</dd>
+        <dt class="text-muted-foreground">Net P&L</dt>
+        <dd class="font-medium" [class]="reportCard().netTotal < 0 ? 'text-destructive' : 'text-success'">{{ signedDollars(reportCard().netTotal) }}</dd>
+        <dt class="text-muted-foreground">Win-rate</dt>
+        <dd class="text-foreground">{{ formatPercent(reportCard().winRate) }}%</dd>
+        <dt class="text-muted-foreground">Profit Factor</dt>
+        <dd class="text-foreground">{{ profitFactorText(reportCard().profitFactor) }}</dd>
+        <dt class="text-muted-foreground">Best Setup</dt>
+        <dd class="text-foreground">{{ setupText(reportCard().bestSetup) }}</dd>
+        <dt class="text-muted-foreground">Worst Setup</dt>
+        <dd class="text-foreground">{{ setupText(reportCard().worstSetup) }}</dd>
+        <dt class="text-muted-foreground">Top Mistake</dt>
+        <dd class="text-foreground">{{ mistakeText(reportCard().topMistake) }}</dd>
+        <dt class="text-muted-foreground">Compliance</dt>
+        <dd class="text-foreground">{{ complianceText() }}</dd>
+      </dl>
+      <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>
+    </div>
+  </section>
+
   <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
     <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
       <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
@@ -74,8 +121,8 @@
                 class="flex min-h-16 flex-col items-start rounded-xl border border-border p-1.5 text-left text-sm hover:bg-sidebar-accent"
               >
                 <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
-                @if (cell.dayNet !== 0) {
-                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : 'text-success'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
+                @if (cell.trades.length > 0) {
+                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : cell.dayNet > 0 ? 'text-success' : 'text-muted-foreground'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
                 }
               </button>
             }
