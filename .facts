@@ -17,6 +17,9 @@
 - Profit Factor is summed Win Net over absolute summed Loss Net; it is Infinity with wins but no losses and 0 with no wins.
 - Day Win Rate buckets Net by UTC close day and rates winning days over nonzero days times 100; flat days are excluded, mirroring Win Rate.
 - The balance curve anchors at the starting balance on the first close, then steps close-time-ordered cumulative Net; an empty journal has no curve.
+- Max drawdown is the largest peak-to-trough drop over the balance curve including the starting anchor, with pct as drop over peak times 100; empty or never-down reads 0 and 0%, and a zero peak reads 0% (never NaN or Infinity).
+- Win/Loss streaks run on close-time-ordered Trades; Breakeven resets both, current is the trailing run (one side always 0), longest is the max run; all read 0 on empty.
+- Expectancy is Net total divided by Total Trades with Breakevens included; an empty journal reads 0.
 - Recent Trades are newest close first, capped at 10.
 - Profit Factor renders as `∞` when infinite, rates render with two decimals.
 

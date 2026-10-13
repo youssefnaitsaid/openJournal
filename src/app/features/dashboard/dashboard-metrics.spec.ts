@@ -86,4 +86,82 @@ describe('computeMetrics', () => {
     const m = computeMetrics([WIN_A(), WIN_B(), LOSS(), FLAT()], 10000, 2);
     expect(m.recent.map((t) => t.asset)).toEqual(['FLAT', 'LOSS']);
   });
+
+  it('reads zero drawdown on an empty journal', () => {
+    const m = computeMetrics([], 10000);
+    expect(m.maxDrawdown).toBe(0);
+    expect(m.maxDrawdownPct).toBe(0);
+  });
+
+  it('measures peak-to-trough drawdown off the balance curve', () => {
+    const m = computeMetrics([WIN_A(), WIN_B(), LOSS(), FLAT()], 10000);
+    expect(m.maxDrawdown).toBe(105);
+    expect(m.maxDrawdownPct).toBeCloseTo((105 / 10149) * 100, 10);
+  });
+
+  it('reads zero streaks on an empty journal', () => {
+    const m = computeMetrics([], 10000);
+    expect(m.currentWinStreak).toBe(0);
+    expect(m.currentLossStreak).toBe(0);
+    expect(m.longestWinStreak).toBe(0);
+    expect(m.longestLossStreak).toBe(0);
+    expect(m.expectancy).toBe(0);
+  });
+
+  it('tracks current and longest streaks with Breakeven breaking both', () => {
+    const m = computeMetrics([WIN_A(), WIN_B(), LOSS(), FLAT()], 10000);
+    expect(m.currentWinStreak).toBe(0);
+    expect(m.currentLossStreak).toBe(0);
+    expect(m.longestWinStreak).toBe(2);
+    expect(m.longestLossStreak).toBe(1);
+  });
+
+  it('tracks a trailing run as the current streak', () => {
+    const earlyLoss = tradeFixture({
+      asset: 'LOSS',
+      quantity: 10,
+      entryPrice: 100,
+      exitPrice: 90,
+      fees: 5,
+      closedAt: '2026-10-01T14:30:00.000Z',
+    });
+    const lateWinA = tradeFixture({
+      asset: 'WIN-A',
+      quantity: 10,
+      entryPrice: 100,
+      exitPrice: 110,
+      fees: 1,
+      closedAt: '2026-10-02T14:30:00.000Z',
+    });
+    const lateWinB = tradeFixture({
+      asset: 'WIN-B',
+      side: 'Short',
+      quantity: 10,
+      entryPrice: 50,
+      exitPrice: 45,
+      closedAt: '2026-10-03T14:30:00.000Z',
+    });
+    const m = computeMetrics([lateWinB, lateWinA, earlyLoss], 10000);
+    expect(m.currentWinStreak).toBe(2);
+    expect(m.currentLossStreak).toBe(0);
+    expect(m.longestWinStreak).toBe(2);
+    expect(m.longestLossStreak).toBe(1);
+  });
+
+  it('averages Net P&L over all Trades including Breakeven', () => {
+    const m = computeMetrics([WIN_A(), WIN_B(), LOSS(), FLAT()], 10000);
+    expect(m.expectancy).toBe(11);
+  });
+
+  it('reads zero drawdown when the curve never draws down', () => {
+    const m = computeMetrics([WIN_A(), WIN_B()], 10000);
+    expect(m.maxDrawdown).toBe(0);
+    expect(m.maxDrawdownPct).toBe(0);
+  });
+
+  it('reads 0% drawdown when the peak balance is zero', () => {
+    const m = computeMetrics([LOSS()], 0);
+    expect(m.maxDrawdown).toBe(105);
+    expect(m.maxDrawdownPct).toBe(0);
+  });
 });
