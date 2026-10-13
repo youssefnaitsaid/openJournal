@@ -11,6 +11,7 @@ import {
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowDownUp, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
 import { EmptyState } from '../../ui/empty-state';
+import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
 import {
   EMOTIONS,
@@ -30,11 +31,13 @@ import type {
   Trade,
   TradeInput,
 } from './trade';
-import { isValidChartUrl } from './trade-math';
+import { isValidChartUrl, normalizeTags } from './trade-math';
 import { TradesStore } from './trades-store';
 import {
   addTaxonomyValue,
+  tagOptionsWithTrades,
   taxonomyOptions,
+  taxonomyVersion,
 } from '../journal/taxonomy';
 import type { TaxonomyKind } from '../journal/taxonomy';
 
@@ -45,7 +48,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, PageHero],
+  imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({ lucideArrowDownUp, lucideTags, lucideTableProperties }),
   ],
@@ -65,24 +68,24 @@ export class Trades {
   readonly gradeFilter = signal<Grade | ''>('');
   readonly needsReview = signal(false);
 
-  private readonly taxonomyVersion = signal(0);
-
   readonly setupOptions = computed(() => {
-    this.taxonomyVersion();
+    taxonomyVersion();
     return taxonomyOptions('setup', SETUPS);
   });
   readonly emotionOptions = computed(() => {
-    this.taxonomyVersion();
+    taxonomyVersion();
     return taxonomyOptions('emotion', EMOTIONS);
   });
   readonly mistakeOptions = computed(() => {
-    this.taxonomyVersion();
+    taxonomyVersion();
     return taxonomyOptions('mistake', MISTAKES);
   });
+  readonly tagOptions = computed(() =>
+    tagOptionsWithTrades(this.store.trades()),
+  );
 
   addCustom(kind: TaxonomyKind, value: string): void {
     addTaxonomyValue(kind, value);
-    this.taxonomyVersion.update((v) => v + 1);
   }
 
   addCustomSetup(value: string): void {
@@ -97,8 +100,18 @@ export class Trades {
     if (trimmed !== '') this.form.controls.mistake.setValue(trimmed);
   }
 
+  addCustomTag(value: string): void {
+    const tags = normalizeTags(value.split(','));
+    for (const tag of tags) this.addCustom('tag', tag);
+    if (tags.length > 0) this.form.controls.tags.setValue(tags.join(', '));
+  }
+
+  parseTags(value: string): string[] {
+    return normalizeTags(value.split(','));
+  }
+
   readonly rows = computed(() => {
-    const all = this.store.byCloseDesc();
+    const all = this.store.filteredByCloseDesc();
     if (this.needsReview()) {
       const reviewRank = (t: Trade): number => (t.grade === 'D' ? 0 : 1);
       const selected = this.gradeFilter();
@@ -148,6 +161,7 @@ export class Trades {
     grade: ['' as Grade | ''],
     chartUrl: ['', chartUrlValidator],
     notes: [''],
+    tags: [''],
   });
 
   constructor() {
@@ -168,6 +182,8 @@ export class Trades {
       return;
     }
     const v = this.form.getRawValue();
+    const tags = this.parseTags(v.tags ?? '');
+    for (const tag of tags) addTaxonomyValue('tag', tag);
     const input: TradeInput = {
       asset: v.asset.trim(),
       market: v.market,
@@ -189,6 +205,7 @@ export class Trades {
       grade: v.grade,
       chartUrl: v.chartUrl ?? '',
       notes: v.notes ?? '',
+      tags,
     };
     this.store.addTrade(input);
     this.form.reset({
@@ -204,6 +221,7 @@ export class Trades {
       grade: '',
       chartUrl: '',
       notes: '',
+      tags: '',
     });
   }
 }

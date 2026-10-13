@@ -106,6 +106,52 @@ describe('Analytics', () => {
     expect(rows[0]).toContain('Long');
   });
 
+  it('offers Tag in the picker and runs metrics over the filtered list', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'FOMC-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+        tags: ['FOMC'],
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'PLAIN-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const options = [...compiled.querySelectorAll('option')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(options).toContain('Tag');
+    const component = fixture.componentInstance;
+    component.dimension.set('tag');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Breakdown by Tag');
+    expect(content).toContain('FOMC');
+    expect(content).toContain('(Unspecified)');
+    store.setFilter({ tag: 'FOMC' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const filtered = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(filtered).toContain('1 of 2');
+    expect(filtered).toContain('+2.00R');
+  });
+
   it('offers Grade in the picker and regroups breakdowns by Grade', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();

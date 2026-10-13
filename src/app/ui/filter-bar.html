@@ -1,0 +1,96 @@
+<div class="flex flex-wrap items-center gap-2" aria-label="Global filter">
+  <span class="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+    <ng-icon name="lucideListFilter" class="size-4" />
+    Filter
+  </span>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">From
+    <input
+      type="date"
+      aria-label="From date"
+      [value]="store.filter().dateFrom"
+      (change)="onTextChange('dateFrom', $event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    />
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">To
+    <input
+      type="date"
+      aria-label="To date"
+      [value]="store.filter().dateTo"
+      (change)="onTextChange('dateTo', $event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    />
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Asset
+    <input
+      aria-label="Asset filter"
+      placeholder="e.g. MES"
+      [value]="store.filter().asset"
+      (input)="onTextChange('asset', $event)"
+      class="w-28 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    />
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Setup
+    <select
+      aria-label="Setup filter"
+      [value]="store.filter().setup"
+      (change)="onSetupChange($event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    >
+      <option value="">All</option>
+      @for (s of setupOptions(); track s) {
+        <option [value]="s" [selected]="s === store.filter().setup">{{ s }}</option>
+      }
+    </select>
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Side
+    <select
+      aria-label="Side filter"
+      [value]="store.filter().side"
+      (change)="onSideChange($event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    >
+      <option value="">All</option>
+      <option value="Long" [selected]="store.filter().side === 'Long'">Long</option>
+      <option value="Short" [selected]="store.filter().side === 'Short'">Short</option>
+    </select>
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Tag
+    <select
+      aria-label="Tag filter"
+      [value]="store.filter().tag"
+      (change)="onTagChange($event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    >
+      <option value="">All</option>
+      @for (t of tagOptions(); track t) {
+        <option [value]="t" [selected]="t === store.filter().tag">{{ t }}</option>
+      }
+    </select>
+  </label>
+  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Outcome
+    <select
+      aria-label="Outcome filter"
+      [value]="store.filter().outcome"
+      (change)="onOutcomeChange($event)"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+    >
+      <option value="All" [selected]="store.filter().outcome === 'All'">All</option>
+      <option value="Win" [selected]="store.filter().outcome === 'Win'">Win</option>
+      <option value="Loss" [selected]="store.filter().outcome === 'Loss'">Loss</option>
+      <option value="Breakeven" [selected]="store.filter().outcome === 'Breakeven'">Breakeven</option>
+    </select>
+  </label>
+  @if (store.isFiltering()) {
+    <button
+      type="button"
+      aria-label="Reset filter"
+      (click)="reset()"
+      class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground"
+    >
+      <ng-icon name="lucideRotateCcw" class="size-4" />
+      Reset
+    </button>
+  }
+  <span class="text-sm text-muted-foreground" aria-label="Filtered count">{{ countText() }} Trades</span>
+</div>

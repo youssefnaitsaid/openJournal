@@ -51,6 +51,20 @@ export function isValidChartUrl(value: string): boolean {
   }
 }
 
+export function normalizeTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed === '' || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
+}
+
 export function deriveTrade(input: TradeInput, id: string): Trade {
   const gross = grossPnl(
     input.side,
@@ -72,5 +86,5 @@ export function deriveTrade(input: TradeInput, id: string): Trade {
   const grade: Grade | '' = GRADES.includes(input.grade as Grade)
     ? (input.grade as Grade)
     : '';
-  return { ...input, grade, id, gross, net, risked, rMultiple: rMultiple(net, risked) };
+  return { ...input, grade, tags: normalizeTags(input.tags), id, gross, net, risked, rMultiple: rMultiple(net, risked) };
 }

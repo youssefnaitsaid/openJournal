@@ -22,6 +22,7 @@ export function tradeInput(overrides: Partial<TradeInput> = {}): TradeInput {
     grade: '',
     chartUrl: '',
     notes: '',
+    tags: [],
     ...overrides,
   };
 }

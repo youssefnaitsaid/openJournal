@@ -1,14 +1,20 @@
-export type TaxonomyKind = 'setup' | 'emotion' | 'mistake';
+import { signal } from '@angular/core';
+import type { Trade } from '../trades/trade';
+
+export type TaxonomyKind = 'setup' | 'emotion' | 'mistake' | 'tag';
 
 export interface CustomTaxonomy {
   setup: string[];
   emotion: string[];
   mistake: string[];
+  tag: string[];
 }
 
 const STORAGE_KEY = 'openjournal-taxonomy';
 
-const EMPTY: CustomTaxonomy = { setup: [], emotion: [], mistake: [] };
+const EMPTY: CustomTaxonomy = { setup: [], emotion: [], mistake: [], tag: [] };
+
+export const taxonomyVersion = signal(0);
 
 function asList(value: unknown): string[] {
   return Array.isArray(value)
@@ -27,6 +33,7 @@ export function loadCustomTaxonomy(): CustomTaxonomy {
       setup: asList(record.setup),
       emotion: asList(record.emotion),
       mistake: asList(record.mistake),
+      tag: asList(record.tag),
     };
   } catch {
     return { ...EMPTY };
@@ -40,6 +47,7 @@ export function addTaxonomyValue(kind: TaxonomyKind, value: string): void {
   if (current[kind].includes(trimmed)) return;
   current[kind] = [...current[kind], trimmed];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+  taxonomyVersion.update((v) => v + 1);
 }
 
 export function taxonomyOptions(
@@ -48,4 +56,20 @@ export function taxonomyOptions(
 ): string[] {
   const customs = loadCustomTaxonomy()[kind].filter((v) => !seeds.includes(v));
   return [...seeds, ...customs];
+}
+
+export function tagOptionsWithTrades(trades: readonly Trade[]): string[] {
+  taxonomyVersion();
+  const grown = taxonomyOptions('tag', []);
+  const seen = new Set(grown);
+  const fromTrades: string[] = [];
+  for (const t of trades) {
+    for (const tag of t.tags ?? []) {
+      if (!seen.has(tag)) {
+        seen.add(tag);
+        fromTrades.push(tag);
+      }
+    }
+  }
+  return [...grown, ...fromTrades];
 }

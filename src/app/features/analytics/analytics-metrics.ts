@@ -26,7 +26,8 @@ export type BreakdownDimension =
   | 'emotionBefore'
   | 'emotionAfter'
   | 'mistake'
-  | 'grade';
+  | 'grade'
+  | 'tag';
 
 export function computeBreakdowns(
   trades: readonly Trade[],
@@ -34,8 +35,8 @@ export function computeBreakdowns(
 ): readonly BreakdownRow[] {
   if (trades.length === 0) return [];
 
-  const keyFor = (t: Trade): string => {
-    switch (dimension) {
+  const keyFor = (t: Trade, dim: Exclude<BreakdownDimension, 'tag'>): string => {
+    switch (dim) {
       case 'setup':
         return t.setup;
       case 'asset':
@@ -55,6 +56,14 @@ export function computeBreakdowns(
     }
   };
 
+  const keysFor = (t: Trade): readonly string[] => {
+    if (dimension === 'tag') {
+      const tags = t.tags ?? [];
+      return tags.length > 0 ? tags : [''];
+    }
+    return [keyFor(t, dimension)];
+  };
+
   const displayKey = (raw: string): string =>
     raw.trim() === '' ? '(Unspecified)' : raw;
 
@@ -63,14 +72,16 @@ export function computeBreakdowns(
     { trades: number; netTotal: number; wins: number; losses: number; rSum: number }
   >();
   for (const t of trades) {
-    const key = displayKey(keyFor(t));
-    const entry = groups.get(key) ?? { trades: 0, netTotal: 0, wins: 0, losses: 0, rSum: 0 };
-    entry.trades += 1;
-    entry.netTotal += t.net;
-    if (t.net > 0) entry.wins += 1;
-    else if (t.net < 0) entry.losses += 1;
-    entry.rSum += t.rMultiple;
-    groups.set(key, entry);
+    for (const raw of keysFor(t)) {
+      const key = displayKey(raw);
+      const entry = groups.get(key) ?? { trades: 0, netTotal: 0, wins: 0, losses: 0, rSum: 0 };
+      entry.trades += 1;
+      entry.netTotal += t.net;
+      if (t.net > 0) entry.wins += 1;
+      else if (t.net < 0) entry.losses += 1;
+      entry.rSum += t.rMultiple;
+      groups.set(key, entry);
+    }
   }
 
   const sorted = [...groups.entries()]

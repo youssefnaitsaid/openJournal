@@ -79,6 +79,44 @@ describe('Dashboard', () => {
     expect(compiled.textContent).toContain('∞');
   });
 
+  it('keeps the hero on full-journal truth with a labeled filtered strip', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'FOMC-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+        tags: ['FOMC'],
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'PLAIN-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    let compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).not.toContain('Filtered view');
+    store.setFilter({ tag: 'FOMC' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Filtered view');
+    expect(content).toContain('1 of 2 Trades');
+    expect(content).toContain('100');
+    expect(content).toContain('100.00');
+  });
+
   it('shows a Total trades KPI card', async () => {
     await seed();
     const fixture = TestBed.createComponent(Dashboard);

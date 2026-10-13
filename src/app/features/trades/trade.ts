@@ -101,11 +101,13 @@ export interface TradeInput {
   grade?: Grade | '';
   chartUrl: string;
   notes: string;
+  tags?: string[];
 }
 
 export interface Trade extends TradeInput {
   id: string;
   grade: Grade | '';
+  tags: string[];
   gross: number;
   net: number;
   risked: number;

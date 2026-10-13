@@ -6,6 +6,7 @@ import {
   grossPnl,
   isValidChartUrl,
   netPnl,
+  normalizeTags,
   rMultiple,
 } from './trade-math';
 import { tradeInput } from './trade-fixtures';
@@ -170,5 +171,38 @@ describe('deriveTrade', () => {
       'invalid-grade-1',
     );
     expect(trade.grade).toBe('');
+  });
+});
+
+describe('normalizeTags', () => {
+  it('trims Tags and drops blanks while preserving casing', () => {
+    expect(normalizeTags([' FOMC ', '  ', 'earnings'])).toEqual([
+      'FOMC',
+      'earnings',
+    ]);
+  });
+
+  it('dedupes exact-case duplicates but keeps casing variants distinct', () => {
+    expect(normalizeTags(['FOMC', 'FOMC', 'fomc'])).toEqual(['FOMC', 'fomc']);
+  });
+
+  it('reads missing or non-array Tags as empty', () => {
+    expect(normalizeTags(undefined)).toEqual([]);
+    expect(normalizeTags('FOMC')).toEqual([]);
+  });
+});
+
+describe('deriveTrade tags', () => {
+  it('defaults a pre-tag Trade input to untagged', () => {
+    const { tags: _dropped, ...legacy } = tradeInput();
+    expect(deriveTrade(legacy, 'legacy-tags-1').tags).toEqual([]);
+  });
+
+  it('normalizes provided Tags at the boundary', () => {
+    const trade = deriveTrade(
+      tradeInput({ tags: [' FOMC ', 'FOMC', ''] }),
+      'tags-1',
+    );
+    expect(trade.tags).toEqual(['FOMC']);
   });
 });

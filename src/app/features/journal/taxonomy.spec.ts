@@ -13,10 +13,12 @@ describe('taxonomy', () => {
 
   it('offers seed values with nothing custom stored', () => {
     expect(taxonomyOptions('setup', SETUPS)).toEqual([...SETUPS]);
+    expect(taxonomyOptions('tag', [])).toEqual([]);
     expect(loadCustomTaxonomy()).toEqual({
       setup: [],
       emotion: [],
       mistake: [],
+      tag: [],
     });
   });
 
@@ -39,6 +41,13 @@ describe('taxonomy', () => {
     ]);
   });
 
+  it('grows a seed-empty Tag list after user Tags', () => {
+    addTaxonomyValue('tag', 'FOMC');
+    addTaxonomyValue('tag', '  ');
+    addTaxonomyValue('tag', 'FOMC');
+    expect(taxonomyOptions('tag', [])).toEqual(['FOMC']);
+  });
+
   it('survives reloads and corrupt storage', () => {
     addTaxonomyValue('emotion', 'Brave');
     expect(loadCustomTaxonomy().emotion).toEqual(['Brave']);
@@ -47,6 +56,7 @@ describe('taxonomy', () => {
       setup: [],
       emotion: [],
       mistake: [],
+      tag: [],
     });
   });
 });
