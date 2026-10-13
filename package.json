@@ -19,6 +19,8 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@ng-icons/core": "^36.1.0",
+    "@ng-icons/lucide": "^36.1.0",
     "@signaldb/angular": "^1.0.6",
     "@signaldb/core": "^1.8.1",
     "@signaldb/localstorage": "^1.0.1",

@@ -1,23 +1,97 @@
 <div class="flex min-h-dvh bg-background text-foreground">
-  <nav class="flex w-56 flex-col gap-1 border-r border-border bg-sidebar p-4 text-sidebar-foreground" aria-label="Primary">
-    <a routerLink="/" class="mb-4 text-lg font-semibold tracking-tight">openJournal</a>
-    <a
-      routerLink="/dashboard"
-      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
-      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
-    >Dashboard</a>
-    <a
-      routerLink="/trades"
-      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
-      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
-    >Trades</a>
-    <a
-      routerLink="/journal"
-      routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
-      class="rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent"
-    >Journal</a>
+  @if (sidebarOpen()) {
+    <button
+      type="button"
+      aria-label="Close navigation"
+      (click)="closeSidebar()"
+      class="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
+    ></button>
+  }
+  <nav
+    aria-label="Primary"
+    [class.translate-x-0]="sidebarOpen()"
+    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col gap-1 border-r border-border bg-sidebar p-4 text-sidebar-foreground transition-transform md:static md:z-auto md:translate-x-0"
+  >
+    <a routerLink="/dashboard" (click)="closeSidebar()" class="mb-4 flex items-center gap-3 rounded-2xl border border-sidebar-border bg-gradient-to-br from-sidebar-primary/15 via-sidebar-accent/20 to-transparent px-3 py-3">
+      <span class="flex size-10 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground">
+        <ng-icon name="lucideNotebookPen" class="size-5" />
+      </span>
+      <span class="grid flex-1 text-left leading-tight">
+        <span class="truncate text-sm font-semibold tracking-wide">openJournal</span>
+        <span class="truncate text-xs text-sidebar-foreground/70">Trading journal</span>
+      </span>
+    </a>
+    <p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Overview</p>
+    @for (item of overviewItems; track item.url) {
+      <a
+        [routerLink]="item.url"
+        routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+        (click)="closeSidebar()"
+        class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
+      >
+        <ng-icon [name]="item.icon" class="size-4 shrink-0" />
+        {{ item.label }}
+      </a>
+    }
+    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Workspace</p>
+    @for (item of workspaceItems; track item.url) {
+      <a
+        [routerLink]="item.url"
+        routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+        (click)="closeSidebar()"
+        class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
+      >
+        <ng-icon [name]="item.icon" class="size-4 shrink-0" />
+        {{ item.label }}
+      </a>
+    }
+    <button
+      type="button"
+      aria-label="Close menu"
+      (click)="closeSidebar()"
+      class="mt-auto inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent md:hidden"
+    >
+      <ng-icon name="lucideX" class="size-4" />
+      Close
+    </button>
   </nav>
-  <main class="flex-1 p-6">
-    <router-outlet />
-  </main>
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-md sm:px-4">
+      <button
+        type="button"
+        aria-label="Toggle navigation"
+        (click)="toggleSidebar()"
+        class="inline-flex size-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
+      >
+        <ng-icon name="lucideMenu" class="size-4" />
+      </button>
+      <span class="truncate text-sm font-semibold tracking-tight md:hidden">openJournal</span>
+      @if (tradeCount() > 0) {
+        <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-sm">
+          <ng-icon
+            [name]="netTotal() >= 0 ? 'lucideTrendingUp' : 'lucideTrendingDown'"
+            [class]="netTotal() >= 0 ? 'size-4 text-success' : 'size-4 text-destructive'"
+          />
+          <span [class]="netTotal() >= 0 ? 'text-success' : 'text-destructive'">Net {{ netTotal() }}</span>
+        </span>
+      }
+      <button
+        type="button"
+        aria-label="Toggle dark mode"
+        [attr.aria-pressed]="theme.isDark()"
+        (click)="theme.toggleDarkMode()"
+        class="inline-flex size-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
+        [class.ml-auto]="tradeCount() === 0"
+      >
+        @if (theme.isDark()) {
+          <ng-icon name="lucideSun" class="size-4" />
+        } @else {
+          <ng-icon name="lucideMoon" class="size-4" />
+        }
+      </button>
+    </header>
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      <router-outlet />
+    </main>
+  </div>
 </div>

@@ -1,9 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideChartLine,
+  lucideTrendingDown,
+  lucideTrendingUp,
+} from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
 import { loadStartingBalance, saveStartingBalance } from '../../settings';
+import { EmptyState } from '../../ui/empty-state';
+import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 
 function toChartPoints(curve: readonly BalancePoint[]): string {
   if (curve.length === 0) return '';
@@ -20,13 +29,17 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 }
 
 @Component({
-  imports: [DatePipe],
+  imports: [DatePipe, NgIcon, QuickStats, EmptyState],
+  providers: [
+    provideIcons({ lucideChartLine, lucideTrendingDown, lucideTrendingUp }),
+  ],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',
   templateUrl: './dashboard.html',
 })
 export class Dashboard {
   readonly store = inject(TradesStore);
+  private readonly router = inject(Router);
 
   readonly startingBalance = signal(loadStartingBalance());
 
@@ -43,6 +56,31 @@ export class Dashboard {
     toChartPoints(this.metrics().balanceCurve),
   );
 
+  readonly isPositive = computed(() => this.metrics().netTotal >= 0);
+
+  readonly quickStats = computed<readonly QuickStat[]>(() => {
+    const m = this.metrics();
+    return [
+      {
+        icon: 'lucidePercent',
+        label: 'Trade win %',
+        value: this.formatPercent(m.winRate),
+      },
+      { icon: 'lucideChartLine', label: 'Profit factor', value: this.profitFactorText() },
+      {
+        icon: 'lucideCalendarDays',
+        label: 'Day win %',
+        value: this.formatPercent(m.dayWinRate),
+      },
+      {
+        icon: 'lucideArrowDownUp',
+        label: 'Avg win / loss',
+        value: `${m.avgWin} / ${m.avgLoss}`,
+      },
+      { icon: 'lucideHash', label: 'Total trades', value: `${m.totalTrades}` },
+    ];
+  });
+
   readonly formatPercent = (value: number): string => value.toFixed(2);
 
   onBalanceInput(event: Event): void {
@@ -51,5 +89,9 @@ export class Dashboard {
       this.startingBalance.set(value);
       saveStartingBalance(value);
     }
+  }
+
+  goToTrades(): void {
+    void this.router.navigate(['/trades']);
   }
 }

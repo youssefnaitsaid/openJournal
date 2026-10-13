@@ -70,6 +70,19 @@ describe('Trades', () => {
     expect(compiled.textContent).toContain('No trades yet');
   });
 
+  it('offers a call to action in the empty state', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const actions = [...compiled.querySelectorAll('button')].filter((b) =>
+      b.textContent?.includes('Log trade'),
+    );
+    expect(actions.length).toBe(2);
+    actions[1].click();
+  });
+
   it('explains what is missing when submitted empty', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;

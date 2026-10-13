@@ -8,6 +8,10 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideArrowDownUp, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { EmptyState } from '../../ui/empty-state';
+import { PageHero } from '../../ui/page-hero';
 import {
   EMOTIONS,
   MARKETS,
@@ -38,7 +42,10 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, PageHero],
+  providers: [
+    provideIcons({ lucideArrowDownUp, lucideTags, lucideTableProperties }),
+  ],
   selector: 'app-trades',
   styleUrl: './trades.css',
   templateUrl: './trades.html',
@@ -112,6 +119,10 @@ export class Trades {
       .subscribe((market) => {
         this.form.controls.multiplier.setValue(MARKET_MULTIPLIERS[market]);
       });
+  }
+
+  goToForm(): void {
+    document.getElementById('log-trade')?.scrollIntoView?.({ behavior: 'smooth' });
   }
 
   onSubmit(): void {

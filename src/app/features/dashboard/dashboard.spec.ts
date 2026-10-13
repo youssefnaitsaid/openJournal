@@ -96,4 +96,14 @@ describe('Dashboard', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).not.toContain('T14:30:00.000Z');
   });
+
+  it('shows the hero headline with an empty state when nothing is logged', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Total Net P&L');
+    expect(compiled.textContent).toContain('No recent trades yet.');
+  });
 });

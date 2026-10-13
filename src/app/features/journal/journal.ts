@@ -1,11 +1,22 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideCalendarDays,
+  lucideChevronLeft,
+  lucideChevronRight,
+} from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
 import { loadStartingBalance } from '../../settings';
+import { EmptyState } from '../../ui/empty-state';
+import { PageHero } from '../../ui/page-hero';
 
 @Component({
-  imports: [DatePipe],
+  imports: [DatePipe, NgIcon, EmptyState, PageHero],
+  providers: [
+    provideIcons({ lucideCalendarDays, lucideChevronLeft, lucideChevronRight }),
+  ],
   selector: 'app-journal',
   styleUrl: './journal.css',
   templateUrl: './journal.html',
