@@ -9,17 +9,31 @@
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3" />
 
   <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTarget" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">R by Setup</h2>
-        <p class="text-sm text-muted-foreground">Count, average R, and total R per playbook pattern</p>
-      </span>
+    <div class="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-6">
+      <div class="flex items-center gap-3">
+        <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+          <ng-icon name="lucideTarget" class="size-5" />
+        </span>
+        <span>
+          <h2 class="text-lg font-semibold tracking-tight text-foreground">Breakdown by {{ dimensionLabel() }}</h2>
+          <p class="text-sm text-muted-foreground">Count, Net P&L, win-rate, and avg R per value</p>
+        </span>
+      </div>
+      <select
+        id="breakdown-dimension"
+        name="breakdown-dimension"
+        [value]="dimension()"
+        (change)="onDimensionChange($event)"
+        aria-label="Breakdown dimension"
+        class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+      >
+        @for (opt of dimensions; track opt.value) {
+          <option [value]="opt.value" [selected]="opt.value === dimension()">{{ opt.label }}</option>
+        }
+      </select>
     </div>
     <div class="px-4 py-4 sm:px-6">
-      @if (metrics().bySetup.length === 0) {
+      @if (breakdowns().length === 0) {
         <app-empty-state
           icon="lucideInbox"
           title="No trades yet"
@@ -29,19 +43,21 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-muted-foreground">
-              <th class="py-1 pr-3 font-medium">Setup</th>
+              <th class="py-1 pr-3 font-medium">{{ dimensionLabel() }}</th>
               <th class="py-1 pr-3 text-right font-medium">Trades</th>
-              <th class="py-1 pr-3 text-right font-medium">Avg R</th>
-              <th class="py-1 text-right font-medium">Total R</th>
+              <th class="py-1 pr-3 text-right font-medium">Net</th>
+              <th class="py-1 pr-3 text-right font-medium">Win-rate</th>
+              <th class="py-1 text-right font-medium">Avg R</th>
             </tr>
           </thead>
           <tbody>
-            @for (row of metrics().bySetup; track row.setup) {
+            @for (row of breakdowns(); track row.value) {
               <tr class="border-t border-border">
-                <td class="py-2 pr-3 font-medium">{{ row.setup }}</td>
+                <td class="py-2 pr-3 font-medium">{{ row.value }}</td>
                 <td class="py-2 pr-3 text-right">{{ row.trades }}</td>
-                <td class="py-2 pr-3 text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
-                <td class="py-2 text-right" [class]="row.totalR > 0 ? 'text-success' : row.totalR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.totalR) }}</td>
+                <td class="py-2 pr-3 text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
+                <td class="py-2 pr-3 text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
+                <td class="py-2 text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
               </tr>
             }
           </tbody>

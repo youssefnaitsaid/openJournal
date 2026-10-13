@@ -72,16 +72,38 @@ describe('Analytics', () => {
     expect(content).toContain('2 of 3');
   });
 
-  it('lists R by Setup sorted by average R descending', async () => {
+  it('lists breakdowns by Setup default with count, Net, win-rate, and avg R sorted by Net desc', async () => {
     await seed();
     const fixture = TestBed.createComponent(Analytics);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Breakdown by Setup');
     const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
       r.textContent?.replace(/\s+/g, ' '),
     );
     expect(rows.length).toBe(2);
     expect(rows[0]).toContain('Breakout');
+    expect(rows[0]).toContain('+$250.00');
+    expect(rows[0]).toContain('100.00%');
     expect(rows[1]).toContain('Pullback');
+  });
+
+  it('switches breakdown dimension via the picker', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.dimension.set('side');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Breakdown by Side');
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toContain('Long');
   });
 });
