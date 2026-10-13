@@ -8,11 +8,12 @@ import {
   type BreakdownDimension,
 } from './analytics-metrics';
 import { EmptyState } from '../../ui/empty-state';
+import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 
 @Component({
-  imports: [NgIcon, EmptyState, PageHero, QuickStats],
+  imports: [NgIcon, EmptyState, FilterBar, PageHero, QuickStats],
   providers: [provideIcons({ lucideTarget })],
   selector: 'app-analytics',
   styleUrl: './analytics.css',
@@ -21,7 +22,9 @@ import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 export class Analytics {
   readonly store = inject(TradesStore);
 
-  readonly metrics = computed(() => computeRMetrics(this.store.trades()));
+  readonly metrics = computed(() =>
+    computeRMetrics(this.store.filteredTrades()),
+  );
 
   readonly dimension = signal<BreakdownDimension>('setup');
 
@@ -35,6 +38,7 @@ export class Analytics {
       { value: 'emotionAfter', label: 'Emotion-after' },
       { value: 'mistake', label: 'Mistake' },
       { value: 'grade', label: 'Grade' },
+      { value: 'tag', label: 'Tag' },
     ];
 
   readonly dimensionLabel = computed(
@@ -42,7 +46,7 @@ export class Analytics {
   );
 
   readonly breakdowns = computed(() =>
-    computeBreakdowns(this.store.trades(), this.dimension()),
+    computeBreakdowns(this.store.filteredTrades(), this.dimension()),
   );
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {

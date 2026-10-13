@@ -16,6 +16,11 @@
             {{ formatPercent(metrics().winRate) }}% win rate
           </span>
           <span class="text-sm text-muted-foreground">Dashboard</span>
+          @if (store.isFiltering()) {
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
+              Filtered view
+            </span>
+          }
         </div>
       </div>
       <label class="flex w-full max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
@@ -33,6 +38,19 @@
   </div>
 
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" />
+
+  @if (store.isFiltering()) {
+    <section class="rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-6" aria-label="Filtered view">
+      <p class="text-sm text-muted-foreground">
+        Filtered view · {{ filteredStrip().shown }} of {{ filteredStrip().total }} Trades
+      </p>
+      <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <span>Net <span class="font-semibold text-foreground">{{ formatSignedDollars(filteredStrip().netTotal) }}</span></span>
+        <span>Win-rate <span class="font-semibold text-foreground">{{ formatPercent(filteredStrip().winRate) }}%</span></span>
+        <span>Avg R <span class="font-semibold text-foreground">{{ formatR(filteredStrip().avgR) }}</span></span>
+      </p>
+    </section>
+  }
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
     @if (chartPoints() !== '') {

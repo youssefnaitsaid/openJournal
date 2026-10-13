@@ -65,4 +65,25 @@ describe('TradesStore', () => {
     store.addTrade({ ...INPUT, asset: 'NEW', closedAt: '2026-10-02T14:30:00.000Z' });
     expect(store.byCloseDesc().map((t) => t.asset)).toEqual(['NEW', 'OLD']);
   });
+
+  it('starts with an inactive global filter over every Trade', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...INPUT, asset: 'MES', tags: ['FOMC'] });
+    expect(store.isFiltering()).toBe(false);
+    expect(store.filteredTrades().map((t) => t.asset)).toEqual(['MES']);
+  });
+
+  it('filters Trades through the global filter and resets to full journal', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...INPUT, asset: 'MES', tags: ['FOMC'] });
+    store.addTrade({ ...INPUT, asset: 'AAPL', tags: ['earnings'] });
+    store.setFilter({ tag: 'FOMC' });
+    expect(store.isFiltering()).toBe(true);
+    expect(store.filteredTrades().map((t) => t.asset)).toEqual(['MES']);
+    store.resetFilter();
+    expect(store.isFiltering()).toBe(false);
+    expect(store.filteredTrades().length).toBe(2);
+  });
 });

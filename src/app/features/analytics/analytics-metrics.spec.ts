@@ -310,4 +310,42 @@ describe('computeBreakdowns', () => {
     const base = tradeFixture({ grade: 'B' });
     expect(computeBreakdowns([base], 'grade')[0]!.value).toBe('B');
   });
+
+  it('groups by Tag with multi-count, (Unspecified), and shared row math', () => {
+    const rows = computeBreakdowns(
+      [
+        tradeFixture({
+          asset: 'FOMC-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          tags: ['FOMC', 'earnings'],
+          closedAt: '2026-10-01T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'EARN-LOSS',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          tags: ['earnings'],
+          closedAt: '2026-10-02T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'PLAIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 100,
+          closedAt: '2026-10-03T14:30:00.000Z',
+        }),
+      ],
+      'tag',
+    );
+    expect(rows).toEqual([
+      { value: 'FOMC', trades: 1, netTotal: 200, winRate: 100, avgR: 2 },
+      { value: 'earnings', trades: 2, netTotal: 100, winRate: 50, avgR: 0.5 },
+      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0 },
+    ]);
+  });
 });

@@ -10,6 +10,7 @@ import {
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
+import { computeRMetrics } from '../analytics/analytics-metrics';
 import { loadStartingBalance, saveStartingBalance } from '../../settings';
 import { EmptyState } from '../../ui/empty-state';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
@@ -58,6 +59,19 @@ export class Dashboard {
 
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
 
+  readonly filteredStrip = computed(() => {
+    const filtered = this.store.filteredTrades();
+    const metrics = computeMetrics(filtered, this.startingBalance());
+    const risk = computeRMetrics(filtered);
+    return {
+      shown: filtered.length,
+      total: this.store.trades().length,
+      netTotal: metrics.netTotal,
+      winRate: metrics.winRate,
+      avgR: risk.rExpectancy,
+    };
+  });
+
   readonly quickStats = computed<readonly QuickStat[]>(() => {
     const m = this.metrics();
     return [
@@ -104,6 +118,13 @@ export class Dashboard {
   });
 
   readonly formatPercent = (value: number): string => value.toFixed(2);
+
+  readonly formatR = (value: number): string => {
+    const abs = Math.abs(value).toFixed(2);
+    if (value > 0) return `+${abs}R`;
+    if (value < 0) return `-${abs}R`;
+    return `0.00R`;
+  };
 
   readonly formatSignedDollars = (value: number): string => {
     const abs = Math.abs(value).toFixed(2);

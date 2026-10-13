@@ -8,6 +8,7 @@
 - R-Multiple is Net P&L divided by Risked Amount, and is 0 when nothing was risked (never NaN or Infinity).
 - A Trade is a Win when Net P&L is above 0, a Loss when below 0, Breakeven when exactly 0.
 - An empty chart URL is valid; a non-empty one must be http(s), so ftp and javascript schemes are rejected.
+- Tags are optional free-form labels per Trade; derivation trims them, drops blanks, dedupes exact-case, preserves casing, and defaults pre-tag Trades to empty.
 
 ## Dashboard derivation (computeMetrics, the single shared seam)
 - Total Trades counts every logged Trade.
@@ -28,7 +29,8 @@
 - Median R runs over all stored R-Multiples sorted ascending; an even count averages the two middles; empty reads 0.
 - R sum is the plain sum of stored R-Multiples; zero-risk Trades contribute 0, never NaN or Infinity.
 - Risked total sums Risked Amount and Net total sums Net P&L; risked coverage counts nonzero-risked Trades of Total Trades.
-- Breakdown rows group Trades by one dimension (Setup, Asset symbol, Market, Side, Emotion-before, Emotion-after, Mistake, Grade) with exact case-sensitive match; blank values collapse to a single `(Unspecified)` row.
+- Breakdown rows group Trades by one dimension (Setup, Asset symbol, Market, Side, Emotion-before, Emotion-after, Mistake, Grade, Tag) with exact case-sensitive match; blank values collapse to a single `(Unspecified)` row.
+- A Trade with N Tags counts once under each of its N Tag rows; untagged Trades collapse to `(Unspecified)`; row counts may sum above Total Trades.
 - Breakdown rows carry trade count plus Net P&L sum plus Win-rate plus avg R per value, sorted by Net sum descending with alphabetical tiebreak; an empty journal has no rows.
 - Breakdown Win-rate is Wins divided by Wins plus Losses times 100 per group with Breakevens excluded; a group with no counted Trades reads 0.
 - Breakdown avg R is R sum divided by group size with Breakevens and zero-risk 0Rs included; the tail `Other (n)` row aggregates its raw Trades, never an average of averages.
@@ -40,10 +42,12 @@
 - Trades list newest close first.
 - Starting balance is USD-only, defaults to 10000, persists under `openjournal-starting-balance`; missing, negative, or corrupt values fall back to default.
 - Setup/Emotion/Mistake seeds always offered; user-added values persist under `openjournal-taxonomy`, merge after seeds, and survive reloads; blanks and duplicates are ignored.
+- Tag seeds are empty; user Tags grow the list under the `openjournal-taxonomy` `tag` key on log with the same blank/duplicate rules.
+- The global filter (close-date range, Asset substring case-insensitive, Setup/Side/Tag exact, Win/Loss/Breakeven/All with Breakevens outside Win and Loss, AND across axes, empty meaning all) is ephemeral session state in the Trades store and resets on reload; it cuts the Trades table, Analytics breakdowns/R-metrics, and a labeled Dashboard strip (count, Net, Win-rate, avg R) while hero, curve, streaks, drawdown, month-Net, and Journal stay full-journal.
 - The multiplier defaults by market (Stocks/Crypto/Forex 1, Futures 5, Options 100) on market change and stays editable afterwards.
 
 ## Views
-- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent), /trades (log form with optional Grade, full table with Grade column plus Grade filter and Needs review C/D preset, custom tags), /journal (month calendar, day detail, month summary), /analytics (R-Expectancy, median, R sum, totals, breakdown by dimension with picker defaulting to Setup); unknown paths redirect to /dashboard.
+- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent, filtered-view badge plus strip when filtering), /trades (log form with optional Grade and comma-separated Tags, full table with Grade and Tags columns plus Grade filter and Needs review C/D preset, global filter bar), /journal (month calendar, day detail, month summary, never filtered), /analytics (R-Expectancy, median, R sum, totals, breakdown by dimension with picker defaulting to Setup and including Tag, global filter bar); unknown paths redirect to /dashboard.
 - Empty states read `No trades yet`, `No recent trades yet`, `No trades this day`.
 - Empty submit logs nothing and names each missing field (Asset, positive Quantity/Multiplier, non-negative Fees, both timestamps, valid URL).
 - Dates are stored UTC ISO and displayed in local format, never raw ISO.

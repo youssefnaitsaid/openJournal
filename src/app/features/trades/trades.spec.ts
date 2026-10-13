@@ -27,6 +27,7 @@ function validValues() {
     grade: '' as Grade,
     chartUrl: '',
     notes: '',
+    tags: '',
   };
 }
 
@@ -295,5 +296,42 @@ describe('Trades', () => {
       'D-OLD',
       'A-OLD',
     ]);
+  });
+
+  it('logs comma-separated Tags normalized and grows the Tag list', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.setValue({ ...validValues(), tags: 'FOMC, earnings , FOMC,' });
+    component.onSubmit();
+    await fixture.whenStable();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()[0]!.tags).toEqual(['FOMC', 'earnings']);
+    expect(component.tagOptions()).toEqual(['FOMC', 'earnings']);
+    const compiled = fixture.nativeElement as HTMLElement;
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toContain('FOMC');
+    expect(rows[0]).toContain('earnings');
+  });
+
+  it('narrows rows through the global filter and composes with Grade', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    const store = TestBed.inject(TradesStore);
+    store.addTrade(
+      tradeInput({ asset: 'FOMC-A', grade: 'A', tags: ['FOMC'] }),
+    );
+    store.addTrade(tradeInput({ asset: 'PLAIN-B', grade: 'B' }));
+    expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A', 'PLAIN-B']);
+    store.setFilter({ tag: 'FOMC' });
+    expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
+    component.gradeFilter.set('B');
+    expect(component.rows()).toEqual([]);
+    component.gradeFilter.set('A');
+    expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
   });
 });
