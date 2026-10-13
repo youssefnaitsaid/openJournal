@@ -2,7 +2,7 @@ import { computed, effect, Injectable, signal } from '@angular/core';
 import { Collection } from '@signaldb/core';
 import angularReactivityAdapter from '@signaldb/angular';
 import createLocalStorageAdapter from '@signaldb/localstorage';
-import { deriveTrade, normalizeTags } from './trade-math';
+import { deriveTrade, complianceOf, normalizeRuleChecks, normalizeTags } from './trade-math';
 import { EMPTY_FILTER, applyGlobalFilter, isFilterActive } from './trades-filter';
 import type { GlobalFilter } from './trades-filter';
 import type { Trade, TradeInput } from './trade';
@@ -44,7 +44,15 @@ export class TradesStore {
     effect((onCleanup) => {
       const cursor = this.collection.find();
       this.trades.set(
-        cursor.fetch().map((t) => ({ ...t, tags: normalizeTags(t.tags) })),
+        cursor.fetch().map((t) => {
+          // Frozen history wins: a stored Compliance value is never recomputed,
+          // so later normalization changes cannot move old scores. Legacy
+          // Trades without one derive it from their (possibly empty) snapshot.
+          const rules = normalizeRuleChecks(t.rules);
+          const compliance =
+            typeof t.compliance === 'number' ? t.compliance : complianceOf(rules);
+          return { ...t, rules, compliance, tags: normalizeTags(t.tags) };
+        }),
       );
       onCleanup(() => cursor.cleanup());
     });

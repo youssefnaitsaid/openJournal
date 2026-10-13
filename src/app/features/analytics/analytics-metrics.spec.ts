@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { tradeFixture } from '../trades/trade-fixtures';
-import { computeBreakdowns, computeRMetrics } from './analytics-metrics';
+import {
+  computeBreakdowns,
+  computeComplianceCorrelation,
+  computeRMetrics,
+} from './analytics-metrics';
 
 const PLUS_2R = () =>
   tradeFixture({
@@ -107,8 +111,8 @@ describe('computeBreakdowns', () => {
       'setup',
     );
     expect(rows).toEqual([
-      { value: 'Breakout', trades: 2, netTotal: 400, winRate: 100, avgR: 3 },
-      { value: 'Pullback', trades: 1, netTotal: -100, winRate: 0, avgR: -1 },
+      { value: 'Breakout', trades: 2, netTotal: 400, winRate: 100, avgR: 3, avgCompliance: null },
+      { value: 'Pullback', trades: 1, netTotal: -100, winRate: 0, avgR: -1, avgCompliance: null },
     ]);
   });
 
@@ -138,8 +142,8 @@ describe('computeBreakdowns', () => {
       'setup',
     );
     expect(rows).toEqual([
-      { value: 'Breakout', trades: 2, netTotal: 200, winRate: 100, avgR: 1 },
-      { value: 'Pullback', trades: 1, netTotal: 0, winRate: 0, avgR: 0 },
+      { value: 'Breakout', trades: 2, netTotal: 200, winRate: 100, avgR: 1, avgCompliance: null },
+      { value: 'Pullback', trades: 1, netTotal: 0, winRate: 0, avgR: 0, avgCompliance: null },
     ]);
   });
 
@@ -275,10 +279,10 @@ describe('computeBreakdowns', () => {
       'grade',
     );
     expect(rows).toEqual([
-      { value: 'A', trades: 1, netTotal: 200, winRate: 100, avgR: 2 },
-      { value: 'B', trades: 1, netTotal: 100, winRate: 100, avgR: 1 },
-      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0 },
-      { value: 'D', trades: 1, netTotal: -100, winRate: 0, avgR: -1 },
+      { value: 'A', trades: 1, netTotal: 200, winRate: 100, avgR: 2, avgCompliance: null },
+      { value: 'B', trades: 1, netTotal: 100, winRate: 100, avgR: 1, avgCompliance: null },
+      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0, avgCompliance: null },
+      { value: 'D', trades: 1, netTotal: -100, winRate: 0, avgR: -1, avgCompliance: null },
     ]);
   });
 
@@ -343,9 +347,123 @@ describe('computeBreakdowns', () => {
       'tag',
     );
     expect(rows).toEqual([
-      { value: 'FOMC', trades: 1, netTotal: 200, winRate: 100, avgR: 2 },
-      { value: 'earnings', trades: 2, netTotal: 100, winRate: 50, avgR: 0.5 },
-      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0 },
+      { value: 'FOMC', trades: 1, netTotal: 200, winRate: 100, avgR: 2, avgCompliance: null },
+      { value: 'earnings', trades: 2, netTotal: 100, winRate: 50, avgR: 0.5, avgCompliance: null },
+      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0, avgCompliance: null },
     ]);
+  });
+});
+
+describe('computeBreakdowns compliance', () => {
+  it('reads null avg compliance when no Trade in the group is scored', () => {
+    const rows = computeBreakdowns([PLUS_2R()], 'setup');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.avgCompliance).toBeNull();
+  });
+
+  it('averages compliance over scored Trades only within each group', () => {
+    const rows = computeBreakdowns(
+      [
+        tradeFixture({
+          asset: 'FULL-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          setup: 'Breakout',
+          rules: [
+            { text: 'a', followed: true },
+            { text: 'b', followed: true },
+          ],
+          closedAt: '2026-10-01T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'HALF-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 110,
+          setup: 'Breakout',
+          rules: [
+            { text: 'a', followed: true },
+            { text: 'b', followed: false },
+          ],
+          closedAt: '2026-10-02T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'UNSCORED',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 110,
+          setup: 'Breakout',
+          closedAt: '2026-10-03T14:30:00.000Z',
+        }),
+      ],
+      'setup',
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.trades).toBe(3);
+    expect(rows[0]!.avgCompliance).toBeCloseTo(75, 10);
+  });
+});
+
+describe('computeComplianceCorrelation', () => {
+  it('reads empty buckets on an empty journal', () => {
+    const c = computeComplianceCorrelation([]);
+    expect(c).toEqual({
+      full: { trades: 0, netTotal: 0, winRate: 0 },
+      partial: { trades: 0, netTotal: 0, winRate: 0 },
+      scored: 0,
+      unscored: 0,
+    });
+  });
+
+  it('splits scored Trades into full versus partial with shared win-rate math', () => {
+    const c = computeComplianceCorrelation([
+      tradeFixture({
+        asset: 'FULL-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: true },
+        ],
+        closedAt: '2026-10-01T14:30:00.000Z',
+      }),
+      tradeFixture({
+        asset: 'HALF-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: false },
+        ],
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+      tradeFixture({
+        asset: 'FULL-FLAT',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 100,
+        fees: 0,
+        rules: [{ text: 'a', followed: true }],
+        closedAt: '2026-10-03T14:30:00.000Z',
+      }),
+      tradeFixture({
+        asset: 'UNSCORED-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        closedAt: '2026-10-04T14:30:00.000Z',
+      }),
+    ]);
+    expect(c.scored).toBe(3);
+    expect(c.unscored).toBe(1);
+    expect(c.full.trades).toBe(2);
+    expect(c.full.netTotal).toBe(200);
+    expect(c.full.winRate).toBe(100);
+    expect(c.partial.trades).toBe(1);
+    expect(c.partial.netTotal).toBe(-100);
+    expect(c.partial.winRate).toBe(0);
   });
 });

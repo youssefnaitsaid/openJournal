@@ -152,8 +152,7 @@ describe('Analytics', () => {
     expect(filtered).toContain('+2.00R');
   });
 
-  it('offers Grade in the picker and regroups breakdowns by Grade', async () => {
-    const store = TestBed.inject(TradesStore);
+  it('offers Grade in the picker and regroups breakdowns by Grade', async () => {    const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade(
       tradeInput({
@@ -196,5 +195,53 @@ describe('Analytics', () => {
     expect(rows.length).toBe(2);
     expect(rows[0]).toContain('A');
     expect(rows[1]).toContain('D');
+  });
+
+  it('shows avg compliance per Setup and a full-versus-partial correlation', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'FULL-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: true },
+        ],
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'HALF-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        rules: [
+          { text: 'a', followed: true },
+          { text: 'b', followed: false },
+        ],
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Avg compliance');
+    expect(content).toContain('75.00%');
+    expect(content).toContain('Compliance vs outcome');
+    expect(content).toContain('100% followed');
+    expect(content).toContain('Partial');
+  });
+
+  it('reads no scored trades yet on an empty journal', async () => {
+    const fixture = TestBed.createComponent(Analytics);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('No scored trades yet');
   });
 });

@@ -16,6 +16,20 @@ export interface BreakdownRow {
   readonly netTotal: number;
   readonly winRate: number;
   readonly avgR: number;
+  readonly avgCompliance: number | null;
+}
+
+export interface ComplianceBucket {
+  readonly trades: number;
+  readonly netTotal: number;
+  readonly winRate: number;
+}
+
+export interface ComplianceCorrelation {
+  readonly full: ComplianceBucket;
+  readonly partial: ComplianceBucket;
+  readonly scored: number;
+  readonly unscored: number;
 }
 
 export type BreakdownDimension =
@@ -69,17 +83,37 @@ export function computeBreakdowns(
 
   const groups = new Map<
     string,
-    { trades: number; netTotal: number; wins: number; losses: number; rSum: number }
+    {
+      trades: number;
+      netTotal: number;
+      wins: number;
+      losses: number;
+      rSum: number;
+      complianceSum: number;
+      scored: number;
+    }
   >();
   for (const t of trades) {
     for (const raw of keysFor(t)) {
       const key = displayKey(raw);
-      const entry = groups.get(key) ?? { trades: 0, netTotal: 0, wins: 0, losses: 0, rSum: 0 };
+      const entry = groups.get(key) ?? {
+        trades: 0,
+        netTotal: 0,
+        wins: 0,
+        losses: 0,
+        rSum: 0,
+        complianceSum: 0,
+        scored: 0,
+      };
       entry.trades += 1;
       entry.netTotal += t.net;
       if (t.net > 0) entry.wins += 1;
       else if (t.net < 0) entry.losses += 1;
       entry.rSum += t.rMultiple;
+      if (t.compliance !== null && t.compliance !== undefined) {
+        entry.complianceSum += t.compliance;
+        entry.scored += 1;
+      }
       groups.set(key, entry);
     }
   }
@@ -91,20 +125,24 @@ export function computeBreakdowns(
       netTotal: s.netTotal,
       winRate: s.wins + s.losses > 0 ? (s.wins / (s.wins + s.losses)) * 100 : 0,
       avgR: s.trades > 0 ? s.rSum / s.trades : 0,
+      avgCompliance: s.scored > 0 ? s.complianceSum / s.scored : null,
       wins: s.wins,
       losses: s.losses,
       rSum: s.rSum,
+      complianceSum: s.complianceSum,
+      scored: s.scored,
     }))
     .sort((a, b) => b.netTotal - a.netTotal || a.value.localeCompare(b.value));
 
   const MAX_ROWS = 20;
   if (sorted.length <= MAX_ROWS) {
-    return sorted.map(({ value, trades: count, netTotal, winRate, avgR }) => ({
+    return sorted.map(({ value, trades: count, netTotal, winRate, avgR, avgCompliance }) => ({
       value,
       trades: count,
       netTotal,
       winRate,
       avgR,
+      avgCompliance,
     }));
   }
 
@@ -115,23 +153,64 @@ export function computeBreakdowns(
   const tailWins = tail.reduce((n, r) => n + r.wins, 0);
   const tailLosses = tail.reduce((n, r) => n + r.losses, 0);
   const tailR = tail.reduce((n, r) => n + r.rSum, 0);
+  const tailCompliance = tail.reduce((n, r) => n + r.complianceSum, 0);
+  const tailScored = tail.reduce((n, r) => n + r.scored, 0);
   const other: BreakdownRow = {
     value: `Other (${tail.length})`,
     trades: tailTrades,
     netTotal: tailNet,
     winRate: tailWins + tailLosses > 0 ? (tailWins / (tailWins + tailLosses)) * 100 : 0,
     avgR: tailTrades > 0 ? tailR / tailTrades : 0,
+    avgCompliance: tailScored > 0 ? tailCompliance / tailScored : null,
   };
   return [
-    ...head.map(({ value, trades: count, netTotal, winRate, avgR }) => ({
+    ...head.map(({ value, trades: count, netTotal, winRate, avgR, avgCompliance }) => ({
       value,
       trades: count,
       netTotal,
       winRate,
       avgR,
+      avgCompliance,
     })),
     other,
   ];
+}
+
+export function computeComplianceCorrelation(
+  trades: readonly Trade[],
+): ComplianceCorrelation {
+  const emptyBucket = (): { trades: number; netTotal: number; wins: number; losses: number } => ({
+    trades: 0,
+    netTotal: 0,
+    wins: 0,
+    losses: 0,
+  });
+  const full = emptyBucket();
+  const partial = emptyBucket();
+  let unscored = 0;
+  for (const t of trades) {
+    const compliance = t.compliance ?? null;
+    if (compliance === null) {
+      unscored += 1;
+      continue;
+    }
+    const bucket = compliance >= 100 - 1e-9 ? full : partial;
+    bucket.trades += 1;
+    bucket.netTotal += t.net;
+    if (t.net > 0) bucket.wins += 1;
+    else if (t.net < 0) bucket.losses += 1;
+  }
+  const toBucket = (b: { trades: number; netTotal: number; wins: number; losses: number }): ComplianceBucket => ({
+    trades: b.trades,
+    netTotal: b.netTotal,
+    winRate: b.wins + b.losses > 0 ? (b.wins / (b.wins + b.losses)) * 100 : 0,
+  });
+  return {
+    full: toBucket(full),
+    partial: toBucket(partial),
+    scored: full.trades + partial.trades,
+    unscored,
+  };
 }
 
 export function computeRMetrics(trades: readonly Trade[]): AnalyticsMetrics {

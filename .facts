@@ -9,6 +9,10 @@
 - A Trade is a Win when Net P&L is above 0, a Loss when below 0, Breakeven when exactly 0.
 - An empty chart URL is valid; a non-empty one must be http(s), so ftp and javascript schemes are rejected.
 - Tags are optional free-form labels per Trade; derivation trims them, drops blanks, dedupes exact-case, preserves casing, and defaults pre-tag Trades to empty.
+- Playbook rules are optional plain-text conditions per Setup, at most ten; rule hygiene trims, drops blanks, dedupes exact-case, preserves casing.
+- A Trade stores a frozen snapshot of `{rule text, followed}` pairs as shown at log time; later Setup rule edits never move old snapshots.
+- Compliance is followed over total snapshot rules times 100 when the checklist was touched; untouched or rule-less Trades are unscored (null, never 0); all-skipped reads 0, all-followed reads 100.
+- Readers normalize legacy Trades missing rules or Compliance to unscored with an empty snapshot.
 
 ## Dashboard derivation (computeMetrics, the single shared seam)
 - Total Trades counts every logged Trade.
@@ -34,6 +38,8 @@
 - Breakdown rows carry trade count plus Net P&L sum plus Win-rate plus avg R per value, sorted by Net sum descending with alphabetical tiebreak; an empty journal has no rows.
 - Breakdown Win-rate is Wins divided by Wins plus Losses times 100 per group with Breakevens excluded; a group with no counted Trades reads 0.
 - Breakdown avg R is R sum divided by group size with Breakevens and zero-risk 0Rs included; the tail `Other (n)` row aggregates its raw Trades, never an average of averages.
+- Breakdown avg Compliance is Compliance sum over scored Trades only per group with unscored excluded; a group with no scored Trades reads null (rendered as em-dash, never 0%); the tail `Other (n)` row aggregates raw snapshots the same way.
+- Compliance correlation splits scored Trades into a 100%-followed bucket versus a partial (<100%) bucket, each carrying trade count plus Net P&L sum plus Win-rate with the shared Win-rate derivation; unscored Trades are counted aside and excluded from both buckets; an empty or fully unscored journal reads zeros.
 - Breakdowns cap at the top 20 values by Net order with the remainder in one `Other (n)` row where n counts collapsed values.
 - R values render signed with two decimals (`+1.50R`, `-0.75R`, `0.00R`); Net renders signed dollars; Win-rate renders with two decimals plus `%`.
 
@@ -43,11 +49,12 @@
 - Starting balance is USD-only, defaults to 10000, persists under `openjournal-starting-balance`; missing, negative, or corrupt values fall back to default.
 - Setup/Emotion/Mistake seeds always offered; user-added values persist under `openjournal-taxonomy`, merge after seeds, and survive reloads; blanks and duplicates are ignored.
 - Tag seeds are empty; user Tags grow the list under the `openjournal-taxonomy` `tag` key on log with the same blank/duplicate rules.
+- Playbooks persist under the `openjournal-taxonomy` `playbooks` key as `{rules, archived}` per Setup name; legacy taxonomy without that key migrates to rule-less unarchived; archived Setups hide from the log-form Setup picker while their Trades stay in history, breakdowns, and correlation.
 - The global filter (close-date range, Asset substring case-insensitive, Setup/Side/Tag exact, Win/Loss/Breakeven/All with Breakevens outside Win and Loss, AND across axes, empty meaning all) is ephemeral session state in the Trades store and resets on reload; it cuts the Trades table, Analytics breakdowns/R-metrics, and a labeled Dashboard strip (count, Net, Win-rate, avg R) while hero, curve, streaks, drawdown, month-Net, and Journal stay full-journal.
 - The multiplier defaults by market (Stocks/Crypto/Forex 1, Futures 5, Options 100) on market change and stays editable afterwards.
 
 ## Views
-- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent, filtered-view badge plus strip when filtering), /trades (log form with optional Grade and comma-separated Tags, full table with Grade and Tags columns plus Grade filter and Needs review C/D preset, global filter bar), /journal (month calendar, day detail, month summary, never filtered), /analytics (R-Expectancy, median, R sum, totals, breakdown by dimension with picker defaulting to Setup and including Tag, global filter bar); unknown paths redirect to /dashboard.
+- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent, filtered-view badge plus strip when filtering), /trades (log form with optional Grade and comma-separated Tags plus optional Playbook rule manager and checklist, full table with Grade, Compliance, and Tags columns plus Grade filter and Needs review C/D preset, global filter bar), /journal (month calendar, day detail, month summary, never filtered), /analytics (R-Expectancy, median, R sum, totals, breakdown by dimension with picker defaulting to Setup and including Tag plus avg Compliance column, Compliance-vs-outcome block with 100%-versus-partial buckets, global filter bar); unknown paths redirect to /dashboard.
 - Empty states read `No trades yet`, `No recent trades yet`, `No trades this day`.
 - Empty submit logs nothing and names each missing field (Asset, positive Quantity/Multiplier, non-negative Fees, both timestamps, valid URL).
 - Dates are stored UTC ISO and displayed in local format, never raw ISO.

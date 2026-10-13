@@ -4,6 +4,7 @@ import { lucideTarget } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import {
   computeBreakdowns,
+  computeComplianceCorrelation,
   computeRMetrics,
   type BreakdownDimension,
 } from './analytics-metrics';
@@ -47,6 +48,10 @@ export class Analytics {
 
   readonly breakdowns = computed(() =>
     computeBreakdowns(this.store.filteredTrades(), this.dimension()),
+  );
+
+  readonly compliance = computed(() =>
+    computeComplianceCorrelation(this.store.filteredTrades()),
   );
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {
@@ -109,6 +114,9 @@ export class Analytics {
   };
 
   readonly formatPercent = (value: number): string => `${value.toFixed(2)}%`;
+
+  readonly formatCompliance = (value: number | null): string =>
+    value === null ? '—' : `${value.toFixed(2)}%`;
 
   onDimensionChange(event: Event): void {
     const el = event.target as HTMLSelectElement | null;

@@ -1,5 +1,5 @@
 import { GRADES } from './trade';
-import type { Grade, Side, Trade, TradeInput } from './trade';
+import type { Grade, RuleCheck, Side, Trade, TradeInput } from './trade';
 
 export type Outcome = 'Win' | 'Loss' | 'Breakeven';
 
@@ -65,6 +65,29 @@ export function normalizeTags(value: unknown): string[] {
   return out;
 }
 
+export function normalizeRuleChecks(value: unknown): RuleCheck[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const out: RuleCheck[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'object' || entry === null) continue;
+    const record = entry as Partial<RuleCheck>;
+    if (typeof record.text !== 'string' || typeof record.followed !== 'boolean')
+      continue;
+    const text = record.text.trim();
+    if (text === '' || seen.has(text)) continue;
+    seen.add(text);
+    out.push({ text, followed: record.followed });
+  }
+  return out;
+}
+
+export function complianceOf(rules: readonly RuleCheck[]): number | null {
+  if (rules.length === 0) return null;
+  const followed = rules.filter((r) => r.followed).length;
+  return (followed / rules.length) * 100;
+}
+
 export function deriveTrade(input: TradeInput, id: string): Trade {
   const gross = grossPnl(
     input.side,
@@ -86,5 +109,6 @@ export function deriveTrade(input: TradeInput, id: string): Trade {
   const grade: Grade | '' = GRADES.includes(input.grade as Grade)
     ? (input.grade as Grade)
     : '';
-  return { ...input, grade, tags: normalizeTags(input.tags), id, gross, net, risked, rMultiple: rMultiple(net, risked) };
+  const rules = normalizeRuleChecks(input.rules);
+  return { ...input, grade, rules, compliance: complianceOf(rules), tags: normalizeTags(input.tags), id, gross, net, risked, rMultiple: rMultiple(net, risked) };
 }
