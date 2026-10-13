@@ -1,8 +1,12 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideTarget } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
-import { computeRMetrics } from './analytics-metrics';
+import {
+  computeBreakdowns,
+  computeRMetrics,
+  type BreakdownDimension,
+} from './analytics-metrics';
 import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
@@ -18,6 +22,27 @@ export class Analytics {
   readonly store = inject(TradesStore);
 
   readonly metrics = computed(() => computeRMetrics(this.store.trades()));
+
+  readonly dimension = signal<BreakdownDimension>('setup');
+
+  readonly dimensions: readonly { readonly value: BreakdownDimension; readonly label: string }[] =
+    [
+      { value: 'setup', label: 'Setup' },
+      { value: 'asset', label: 'Asset' },
+      { value: 'market', label: 'Market' },
+      { value: 'side', label: 'Side' },
+      { value: 'emotionBefore', label: 'Emotion-before' },
+      { value: 'emotionAfter', label: 'Emotion-after' },
+      { value: 'mistake', label: 'Mistake' },
+    ];
+
+  readonly dimensionLabel = computed(
+    () => this.dimensions.find((d) => d.value === this.dimension())?.label ?? 'Setup',
+  );
+
+  readonly breakdowns = computed(() =>
+    computeBreakdowns(this.store.trades(), this.dimension()),
+  );
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {
     const m = this.metrics();
@@ -77,6 +102,13 @@ export class Analytics {
     if (value < 0) return `-$${abs}`;
     return `$0.00`;
   };
+
+  readonly formatPercent = (value: number): string => `${value.toFixed(2)}%`;
+
+  onDimensionChange(event: Event): void {
+    const el = event.target as HTMLSelectElement | null;
+    if (el) this.dimension.set(el.value as BreakdownDimension);
+  }
 
   private readonly rClass = (value: number): string =>
     value > 0 ? 'text-success' : value < 0 ? 'text-destructive' : 'text-foreground';
