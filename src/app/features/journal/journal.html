@@ -121,8 +121,8 @@
                 class="flex min-h-16 flex-col items-start rounded-xl border border-border p-1.5 text-left text-sm hover:bg-sidebar-accent"
               >
                 <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
-                @if (cell.dayNet !== 0) {
-                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : 'text-success'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
+                @if (cell.trades.length > 0) {
+                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : cell.dayNet > 0 ? 'text-success' : 'text-muted-foreground'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
                 }
               </button>
             }

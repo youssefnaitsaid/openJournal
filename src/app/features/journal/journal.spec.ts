@@ -145,6 +145,31 @@ describe('Journal', () => {
     expect(detail).toMatch(/Oct 1, 2026/);
   });
 
+  it('shows flat days with Trades as neutral zero instead of hiding them', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'FLAT',
+        exitPrice: 100,
+        fees: 0,
+        closedAt: '2026-10-05T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const cells = [...compiled.querySelectorAll('[role="grid"] button')].map(
+      (b) => ({
+        day: (b as HTMLElement).textContent?.slice(0, 2),
+        net: (b as HTMLElement).querySelector('.font-medium')?.textContent ?? null,
+      }),
+    );
+    expect(cells.find((c) => c.day === '05')?.net).toBe('0');
+    expect(cells.find((c) => c.day === '02')?.net).toBeNull();
+  });
+
   it('renders the month report card with metrics and copy control', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
