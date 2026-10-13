@@ -15,5 +15,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/journal/journal').then((m) => m.Journal),
     title: 'Journal',
   },
+  {
+    path: 'analytics',
+    loadComponent: () =>
+      import('./features/analytics/analytics').then((m) => m.Analytics),
+    title: 'Analytics',
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

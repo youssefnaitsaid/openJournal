@@ -23,6 +23,14 @@
 - Recent Trades are newest close first, capped at 10.
 - Profit Factor renders as `∞` when infinite, rates render with two decimals.
 
+## Analytics derivation (computeRMetrics, beside the shared seam)
+- R-Expectancy is R sum divided by Total Trades with Breakevens and zero-risk 0Rs included; an empty journal reads 0.
+- Median R runs over all stored R-Multiples sorted ascending; an even count averages the two middles; empty reads 0.
+- R sum is the plain sum of stored R-Multiples; zero-risk Trades contribute 0, never NaN or Infinity.
+- Risked total sums Risked Amount and Net total sums Net P&L; risked coverage counts nonzero-risked Trades of Total Trades.
+- R by Setup rows carry trade count plus average R plus total R per Setup, sorted by average R descending; an empty journal has no rows.
+- R values render signed with two decimals (`+1.50R`, `-0.75R`, `0.00R`).
+
 ## Store and settings
 - Trades persist in the `openjournal-trades` SignalDB collection (localStorage) and survive reloads; readers must await readiness first.
 - Trades list newest close first.
@@ -31,7 +39,7 @@
 - The multiplier defaults by market (Stocks/Crypto/Forex 1, Futures 5, Options 100) on market change and stays editable afterwards.
 
 ## Views
-- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent), /trades (log form, full table, custom tags), /journal (month calendar, day detail, month summary); unknown paths redirect to /dashboard.
+- Routes are /dashboard (KPI cards, balance input, cumulative chart, recent), /trades (log form, full table, custom tags), /journal (month calendar, day detail, month summary), /analytics (R-Expectancy, median, R sum, totals, R by Setup); unknown paths redirect to /dashboard.
 - Empty states read `No trades yet`, `No recent trades yet`, `No trades this day`.
 - Empty submit logs nothing and names each missing field (Asset, positive Quantity/Multiplier, non-negative Fees, both timestamps, valid URL).
 - Dates are stored UTC ISO and displayed in local format, never raw ISO.
