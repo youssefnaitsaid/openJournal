@@ -1,0 +1,52 @@
+<section class="animate-fade-in-up flex flex-col gap-6">
+  <app-page-hero
+    eyebrow="Workspace"
+    title="Analytics"
+    subtitle="Risk-normalized edge from stored R-Multiples."
+    icon="lucideChartLine"
+  />
+
+  <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3" />
+
+  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
+    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
+      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+        <ng-icon name="lucideTarget" class="size-5" />
+      </span>
+      <span>
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">R by Setup</h2>
+        <p class="text-sm text-muted-foreground">Count, average R, and total R per playbook pattern</p>
+      </span>
+    </div>
+    <div class="px-4 py-4 sm:px-6">
+      @if (metrics().bySetup.length === 0) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No trades yet"
+          description="Log your first trade to see risk-adjusted edge here."
+        />
+      } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-muted-foreground">
+              <th class="py-1 pr-3 font-medium">Setup</th>
+              <th class="py-1 pr-3 text-right font-medium">Trades</th>
+              <th class="py-1 pr-3 text-right font-medium">Avg R</th>
+              <th class="py-1 text-right font-medium">Total R</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of metrics().bySetup; track row.setup) {
+              <tr class="border-t border-border">
+                <td class="py-2 pr-3 font-medium">{{ row.setup }}</td>
+                <td class="py-2 pr-3 text-right">{{ row.trades }}</td>
+                <td class="py-2 pr-3 text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
+                <td class="py-2 text-right" [class]="row.totalR > 0 ? 'text-success' : row.totalR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.totalR) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+</section>

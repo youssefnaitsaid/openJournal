@@ -4,6 +4,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowDownUp,
   lucideBookOpen,
+  lucideChartLine,
   lucideLayoutDashboard,
   lucideMenu,
   lucideMoon,
@@ -28,6 +29,7 @@ interface NavItem {
     provideIcons({
       lucideArrowDownUp,
       lucideBookOpen,
+      lucideChartLine,
       lucideLayoutDashboard,
       lucideMenu,
       lucideMoon,
@@ -55,6 +57,7 @@ export class App {
   protected readonly workspaceItems: readonly NavItem[] = [
     { label: 'Trades', url: '/trades', icon: 'lucideArrowDownUp' },
     { label: 'Journal', url: '/journal', icon: 'lucideBookOpen' },
+    { label: 'Analytics', url: '/analytics', icon: 'lucideChartLine' },
   ];
 
   protected readonly netTotal = computed(() =>
