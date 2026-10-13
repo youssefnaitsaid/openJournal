@@ -1,59 +1,111 @@
-<section class="flex flex-col gap-4">
-  <h1 class="text-2xl font-semibold tracking-tight">Journal</h1>
+<section class="animate-fade-in-up flex flex-col gap-6">
+  <app-page-hero
+    eyebrow="Workspace"
+    title="Journal"
+    subtitle="Calendar day view of closed Trades plus month summary."
+    icon="lucideCalendarDays"
+  >
+    <button
+      type="button"
+      aria-label="Previous month"
+      (click)="prev()"
+      class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+    >
+      <ng-icon name="lucideChevronLeft" class="size-4" />
+      Prev
+    </button>
+    <button
+      type="button"
+      aria-label="Next month"
+      (click)="next()"
+      class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+    >
+      Next
+      <ng-icon name="lucideChevronRight" class="size-4" />
+    </button>
+    <button
+      type="button"
+      aria-label="This month"
+      (click)="goToCurrent()"
+      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+    >
+      This month
+    </button>
+  </app-page-hero>
 
-  <div class="flex items-center gap-2">
-    <button type="button" aria-label="Previous month" (click)="prev()" class="rounded-md border border-border px-3 py-1 text-sm">‹ Prev</button>
-    <h2 aria-label="Current month" class="min-w-44 text-center text-lg font-medium">{{ monthLabel() }}</h2>
-    <button type="button" aria-label="Next month" (click)="next()" class="rounded-md border border-border px-3 py-1 text-sm">Next ›</button>
-    <button type="button" aria-label="This month" (click)="goToCurrent()" class="rounded-md border border-border px-3 py-1 text-sm">This month</button>
+  <div class="grid gap-3 sm:grid-cols-2">
+    <div class="flex flex-col rounded-2xl border border-border bg-card px-6 py-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Month Net</p>
+      <p class="mt-1 text-lg font-bold" [class]="summary().monthNet >= 0 ? 'text-success' : 'text-destructive'">
+        {{ summary().monthNet > 0 ? '+' + summary().monthNet : summary().monthNet }}
+      </p>
+    </div>
+    <div class="flex flex-col rounded-2xl border border-border bg-card px-6 py-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Balance at month end</p>
+      <p class="mt-1 text-lg font-bold text-foreground">{{ summary().balanceEnd }}</p>
+    </div>
   </div>
 
-  <p class="text-sm text-muted-foreground">
-    Month Net: <strong class="text-foreground">{{ summary().monthNet }}</strong>
-    · Balance at month end: <strong class="text-foreground">{{ summary().balanceEnd }}</strong>
-  </p>
-
-  <div class="grid grid-cols-7 gap-1" role="grid" aria-label="Month calendar">
-    @for (label of dayLabels; track label) {
-      <div class="py-1 text-center text-xs font-medium text-muted-foreground">{{ label }}</div>
-    }
-    @for (week of weeks(); track $index) {
-      @for (cell of week; track cell?.date ?? $index) {
-        @if (cell === null) {
-          <span></span>
-        } @else {
-          <button
-            type="button"
-            (click)="selectedDay.set(cell.date)"
-            class="flex min-h-16 flex-col items-start rounded-md border border-border p-1 text-left text-sm hover:bg-sidebar-accent"
-          >
-            <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
-            @if (cell.dayNet !== 0) {
-              <span class="font-medium" [class.text-destructive]="cell.dayNet < 0">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
-            }
-          </button>
+  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
+    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
+      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+        <ng-icon name="lucideCalendarDays" class="size-5" />
+      </span>
+      <span>
+        <h2 aria-label="Current month" class="text-lg font-semibold tracking-tight text-foreground">{{ monthLabel() }}</h2>
+        <p class="text-sm text-muted-foreground">Net per day by close date</p>
+      </span>
+    </div>
+    <div class="px-4 py-6 sm:px-6">
+      <div class="grid grid-cols-7 gap-1" role="grid" aria-label="Month calendar">
+        @for (label of dayLabels; track label) {
+          <div class="py-1 text-center text-xs font-medium text-muted-foreground">{{ label }}</div>
         }
-      }
-    }
-  </div>
+        @for (week of weeks(); track $index) {
+          @for (cell of week; track cell?.date ?? $index) {
+            @if (cell === null) {
+              <span></span>
+            } @else {
+              <button
+                type="button"
+                (click)="selectedDay.set(cell.date)"
+                [attr.aria-pressed]="selectedDay() === cell.date"
+                [class.bg-sidebar-accent]="selectedDay() === cell.date"
+                class="flex min-h-16 flex-col items-start rounded-xl border border-border p-1.5 text-left text-sm hover:bg-sidebar-accent"
+              >
+                <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
+                @if (cell.dayNet !== 0) {
+                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : 'text-success'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
+                }
+              </button>
+            }
+          }
+        }
+      </div>
+    </div>
+  </section>
 
-  <section class="flex flex-col gap-2">
-    <h2 class="text-lg font-medium">Day detail</h2>
+  <section class="flex flex-col gap-3">
+    <h2 class="text-lg font-semibold tracking-tight text-foreground">Day detail</h2>
     @if (selectedTrades().length === 0) {
-      <p class="text-sm text-muted-foreground">No trades this day.</p>
+      <app-empty-state
+        icon="lucideInbox"
+        title="No trades this day."
+        description="Select a day with closed Trades to review them here."
+      />
     } @else {
       @for (trade of selectedTrades(); track trade.id) {
-        <article class="rounded-lg border border-border bg-card p-3 text-sm">
-          <h3 class="font-medium">{{ trade.asset }} · {{ trade.side }} · Net {{ trade.net }}</h3>
-          <p class="text-xs text-muted-foreground">{{ trade.openedAt | date:'medium' }} → {{ trade.closedAt | date:'medium' }}</p>
-          <dl class="mt-1 grid grid-cols-2 gap-x-4 gap-y-1">
-            <dt class="text-muted-foreground">Setup</dt><dd>{{ trade.setup }}</dd>
-            <dt class="text-muted-foreground">Emotion before</dt><dd>{{ trade.emotionBefore }}</dd>
-            <dt class="text-muted-foreground">Emotion after</dt><dd>{{ trade.emotionAfter }}</dd>
-            <dt class="text-muted-foreground">Mistake</dt><dd>{{ trade.mistake }}</dd>
+        <article class="rounded-2xl border border-border bg-card p-4 text-sm shadow-sm sm:p-5">
+          <h3 class="font-semibold text-foreground">{{ trade.asset }} · {{ trade.side }} · Net {{ trade.net }}</h3>
+          <p class="mt-0.5 text-xs text-muted-foreground">{{ trade.openedAt | date:'medium' }} → {{ trade.closedAt | date:'medium' }}</p>
+          <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+            <dt class="text-muted-foreground">Setup</dt><dd class="text-foreground">{{ trade.setup }}</dd>
+            <dt class="text-muted-foreground">Emotion before</dt><dd class="text-foreground">{{ trade.emotionBefore }}</dd>
+            <dt class="text-muted-foreground">Emotion after</dt><dd class="text-foreground">{{ trade.emotionAfter }}</dd>
+            <dt class="text-muted-foreground">Mistake</dt><dd class="text-foreground">{{ trade.mistake }}</dd>
           </dl>
           @if (trade.chartUrl !== '') {
-            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="mt-1 inline-block underline">chart</a>
+            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="mt-2 inline-block text-sm underline">chart</a>
           }
           @if (trade.notes !== '') {
             <p class="mt-1 text-muted-foreground">{{ trade.notes }}</p>

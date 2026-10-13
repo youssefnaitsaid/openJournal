@@ -1,80 +1,99 @@
-<section class="flex flex-col gap-6">
-  <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
-
-  <div class="grid grid-cols-2 gap-3 lg:grid-cols-6">
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Net P&amp;L</h2>
-      <p class="text-2xl font-semibold">{{ metrics().netTotal }}</p>
-    </article>
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Trade win %</h2>
-      <p class="text-2xl font-semibold">{{ formatPercent(metrics().winRate) }}</p>
-    </article>
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Profit factor</h2>
-      <p class="text-2xl font-semibold">{{ profitFactorText() }}</p>
-    </article>
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Day win %</h2>
-      <p class="text-2xl font-semibold">{{ formatPercent(metrics().dayWinRate) }}</p>
-    </article>
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Avg win / loss</h2>
-      <p class="text-2xl font-semibold">{{ metrics().avgWin }} / {{ metrics().avgLoss }}</p>
-    </article>
-    <article class="rounded-lg border border-border bg-card p-4">
-      <h2 class="text-sm text-muted-foreground">Total trades</h2>
-      <p class="text-2xl font-semibold">{{ metrics().totalTrades }}</p>
-    </article>
+<section class="animate-fade-in-up flex flex-col gap-6">
+  <div class="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
+    <div class="bg-gradient-hero pointer-events-none absolute inset-0" aria-hidden="true"></div>
+    <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div class="min-w-0">
+        <h1 class="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Total Net P&amp;L</h1>
+        <p class="animate-count-up mt-2 break-words text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+          {{ metrics().netTotal }}
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium shadow-sm"
+            [class]="isPositive() ? 'text-success' : 'text-destructive'"
+          >
+            <ng-icon [name]="isPositive() ? 'lucideTrendingUp' : 'lucideTrendingDown'" class="size-4" />
+            {{ formatPercent(metrics().winRate) }}% win rate
+          </span>
+          <span class="text-sm text-muted-foreground">Dashboard</span>
+        </div>
+      </div>
+      <label class="flex w-full max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
+        <input
+          type="number"
+          min="0"
+          step="any"
+          aria-label="Starting balance"
+          [value]="startingBalance()"
+          (input)="onBalanceInput($event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+    </div>
   </div>
 
-  <div class="flex flex-col gap-4">
-    <label class="flex max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
-      <input
-        type="number"
-        min="0"
-        step="any"
-        aria-label="Starting balance"
-        [value]="startingBalance()"
-        (input)="onBalanceInput($event)"
-        class="rounded-md border border-input bg-background px-2 py-1"
-      />
-    </label>
+  <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" />
 
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
     @if (chartPoints() !== '') {
-      <figure class="rounded-lg border border-border bg-card p-4">
-        <figcaption class="text-sm text-muted-foreground">Account balance</figcaption>
-        <svg viewBox="0 0 100 40" class="h-40 w-full" role="img" aria-label="Account balance over time">
-          <polyline [attr.points]="chartPoints()" fill="none" stroke="currentColor" stroke-width="1" />
-        </svg>
-        <p class="text-2xl font-semibold">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
+      <figure class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm lg:col-span-3">
+        <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
+          <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+            <ng-icon name="lucideChartLine" class="size-5" />
+          </span>
+          <span>
+            <figcaption class="text-lg font-semibold tracking-tight text-foreground">Account balance</figcaption>
+            <p class="text-sm text-muted-foreground">Cumulative Net P&amp;L from starting balance</p>
+          </span>
+        </div>
+        <div class="px-4 py-6 sm:px-6">
+          <svg viewBox="0 0 100 40" class="h-40 w-full text-primary" role="img" aria-label="Account balance over time">
+            <polyline [attr.points]="chartPoints()" fill="none" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+          <p class="mt-2 text-2xl font-semibold text-foreground">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
+        </div>
       </figure>
     }
+    <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm lg:col-span-2" [class.lg:col-span-5]="chartPoints() === ''">
+      <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
+        <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+          <ng-icon name="lucideTrendingUp" class="size-5" />
+        </span>
+        <span>
+          <h2 class="text-lg font-semibold tracking-tight text-foreground">Recent trades</h2>
+          <p class="text-sm text-muted-foreground">Newest close first</p>
+        </span>
+      </div>
+      <div class="px-4 py-4 sm:px-6">
+        @if (metrics().recent.length === 0) {
+          <app-empty-state
+            icon="lucideInbox"
+            title="No recent trades yet."
+            description="Log your first trade to see it here."
+            actionLabel="Log trade"
+            (action)="goToTrades()"
+          />
+        } @else {
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-muted-foreground">
+                <th class="py-1 pr-3 font-medium">Close date</th>
+                <th class="py-1 pr-3 font-medium">Asset</th>
+                <th class="py-1 pr-3 text-right font-medium">Net P&amp;L</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (trade of metrics().recent; track trade.id) {
+                <tr class="border-t border-border">
+                  <td class="py-2 pr-3">{{ trade.closedAt | date:'medium' }}</td>
+                  <td class="py-2 pr-3 font-medium">{{ trade.asset }}</td>
+                  <td class="py-2 pr-3 text-right" [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </section>
   </div>
-
-  <section class="flex flex-col gap-2">
-    <h2 class="text-lg font-medium">Recent trades</h2>
-    @if (metrics().recent.length === 0) {
-      <p class="text-sm text-muted-foreground">No recent trades yet.</p>
-    } @else {
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-left text-muted-foreground">
-            <th class="py-1 pr-3">Close date</th>
-            <th class="py-1 pr-3">Asset</th>
-            <th class="py-1 pr-3">Net P&amp;L</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (trade of metrics().recent; track trade.id) {
-            <tr class="border-t border-border">
-              <td class="py-1 pr-3">{{ trade.closedAt | date:'medium' }}</td>
-              <td class="py-1 pr-3">{{ trade.asset }}</td>
-              <td class="py-1 pr-3">{{ trade.net }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-  </section>
 </section>

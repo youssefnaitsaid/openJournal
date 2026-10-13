@@ -47,4 +47,11 @@ describe('design tokens', () => {
       .map(([path]) => path);
     expect(offenders).toEqual([]);
   });
+
+  it('keeps styling in the theme, no inline style attributes in templates', () => {
+    const offenders = Object.entries(templates)
+      .filter(([, source]) => /style\s*=/.test(source as string))
+      .map(([path]) => path);
+    expect(offenders).toEqual([]);
+  });
 });
