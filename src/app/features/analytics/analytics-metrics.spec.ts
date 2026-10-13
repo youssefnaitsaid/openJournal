@@ -211,7 +211,7 @@ describe('computeBreakdowns', () => {
     expect(other.avgR).toBeCloseTo(0.05, 10);
   });
 
-  it('extracts all seven dimensions from stored Trade fields', () => {
+  it('extracts all eight dimensions from stored Trade fields', () => {
     const base = tradeFixture({
       asset: 'AAPL',
       market: 'Stocks',
@@ -220,6 +220,7 @@ describe('computeBreakdowns', () => {
       emotionBefore: 'Calm',
       emotionAfter: 'FOMO',
       mistake: 'Moved-stop',
+      grade: 'B',
     });
     const bySide = computeBreakdowns([base], 'side');
     expect(bySide[0]!.value).toBe('Long');
@@ -229,5 +230,84 @@ describe('computeBreakdowns', () => {
     expect(computeBreakdowns([base], 'mistake')[0]!.value).toBe('Moved-stop');
     expect(computeBreakdowns([base], 'asset')[0]!.value).toBe('AAPL');
     expect(computeBreakdowns([base], 'setup')[0]!.value).toBe('Breakout');
+    expect(computeBreakdowns([base], 'grade')[0]!.value).toBe('B');
+  });
+
+  it('groups by Grade with count, Net sum, win-rate, and avg R sorted by Net desc', () => {
+    const rows = computeBreakdowns(
+      [
+        tradeFixture({
+          asset: 'A-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          grade: 'A',
+          closedAt: '2026-10-01T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'B-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 110,
+          riskedAmount: 100,
+          grade: 'B',
+          closedAt: '2026-10-02T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'D-LOSS',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          grade: 'D',
+          closedAt: '2026-10-03T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'FLAT',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 100,
+          fees: 0,
+          closedAt: '2026-10-04T14:30:00.000Z',
+        }),
+      ],
+      'grade',
+    );
+    expect(rows).toEqual([
+      { value: 'A', trades: 1, netTotal: 200, winRate: 100, avgR: 2 },
+      { value: 'B', trades: 1, netTotal: 100, winRate: 100, avgR: 1 },
+      { value: '(Unspecified)', trades: 1, netTotal: 0, winRate: 0, avgR: 0 },
+      { value: 'D', trades: 1, netTotal: -100, winRate: 0, avgR: -1 },
+    ]);
+  });
+
+  it('collapses blank Grades into a single (Unspecified) row', () => {
+    const rows = computeBreakdowns(
+      [
+        tradeFixture({ asset: 'G1', closedAt: '2026-10-01T14:30:00.000Z' }),
+        tradeFixture({
+          asset: 'G2',
+          grade: '',
+          closedAt: '2026-10-02T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'G3',
+          grade: 'C',
+          closedAt: '2026-10-03T14:30:00.000Z',
+        }),
+      ],
+      'grade',
+    );
+    expect(rows.map((r) => r.value).sort()).toEqual(
+      ['(Unspecified)', 'C'].sort(),
+    );
+    const unspecified = rows.find((r) => r.value === '(Unspecified)')!;
+    expect(unspecified.trades).toBe(2);
+  });
+
+  it('extracts Grade from the stored Trade field', () => {
+    const base = tradeFixture({ grade: 'B' });
+    expect(computeBreakdowns([base], 'grade')[0]!.value).toBe('B');
   });
 });

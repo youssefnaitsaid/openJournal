@@ -22,6 +22,7 @@ const INPUT: TradeInput = {
   emotionBefore: 'Calm',
   emotionAfter: 'Disciplined',
   mistake: 'None-followed-plan',
+  grade: '',
   chartUrl: '',
   notes: '',
 };

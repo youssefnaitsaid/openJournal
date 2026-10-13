@@ -8,6 +8,8 @@ import {
   netPnl,
   rMultiple,
 } from './trade-math';
+import { tradeInput } from './trade-fixtures';
+import type { Grade, TradeInput } from './trade';
 
 describe('grossPnl', () => {
   it('derives a Long win from price difference times Quantity times multiplier', () => {
@@ -111,6 +113,7 @@ describe('deriveTrade', () => {
         emotionBefore: 'Calm',
         emotionAfter: 'Disciplined',
         mistake: 'None-followed-plan',
+        grade: '',
         chartUrl: '',
         notes: '',
       },
@@ -143,6 +146,7 @@ describe('deriveTrade', () => {
         emotionBefore: 'Confident',
         emotionAfter: 'Calm',
         mistake: 'None-followed-plan',
+        grade: 'A',
         chartUrl: '',
         notes: '',
       },
@@ -152,5 +156,19 @@ describe('deriveTrade', () => {
     expect(trade.net).toBe(97.5);
     expect(trade.risked).toBe(50);
     expect(trade.rMultiple).toBeCloseTo(1.95, 10);
+  });
+
+  it('normalizes a pre-grade Trade input to ungraded', () => {
+    const { grade: _dropped, ...legacy } = tradeInput();
+    const trade = deriveTrade(legacy, 'legacy-1');
+    expect(trade.grade).toBe('');
+  });
+
+  it('rejects an invalid Grade to ungraded at the boundary', () => {
+    const trade = deriveTrade(
+      tradeInput({ grade: 'Z' as Grade }),
+      'invalid-grade-1',
+    );
+    expect(trade.grade).toBe('');
   });
 });

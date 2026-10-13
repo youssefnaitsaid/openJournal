@@ -19,6 +19,7 @@ export function tradeInput(overrides: Partial<TradeInput> = {}): TradeInput {
     emotionBefore: 'Calm',
     emotionAfter: 'Calm',
     mistake: 'None-followed-plan',
+    grade: '',
     chartUrl: '',
     notes: '',
     ...overrides,
