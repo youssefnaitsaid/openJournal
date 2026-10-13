@@ -89,8 +89,7 @@ describe('Analytics', () => {
     expect(rows[1]).toContain('Pullback');
   });
 
-  it('switches breakdown dimension via the picker', async () => {
-    await seed();
+  it('switches breakdown dimension via the picker', async () => {    await seed();
     const fixture = TestBed.createComponent(Analytics);
     await fixture.whenStable();
     const component = fixture.componentInstance;
@@ -105,5 +104,51 @@ describe('Analytics', () => {
     );
     expect(rows.length).toBe(1);
     expect(rows[0]).toContain('Long');
+  });
+
+  it('offers Grade in the picker and regroups breakdowns by Grade', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'A-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+        grade: 'A',
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'D-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        grade: 'D',
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const options = [...compiled.querySelectorAll('option')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(options).toContain('Grade');
+    const component = fixture.componentInstance;
+    expect(component.dimension()).toBe('setup');
+    component.dimension.set('grade');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Breakdown by Grade');
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(2);
+    expect(rows[0]).toContain('A');
+    expect(rows[1]).toContain('D');
   });
 });

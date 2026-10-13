@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Trades } from './trades';
 import { TradesStore } from './trades-store';
-import type { Emotion, Market, Mistake, Setup, Side } from './trade';
+import { tradeInput } from './trade-fixtures';
+import type { Emotion, Grade, Market, Mistake, Setup, Side } from './trade';
 
 function validValues() {
   return {
@@ -23,6 +24,7 @@ function validValues() {
     emotionBefore: 'Calm' as Emotion,
     emotionAfter: 'Disciplined' as Emotion,
     mistake: 'None-followed-plan' as Mistake,
+    grade: '' as Grade,
     chartUrl: '',
     notes: '',
   };
@@ -193,5 +195,105 @@ describe('Trades', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).not.toContain('.000Z');
     expect(compiled.textContent).not.toContain('2026-10-01T');
+  });
+
+  it('defaults Grade to blank and logs ungraded Trades when untouched', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    expect(component.form.controls.grade.value).toBe('');
+    component.form.setValue({ ...validValues(), grade: '' as Grade });
+    component.onSubmit();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()).toHaveLength(1);
+    expect(store.trades()[0]!.grade).toBe('');
+  });
+
+  it('persists the chosen Grade and shows it as a badge in the table', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.setValue({ ...validValues(), grade: 'B' as Grade });
+    component.onSubmit();
+    await fixture.whenStable();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()[0]!.grade).toBe('B');
+    const compiled = fixture.nativeElement as HTMLElement;
+    const header =
+      compiled.querySelector('thead tr')?.textContent?.replace(/\s+/g, ' ') ??
+      '';
+    expect(header).toContain('Grade');
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toContain('B');
+  });
+
+  it('keeps Grade independent of Mistake', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.form.setValue({
+      ...validValues(),
+      mistake: 'Moved-stop' as Mistake,
+      grade: 'B' as Grade,
+    });
+    component.onSubmit();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades()[0]!.mistake).toBe('Moved-stop');
+    expect(store.trades()[0]!.grade).toBe('B');
+  });
+
+  it('filters by Grade and reviews C and D worst-first, restoring defaults off', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    const store = TestBed.inject(TradesStore);
+    store.addTrade(
+      tradeInput({ asset: 'A-OLD', grade: 'A', closedAt: '2026-10-01T14:30:00.000Z' }),
+    );
+    store.addTrade(
+      tradeInput({ asset: 'C-MID', grade: 'C', closedAt: '2026-10-02T14:30:00.000Z' }),
+    );
+    store.addTrade(
+      tradeInput({ asset: 'D-NEW', grade: 'D', closedAt: '2026-10-03T14:30:00.000Z' }),
+    );
+    store.addTrade(
+      tradeInput({ asset: 'D-OLD', grade: 'D', closedAt: '2026-10-02T10:30:00.000Z' }),
+    );
+    expect(component.rows().map((t) => t.asset)).toEqual([
+      'D-NEW',
+      'C-MID',
+      'D-OLD',
+      'A-OLD',
+    ]);
+
+    component.gradeFilter.set('C');
+    expect(component.rows().map((t) => t.asset)).toEqual(['C-MID']);
+
+    component.gradeFilter.set('');
+    component.toggleReview();
+    expect(component.rows().map((t) => t.asset)).toEqual([
+      'D-NEW',
+      'D-OLD',
+      'C-MID',
+    ]);
+
+    component.gradeFilter.set('D');
+    expect(component.rows().map((t) => t.asset)).toEqual(['D-NEW', 'D-OLD']);
+
+    component.gradeFilter.set('A');
+    expect(component.rows()).toEqual([]);
+
+    component.gradeFilter.set('');
+    component.toggleReview();
+    expect(component.gradeFilter()).toBe('');
+    expect(component.rows().map((t) => t.asset)).toEqual([
+      'D-NEW',
+      'C-MID',
+      'D-OLD',
+      'A-OLD',
+    ]);
   });
 });

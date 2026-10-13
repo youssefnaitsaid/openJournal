@@ -14,6 +14,7 @@ import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
 import {
   EMOTIONS,
+  GRADES,
   MARKETS,
   MARKET_MULTIPLIERS,
   MISTAKES,
@@ -21,10 +22,12 @@ import {
 } from './trade';
 import type {
   Emotion,
+  Grade,
   Market,
   Mistake,
   Setup,
   Side,
+  Trade,
   TradeInput,
 } from './trade';
 import { isValidChartUrl } from './trade-math';
@@ -56,6 +59,11 @@ export class Trades {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly markets: readonly Market[] = MARKETS;
+
+  readonly grades: readonly Grade[] = GRADES;
+
+  readonly gradeFilter = signal<Grade | ''>('');
+  readonly needsReview = signal(false);
 
   private readonly taxonomyVersion = signal(0);
 
@@ -89,7 +97,35 @@ export class Trades {
     if (trimmed !== '') this.form.controls.mistake.setValue(trimmed);
   }
 
-  readonly rows = computed(() => this.store.byCloseDesc());
+  readonly rows = computed(() => {
+    const all = this.store.byCloseDesc();
+    if (this.needsReview()) {
+      const reviewRank = (t: Trade): number => (t.grade === 'D' ? 0 : 1);
+      const selected = this.gradeFilter();
+      const inReview = all.filter((t) => t.grade === 'C' || t.grade === 'D');
+      const list =
+        selected === '' ? inReview : inReview.filter((t) => t.grade === selected);
+      return [...list].sort(
+        (a, b) =>
+          reviewRank(a) - reviewRank(b) ||
+          +new Date(b.closedAt) - +new Date(a.closedAt),
+      );
+    }
+    const grade = this.gradeFilter();
+    if (grade === '') return all;
+    return all.filter((t) => t.grade === grade);
+  });
+
+  toggleReview(): void {
+    const next = !this.needsReview();
+    this.needsReview.set(next);
+    if (!next) this.gradeFilter.set('');
+  }
+
+  onGradeFilterChange(event: Event): void {
+    const el = event.target as HTMLSelectElement | null;
+    if (el) this.gradeFilter.set(el.value as Grade | '');
+  }
 
   readonly form = this.fb.nonNullable.group({
     asset: ['', Validators.required],
@@ -109,6 +145,7 @@ export class Trades {
     emotionBefore: ['Calm' as Emotion, Validators.required],
     emotionAfter: ['Calm' as Emotion, Validators.required],
     mistake: ['None-followed-plan' as Mistake, Validators.required],
+    grade: ['' as Grade | ''],
     chartUrl: ['', chartUrlValidator],
     notes: [''],
   });
@@ -149,6 +186,7 @@ export class Trades {
       emotionBefore: v.emotionBefore,
       emotionAfter: v.emotionAfter,
       mistake: v.mistake,
+      grade: v.grade,
       chartUrl: v.chartUrl ?? '',
       notes: v.notes ?? '',
     };
@@ -163,6 +201,7 @@ export class Trades {
       emotionBefore: 'Calm',
       emotionAfter: 'Calm',
       mistake: 'None-followed-plan',
+      grade: '',
       chartUrl: '',
       notes: '',
     });

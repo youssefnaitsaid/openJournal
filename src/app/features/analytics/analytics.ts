@@ -34,6 +34,7 @@ export class Analytics {
       { value: 'emotionBefore', label: 'Emotion-before' },
       { value: 'emotionAfter', label: 'Emotion-after' },
       { value: 'mistake', label: 'Mistake' },
+      { value: 'grade', label: 'Grade' },
     ];
 
   readonly dimensionLabel = computed(

@@ -1,4 +1,5 @@
-import type { Side, Trade, TradeInput } from './trade';
+import { GRADES } from './trade';
+import type { Grade, Side, Trade, TradeInput } from './trade';
 
 export type Outcome = 'Win' | 'Loss' | 'Breakeven';
 
@@ -68,5 +69,8 @@ export function deriveTrade(input: TradeInput, id: string): Trade {
       input.quantity,
       input.multiplier,
     );
-  return { ...input, id, gross, net, risked, rMultiple: rMultiple(net, risked) };
+  const grade: Grade | '' = GRADES.includes(input.grade as Grade)
+    ? (input.grade as Grade)
+    : '';
+  return { ...input, grade, id, gross, net, risked, rMultiple: rMultiple(net, risked) };
 }

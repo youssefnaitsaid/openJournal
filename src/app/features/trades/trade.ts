@@ -30,6 +30,8 @@ export type Mistake =
   | 'Revenge-trade'
   | (string & {});
 
+export type Grade = 'A' | 'B' | 'C' | 'D';
+
 export const MARKETS: readonly Market[] = [
   'Stocks',
   'Futures',
@@ -76,6 +78,8 @@ export const MISTAKES: readonly Mistake[] = [
   'Revenge-trade',
 ];
 
+export const GRADES: readonly Grade[] = ['A', 'B', 'C', 'D'];
+
 export interface TradeInput {
   asset: string;
   market: Market;
@@ -94,12 +98,14 @@ export interface TradeInput {
   emotionBefore: Emotion;
   emotionAfter: Emotion;
   mistake: Mistake;
+  grade?: Grade | '';
   chartUrl: string;
   notes: string;
 }
 
 export interface Trade extends TradeInput {
   id: string;
+  grade: Grade | '';
   gross: number;
   net: number;
   risked: number;

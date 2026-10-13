@@ -25,7 +25,8 @@ export type BreakdownDimension =
   | 'side'
   | 'emotionBefore'
   | 'emotionAfter'
-  | 'mistake';
+  | 'mistake'
+  | 'grade';
 
 export function computeBreakdowns(
   trades: readonly Trade[],
@@ -49,6 +50,8 @@ export function computeBreakdowns(
         return t.emotionAfter;
       case 'mistake':
         return t.mistake;
+      case 'grade':
+        return t.grade ?? '';
     }
   };
 
