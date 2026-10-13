@@ -16,6 +16,13 @@ export interface DashboardMetrics {
   avgLoss: number;
   profitFactor: number;
   dayWinRate: number;
+  maxDrawdown: number;
+  maxDrawdownPct: number;
+  currentWinStreak: number;
+  currentLossStreak: number;
+  longestWinStreak: number;
+  longestLossStreak: number;
+  expectancy: number;
   balanceCurve: BalancePoint[];
   recent: Trade[];
 }
@@ -52,13 +59,46 @@ export function computeMetrics(
   const countedDays = [...dayNets.values()].filter((net) => net !== 0);
   const winningDays = countedDays.filter((net) => net > 0).length;
 
+  let peak = -Infinity;
+  let maxDrawdown = 0;
+  let maxDrawdownPct = 0;
+  for (const p of balanceCurve) {
+    if (p.balance > peak) peak = p.balance;
+    const drop = peak - p.balance;
+    if (drop > maxDrawdown) {
+      maxDrawdown = drop;
+      maxDrawdownPct = peak !== 0 ? (drop / peak) * 100 : 0;
+    }
+  }
+
+  let currentWinStreak = 0;
+  let currentLossStreak = 0;
+  let longestWinStreak = 0;
+  let longestLossStreak = 0;
+  for (const t of byCloseAsc) {
+    if (t.net > 0) {
+      currentWinStreak += 1;
+      currentLossStreak = 0;
+      longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
+    } else if (t.net < 0) {
+      currentLossStreak += 1;
+      currentWinStreak = 0;
+      longestLossStreak = Math.max(longestLossStreak, currentLossStreak);
+    } else {
+      currentWinStreak = 0;
+      currentLossStreak = 0;
+    }
+  }
+
+  const netTotal = trades.reduce((sum, t) => sum + t.net, 0);
+
   return {
     totalTrades: trades.length,
     wins: wins.length,
     losses: losses.length,
     breakevens: trades.length - counted,
     winRate: counted > 0 ? (wins.length / counted) * 100 : 0,
-    netTotal: trades.reduce((sum, t) => sum + t.net, 0),
+    netTotal,
     avgWin: wins.length > 0 ? winSum / wins.length : 0,
     avgLoss: losses.length > 0 ? lossSum / losses.length : 0,
     profitFactor:
@@ -69,6 +109,13 @@ export function computeMetrics(
           : 0,
     dayWinRate:
       countedDays.length > 0 ? (winningDays / countedDays.length) * 100 : 0,
+    maxDrawdown,
+    maxDrawdownPct,
+    currentWinStreak,
+    currentLossStreak,
+    longestWinStreak,
+    longestLossStreak,
+    expectancy: trades.length > 0 ? netTotal / trades.length : 0,
     balanceCurve,
     recent: [...trades]
       .sort((a, b) => +new Date(b.closedAt) - +new Date(a.closedAt))

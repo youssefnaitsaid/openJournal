@@ -89,6 +89,20 @@ describe('Dashboard', () => {
     expect(content).toContain('2');
   });
 
+  it('shows drawdown, streaks, and expectancy cards', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Max drawdown');
+    expect(content).toContain('$105');
+    expect(content).toContain('Streaks');
+    expect(content).toContain('W0');
+    expect(content).toContain('Expectancy / Trade');
+    expect(content).toContain('-$3.00');
+  });
+
   it('renders local dates without raw ISO', async () => {
     await seed();
     const fixture = TestBed.createComponent(Dashboard);
@@ -105,5 +119,10 @@ describe('Dashboard', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Total Net P&L');
     expect(compiled.textContent).toContain('No recent trades yet.');
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Max drawdown');
+    expect(content).toContain('$0 · 0.00%');
+    expect(content).toContain('W0 · L0 / Best W0 · L0');
+    expect(content).toContain('$0.00');
   });
 });

@@ -4,8 +4,11 @@ import {
   lucideArrowDownUp,
   lucideCalendarDays,
   lucideChartLine,
+  lucideFlame,
   lucideHash,
   lucidePercent,
+  lucideTarget,
+  lucideTrendingDown,
 } from '@ng-icons/lucide';
 
 export interface QuickStat {
@@ -23,8 +26,11 @@ export interface QuickStat {
       lucideArrowDownUp,
       lucideCalendarDays,
       lucideChartLine,
+      lucideFlame,
       lucideHash,
       lucidePercent,
+      lucideTarget,
+      lucideTrendingDown,
     }),
   ],
   selector: 'app-quick-stats',

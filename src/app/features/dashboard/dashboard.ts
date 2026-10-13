@@ -78,10 +78,39 @@ export class Dashboard {
         value: `${m.avgWin} / ${m.avgLoss}`,
       },
       { icon: 'lucideHash', label: 'Total trades', value: `${m.totalTrades}` },
+      {
+        icon: 'lucideTrendingDown',
+        label: 'Max drawdown',
+        value: `$${m.maxDrawdown} · ${this.formatPercent(m.maxDrawdownPct)}%`,
+        valueClass: m.maxDrawdown > 0 ? 'text-destructive' : 'text-foreground',
+      },
+      {
+        icon: 'lucideFlame',
+        label: 'Streaks',
+        value: `W${m.currentWinStreak} · L${m.currentLossStreak} / Best W${m.longestWinStreak} · L${m.longestLossStreak}`,
+      },
+      {
+        icon: 'lucideTarget',
+        label: 'Expectancy / Trade',
+        value: this.formatSignedDollars(m.expectancy),
+        valueClass:
+          m.expectancy > 0
+            ? 'text-success'
+            : m.expectancy < 0
+              ? 'text-destructive'
+              : 'text-foreground',
+      },
     ];
   });
 
   readonly formatPercent = (value: number): string => value.toFixed(2);
+
+  readonly formatSignedDollars = (value: number): string => {
+    const abs = Math.abs(value).toFixed(2);
+    if (value > 0) return `+$${abs}`;
+    if (value < 0) return `-$${abs}`;
+    return `$0.00`;
+  };
 
   onBalanceInput(event: Event): void {
     const value = Number((event.target as HTMLInputElement).value);
