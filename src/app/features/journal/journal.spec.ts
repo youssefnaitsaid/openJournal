@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { Journal } from './journal';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
+import { UNSET_GUARDS, saveGuards } from '../../guards';
 
 describe('Journal', () => {
   beforeEach(() => {
@@ -219,6 +220,49 @@ describe('Journal', () => {
       .querySelector('[aria-label="Month report card"]')
       ?.textContent?.replace(/\s+/g, ' ');
     expect(card).toContain('Trades: 0');
+  });
+
+  it('marks Guard-breached days and inside days on the heatmap', async () => {
+    await seed();
+    saveGuards({
+      daily: { maxLoss: 100, maxTrades: null, stopTime: null },
+      weekly: { ...UNSET_GUARDS.weekly },
+    });
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Guard breached');
+    expect(content).toContain('Inside Guards');
+  });
+
+  it('shows no Guard markers when every Guard is unset', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).not.toContain('Guard breached');
+    expect(content).not.toContain('Inside Guards');
+  });
+
+  it('names breached daily and containing-week Guards in day detail', async () => {
+    await seed();
+    saveGuards({
+      daily: { maxLoss: 100, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: null, maxTrades: 1 },
+    });
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    component.selectedDay.set('2026-10-03');
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Daily loss Guard');
+    expect(content).toContain('Weekly trade count Guard');
   });
 
   it('copies the card markdown to the clipboard with confirmation', async () => {

@@ -8,9 +8,19 @@ import {
   lucideClipboardCheck,
   lucideClipboardCopy,
   lucideScrollText,
+  lucideShieldAlert,
+  lucideShieldCheck,
 } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
+import {
+  GUARD_LABELS,
+  evaluateGuards,
+  hasAnyGuard,
+  loadGuards,
+  weekKeyOfDay,
+} from '../../guards';
+import type { GuardBreach } from '../../guards';
 import {
   computeMonthReportCard,
   formatMonthReportCard,
@@ -29,6 +39,8 @@ import { PageHero } from '../../ui/page-hero';
       lucideClipboardCheck,
       lucideClipboardCopy,
       lucideScrollText,
+      lucideShieldAlert,
+      lucideShieldCheck,
     }),
   ],
   selector: 'app-journal',
@@ -39,6 +51,31 @@ export class Journal {
   readonly store = inject(TradesStore);
 
   readonly startingBalance = signal(loadStartingBalance());
+
+  readonly guards = signal(loadGuards());
+
+  readonly hasGuards = computed(() => hasAnyGuard(this.guards()));
+
+  readonly guardEvaluation = computed(() =>
+    evaluateGuards(this.store.trades(), this.guards()),
+  );
+
+  readonly dayBreaches = (date: string): readonly GuardBreach[] =>
+    this.guardEvaluation().days.get(date)?.breached ?? [];
+
+  readonly selectedDayBreaches = computed((): readonly GuardBreach[] => {
+    const day = this.selectedDay();
+    if (day === null) return [];
+    const evaluation = this.guardEvaluation();
+    return [
+      ...(evaluation.days.get(day)?.breached ?? []),
+      ...(evaluation.weeks.get(weekKeyOfDay(day))?.breached ?? []),
+    ];
+  });
+
+  readonly selectedBreachLabels = computed(() =>
+    this.selectedDayBreaches().map((breach) => GUARD_LABELS[breach]),
+  );
 
   private readonly today = new Date();
 

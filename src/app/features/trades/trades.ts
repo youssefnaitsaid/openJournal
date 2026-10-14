@@ -9,7 +9,9 @@ import {
   Validators,
 } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowDownUp, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { GUARD_LABELS, evaluateGuards, loadGuards } from '../../guards';
+import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
 import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
@@ -56,7 +58,7 @@ function chartUrlValidator(
 @Component({
   imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, FilterBar, PageHero],
   providers: [
-    provideIcons({ lucideArrowDownUp, lucideTags, lucideTableProperties }),
+    provideIcons({ lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties }),
   ],
   selector: 'app-trades',
   styleUrl: './trades.css',
@@ -73,6 +75,17 @@ export class Trades {
 
   readonly gradeFilter = signal<Grade | ''>('');
   readonly needsReview = signal(false);
+
+  readonly guards = signal(loadGuards());
+
+  readonly todayGuardBreaches = computed((): readonly GuardBreach[] => {
+    const today = new Date().toISOString().slice(0, 10);
+    return evaluateGuards(this.store.trades(), this.guards()).days.get(today)?.breached ?? [];
+  });
+
+  readonly todayGuardLabels = computed(() =>
+    this.todayGuardBreaches().map((breach) => GUARD_LABELS[breach]),
+  );
 
   readonly setupOptions = computed(() => {
     taxonomyVersion();
