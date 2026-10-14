@@ -42,6 +42,10 @@
 - Compliance correlation splits scored Trades into a 100%-followed bucket versus a partial (<100%) bucket, each carrying trade count plus Net P&L sum plus Win-rate with the shared Win-rate derivation; unscored Trades are counted aside and excluded from both buckets; an empty or fully unscored journal reads zeros.
 - Breakdowns cap at the top 20 values by Net order with the remainder in one `Other (n)` row where n counts collapsed values.
 - R values render signed with two decimals (`+1.50R`, `-0.75R`, `0.00R`); Net renders signed dollars; Win-rate renders with two decimals plus `%`.
+- Time-pattern rows slice Trades by weekday of UTC close (Monday-first), by hour of UTC close (24 fixed `HH:00-HH:59` buckets), and by Hold Duration (`Intraday (<24h)` / `1-3 days` / `Swing (>3d)`); labels display local while bucketing stays UTC like the calendar.
+- Hold Duration is `closedAt` minus `openedAt`; exactly 24h reads `1-3 days` and exactly 72h reads `Swing (>3d)`; negative holds read Intraday and no Trade is ever dropped.
+- Time-pattern rows render in chronological order (Monday to Sunday, 00 to 23, Intraday to Swing) with all fixed rows present even when empty; each row carries trade count plus Net P&L sum plus Win-rate plus avg R plus avg Compliance with the shared breakdown derivations.
+- Time-patterns live on /analytics beside breakdowns and respect the global filter; Journal and Dashboard stay full-journal.
 
 ## Store and settings
 - Trades persist in the `openjournal-trades` SignalDB collection (localStorage) and survive reloads; readers must await readiness first.

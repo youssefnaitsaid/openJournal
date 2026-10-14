@@ -4,6 +4,7 @@ import {
   computeBreakdowns,
   computeComplianceCorrelation,
   computeRMetrics,
+  computeTimePatterns,
 } from './analytics-metrics';
 
 const PLUS_2R = () =>
@@ -465,5 +466,251 @@ describe('computeComplianceCorrelation', () => {
     expect(c.partial.trades).toBe(1);
     expect(c.partial.netTotal).toBe(-100);
     expect(c.partial.winRate).toBe(0);
+  });
+});
+
+describe('computeTimePatterns', () => {
+  it('reads empty on an empty journal', () => {
+    expect(computeTimePatterns([], 'weekday')).toEqual([]);
+    expect(computeTimePatterns([], 'hour')).toEqual([]);
+    expect(computeTimePatterns([], 'hold')).toEqual([]);
+  });
+
+  it('buckets weekday by UTC close in Monday-first chronological order with full fixed rows', () => {
+    const rows = computeTimePatterns(
+      [
+        tradeFixture({
+          asset: 'MON-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          closedAt: '2026-10-05T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'MON-LOSS',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          closedAt: '2026-10-05T16:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'TUE-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 110,
+          closedAt: '2026-10-06T01:00:00.000Z',
+        }),
+      ],
+      'weekday',
+    );
+    expect(rows.map((r) => r.value)).toEqual([
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ]);
+    expect(rows[0]).toEqual({
+      value: 'Monday',
+      trades: 2,
+      netTotal: 100,
+      winRate: 50,
+      avgR: 0.5,
+      avgCompliance: null,
+    });
+    expect(rows[1]).toEqual({
+      value: 'Tuesday',
+      trades: 1,
+      netTotal: 100,
+      winRate: 100,
+      avgR: 0,
+      avgCompliance: null,
+    });
+    expect(rows[2]).toEqual({
+      value: 'Wednesday',
+      trades: 0,
+      netTotal: 0,
+      winRate: 0,
+      avgR: 0,
+      avgCompliance: null,
+    });
+  });
+
+  it('buckets hour by UTC close hour in chronological order with 24 fixed rows', () => {
+    const rows = computeTimePatterns(
+      [
+        tradeFixture({
+          asset: 'H14-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          closedAt: '2026-10-06T14:20:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'H14-LOSS',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          closedAt: '2026-10-06T14:45:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'H09-BE',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 100,
+          closedAt: '2026-10-06T09:05:00.000Z',
+        }),
+      ],
+      'hour',
+    );
+    expect(rows).toHaveLength(24);
+    expect(rows[0]!.value).toBe('00:00-00:59');
+    expect(rows[23]!.value).toBe('23:00-23:59');
+    expect(rows[9]).toEqual({
+      value: '09:00-09:59',
+      trades: 1,
+      netTotal: 0,
+      winRate: 0,
+      avgR: 0,
+      avgCompliance: null,
+    });
+    expect(rows[14]).toEqual({
+      value: '14:00-14:59',
+      trades: 2,
+      netTotal: 100,
+      winRate: 50,
+      avgR: 0.5,
+      avgCompliance: null,
+    });
+  });
+
+  it('buckets Hold Duration with upper-bucket-wins edges and negatives reading Intraday', () => {
+    const rows = computeTimePatterns(
+      [
+        tradeFixture({
+          asset: 'INTRA-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          openedAt: '2026-10-05T10:00:00.000Z',
+          closedAt: '2026-10-05T15:00:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'EDGE-24',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          openedAt: '2026-10-05T10:00:00.000Z',
+          closedAt: '2026-10-06T10:00:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'SWING-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 110,
+          openedAt: '2026-10-01T10:00:00.000Z',
+          closedAt: '2026-10-06T10:00:01.000Z',
+        }),
+        tradeFixture({
+          asset: 'EDGE-72',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 105,
+          openedAt: '2026-10-03T10:00:00.000Z',
+          closedAt: '2026-10-06T10:00:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'NEG-FLAT',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 100,
+          openedAt: '2026-10-06T12:00:00.000Z',
+          closedAt: '2026-10-06T10:00:00.000Z',
+        }),
+      ],
+      'hold',
+    );
+    expect(rows.map((r) => r.value)).toEqual([
+      'Intraday (<24h)',
+      '1-3 days',
+      'Swing (>3d)',
+    ]);
+    expect(rows[0]).toEqual({
+      value: 'Intraday (<24h)',
+      trades: 2,
+      netTotal: 200,
+      winRate: 100,
+      avgR: 1,
+      avgCompliance: null,
+    });
+    expect(rows[1]).toEqual({
+      value: '1-3 days',
+      trades: 1,
+      netTotal: -100,
+      winRate: 0,
+      avgR: -1,
+      avgCompliance: null,
+    });
+    expect(rows[2]).toEqual({
+      value: 'Swing (>3d)',
+      trades: 2,
+      netTotal: 150,
+      winRate: 100,
+      avgR: 0,
+      avgCompliance: null,
+    });
+  });
+
+  it('shares breakdown semantics: Breakevens out of win-rate, scored-only Compliance', () => {
+    const rows = computeTimePatterns(
+      [
+        tradeFixture({
+          asset: 'FULL-WIN',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 120,
+          riskedAmount: 100,
+          rules: [
+            { text: 'a', followed: true },
+            { text: 'b', followed: true },
+          ],
+          closedAt: '2026-10-05T14:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'HALF-LOSS',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 90,
+          riskedAmount: 100,
+          rules: [
+            { text: 'a', followed: true },
+            { text: 'b', followed: false },
+          ],
+          closedAt: '2026-10-05T16:30:00.000Z',
+        }),
+        tradeFixture({
+          asset: 'BE-FLAT',
+          quantity: 10,
+          entryPrice: 100,
+          exitPrice: 100,
+          closedAt: '2026-10-05T18:30:00.000Z',
+        }),
+      ],
+      'weekday',
+    );
+    const monday = rows[0]!;
+    expect(monday.trades).toBe(3);
+    expect(monday.netTotal).toBe(100);
+    expect(monday.winRate).toBeCloseTo(50, 10);
+    expect(monday.avgR).toBeCloseTo(1 / 3, 10);
+    expect(monday.avgCompliance).toBe(75);
   });
 });
