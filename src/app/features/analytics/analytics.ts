@@ -6,7 +6,9 @@ import {
   computeBreakdowns,
   computeComplianceCorrelation,
   computeRMetrics,
+  computeTimePatterns,
   type BreakdownDimension,
+  type TimeDimension,
 } from './analytics-metrics';
 import { EmptyState } from '../../ui/empty-state';
 import { FilterBar } from '../../ui/filter-bar';
@@ -48,6 +50,23 @@ export class Analytics {
 
   readonly breakdowns = computed(() =>
     computeBreakdowns(this.store.filteredTrades(), this.dimension()),
+  );
+
+  readonly timeDimension = signal<TimeDimension>('weekday');
+
+  readonly timeDimensions: readonly { readonly value: TimeDimension; readonly label: string }[] =
+    [
+      { value: 'weekday', label: 'Weekday' },
+      { value: 'hour', label: 'Hour' },
+      { value: 'hold', label: 'Hold Duration' },
+    ];
+
+  readonly timeDimensionLabel = computed(
+    () => this.timeDimensions.find((d) => d.value === this.timeDimension())?.label ?? 'Weekday',
+  );
+
+  readonly timePatterns = computed(() =>
+    computeTimePatterns(this.store.filteredTrades(), this.timeDimension()),
   );
 
   readonly compliance = computed(() =>
@@ -121,6 +140,11 @@ export class Analytics {
   onDimensionChange(event: Event): void {
     const el = event.target as HTMLSelectElement | null;
     if (el) this.dimension.set(el.value as BreakdownDimension);
+  }
+
+  onTimeDimensionChange(event: Event): void {
+    const el = event.target as HTMLSelectElement | null;
+    if (el) this.timeDimension.set(el.value as TimeDimension);
   }
 
   private readonly rClass = (value: number): string =>

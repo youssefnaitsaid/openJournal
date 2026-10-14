@@ -79,7 +79,7 @@ describe('Analytics', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Breakdown by Setup');
-    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+    const rows = [...compiled.querySelector('[data-testid="breakdowns"]')!.querySelectorAll('tbody tr')].map((r) =>
       r.textContent?.replace(/\s+/g, ' '),
     );
     expect(rows.length).toBe(2);
@@ -99,7 +99,7 @@ describe('Analytics', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Breakdown by Side');
-    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+    const rows = [...compiled.querySelector('[data-testid="breakdowns"]')!.querySelectorAll('tbody tr')].map((r) =>
       r.textContent?.replace(/\s+/g, ' '),
     );
     expect(rows.length).toBe(1);
@@ -189,7 +189,7 @@ describe('Analytics', () => {
     await fixture.whenStable();
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Breakdown by Grade');
-    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+    const rows = [...compiled.querySelector('[data-testid="breakdowns"]')!.querySelectorAll('tbody tr')].map((r) =>
       r.textContent?.replace(/\s+/g, ' '),
     );
     expect(rows.length).toBe(2);
@@ -243,5 +243,66 @@ describe('Analytics', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('No scored trades yet');
+  });
+
+  it('shows time-patterns by weekday from the filtered list', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'MON-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+        closedAt: '2026-10-05T14:30:00.000Z',
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'TUE-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        setup: 'Pullback',
+        closedAt: '2026-10-06T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const section = compiled.querySelector('[data-testid="time-patterns"]');
+    expect(section?.textContent?.replace(/\s+/g, ' ')).toContain(
+      'Time-pattern by Weekday',
+    );
+    const rows = [...section!.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(7);
+    expect(rows[0]).toContain('Monday');
+    expect(rows[0]).toContain('+$200.00');
+    expect(rows[1]).toContain('Tuesday');
+    expect(rows[1]).toContain('-$100.00');
+    const component = fixture.componentInstance;
+    component.timeDimension.set('hold');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(
+      compiled
+        .querySelector('[data-testid="time-patterns"]')
+        ?.textContent?.replace(/\s+/g, ' '),
+    ).toContain('Time-pattern by Hold Duration');
+    store.setFilter({ setup: 'Breakout' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const filtered = [
+      ...compiled
+        .querySelector('[data-testid="time-patterns"]')!
+        .querySelectorAll('tbody tr'),
+    ].map((r) => r.textContent?.replace(/\s+/g, ' '));
+    expect(filtered.length).toBe(3);
+    expect(filtered[2]).toContain('Swing');
+    expect(filtered[2]).toContain('+$200.00');
   });
 });

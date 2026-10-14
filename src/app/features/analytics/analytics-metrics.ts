@@ -176,6 +176,115 @@ export function computeBreakdowns(
   ];
 }
 
+export type TimeDimension = 'weekday' | 'hour' | 'hold';
+
+const WEEKDAY_LABELS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
+
+const HOLD_INTRADAY = 'Intraday (<24h)';
+const HOLD_SHORT = '1-3 days';
+const HOLD_SWING = 'Swing (>3d)';
+
+const DAY_MS = 86_400_000;
+const THREE_DAYS_MS = 259_200_000;
+
+function hourLabel(hour: number): string {
+  const padded = String(hour).padStart(2, '0');
+  return `${padded}:00-${padded}:59`;
+}
+
+const HOUR_LABELS: readonly string[] = Array.from({ length: 24 }, (_, hour) =>
+  hourLabel(hour),
+);
+
+const TIME_ORDER: Record<TimeDimension, readonly string[]> = {
+  weekday: [...WEEKDAY_LABELS],
+  hour: HOUR_LABELS,
+  hold: [HOLD_INTRADAY, HOLD_SHORT, HOLD_SWING],
+};
+
+function timeKeyFor(trade: Trade, dimension: TimeDimension): string {
+  if (dimension === 'weekday') {
+    return WEEKDAY_LABELS[(new Date(trade.closedAt).getUTCDay() + 6) % 7]!;
+  }
+  if (dimension === 'hour') {
+    return hourLabel(new Date(trade.closedAt).getUTCHours());
+  }
+  const holdMs = +new Date(trade.closedAt) - +new Date(trade.openedAt);
+  if (holdMs < DAY_MS) return HOLD_INTRADAY;
+  if (holdMs < THREE_DAYS_MS) return HOLD_SHORT;
+  return HOLD_SWING;
+}
+
+export function computeTimePatterns(
+  trades: readonly Trade[],
+  dimension: TimeDimension,
+): readonly BreakdownRow[] {
+  if (trades.length === 0) return [];
+
+  const groups = new Map<
+    string,
+    {
+      trades: number;
+      netTotal: number;
+      wins: number;
+      losses: number;
+      rSum: number;
+      complianceSum: number;
+      scored: number;
+    }
+  >();
+  for (const t of trades) {
+    const key = timeKeyFor(t, dimension);
+    const entry = groups.get(key) ?? {
+      trades: 0,
+      netTotal: 0,
+      wins: 0,
+      losses: 0,
+      rSum: 0,
+      complianceSum: 0,
+      scored: 0,
+    };
+    entry.trades += 1;
+    entry.netTotal += t.net;
+    if (t.net > 0) entry.wins += 1;
+    else if (t.net < 0) entry.losses += 1;
+    entry.rSum += t.rMultiple;
+    if (t.compliance !== null && t.compliance !== undefined) {
+      entry.complianceSum += t.compliance;
+      entry.scored += 1;
+    }
+    groups.set(key, entry);
+  }
+
+  return TIME_ORDER[dimension].map((value) => {
+    const s = groups.get(value) ?? {
+      trades: 0,
+      netTotal: 0,
+      wins: 0,
+      losses: 0,
+      rSum: 0,
+      complianceSum: 0,
+      scored: 0,
+    };
+    return {
+      value,
+      trades: s.trades,
+      netTotal: s.netTotal,
+      winRate: s.wins + s.losses > 0 ? (s.wins / (s.wins + s.losses)) * 100 : 0,
+      avgR: s.trades > 0 ? s.rSum / s.trades : 0,
+      avgCompliance: s.scored > 0 ? s.complianceSum / s.scored : null,
+    };
+  });
+}
+
 export function computeComplianceCorrelation(
   trades: readonly Trade[],
 ): ComplianceCorrelation {
