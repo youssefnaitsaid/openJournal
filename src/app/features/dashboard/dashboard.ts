@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChartLine,
+  lucideShield,
   lucideTrendingDown,
   lucideTrendingUp,
 } from '@ng-icons/lucide';
@@ -12,6 +13,17 @@ import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
 import { loadStartingBalance, saveStartingBalance } from '../../settings';
+import {
+  GUARD_LABELS,
+  evaluateGuards,
+  hasAnyGuard,
+  loadGuards,
+  saveGuards,
+  toGuardFormInput,
+  validateGuardInput,
+  weekKeyOfDay,
+} from '../../guards';
+import type { GuardFormInput } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 
@@ -32,7 +44,7 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 @Component({
   imports: [DatePipe, NgIcon, QuickStats, EmptyState],
   providers: [
-    provideIcons({ lucideChartLine, lucideTrendingDown, lucideTrendingUp }),
+    provideIcons({ lucideChartLine, lucideShield, lucideTrendingDown, lucideTrendingUp }),
   ],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',
@@ -43,6 +55,39 @@ export class Dashboard {
   private readonly router = inject(Router);
 
   readonly startingBalance = signal(loadStartingBalance());
+
+  readonly guards = signal(loadGuards());
+  readonly guardInputs = signal<GuardFormInput>(toGuardFormInput(loadGuards()));
+  readonly guardErrors = signal<readonly string[]>([]);
+
+  readonly weekGuardBreaches = computed(() => {
+    const guards = this.guards();
+    if (!hasAnyGuard(guards)) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    const week = weekKeyOfDay(today);
+    return evaluateGuards(this.store.trades(), guards).weeks.get(week)?.breached ?? [];
+  });
+
+  readonly weekStatusText = computed(() => {
+    if (!hasAnyGuard(this.guards())) return 'No Guards set';
+    const breached = this.weekGuardBreaches();
+    if (breached.length === 0) return 'This week: inside all Guards';
+    return `This week breached: ${breached.map((breach) => GUARD_LABELS[breach]).join(', ')}`;
+  });
+
+  onGuardField(field: keyof GuardFormInput, event: Event): void {
+    const next = {
+      ...this.guardInputs(),
+      [field]: (event.target as HTMLInputElement).value,
+    };
+    this.guardInputs.set(next);
+    const { settings, errors } = validateGuardInput(next);
+    this.guardErrors.set(errors);
+    if (errors.length === 0) {
+      this.guards.set(settings);
+      saveGuards(settings);
+    }
+  }
 
   readonly metrics = computed(() =>
     computeMetrics(this.store.trades(), this.startingBalance()),

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { Trades } from './trades';
 import { TradesStore } from './trades-store';
 import { tradeInput } from './trade-fixtures';
+import { saveGuards } from '../../guards';
 import type { Emotion, Grade, Market, Mistake, Setup, Side } from './trade';
 
 function validValues() {
@@ -64,6 +65,37 @@ describe('Trades', () => {
     expect(store.trades().length).toBe(0);
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('valid URL');
+  });
+
+  it('banners a breached Guard for today only', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const now = new Date().toISOString();
+    store.addTrade({ ...tradeInput({ asset: 'TODAY-LOSS', exitPrice: 90, fees: 5, closedAt: now }) });
+    store.addTrade({ ...tradeInput({ asset: 'OLD-LOSS', exitPrice: 90, fees: 5, closedAt: '2026-10-03T14:30:00.000Z' }) });
+    saveGuards({
+      daily: { maxLoss: 100, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: null, maxTrades: null },
+    });
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const banner = compiled.querySelector('[aria-label="Today guard status"]');
+    expect(banner?.textContent?.replace(/\s+/g, ' ')).toContain('Daily loss Guard');
+  });
+
+  it('stays quiet when today has no breach', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...tradeInput({ asset: 'OLD-LOSS', exitPrice: 90, fees: 5, closedAt: '2026-10-03T14:30:00.000Z' }) });
+    saveGuards({
+      daily: { maxLoss: 100, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: null, maxTrades: null },
+    });
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[aria-label="Today guard status"]')).toBeNull();
   });
 
   it('renders an empty state before any Trade is logged', async () => {

@@ -61,3 +61,12 @@
 - Calendar days key off UTC close date; loss days render destructive, gains show a `+` prefix, flat days with Trades show `0` neutral, empty days show no Net.
 - Month Net sums the month's Net; month-end balance equals starting balance plus cumulative Net through month end, matching Dashboard math.
 - Templates use Spartan zinc theme tokens only; no hard-coded palette (enforced by design-tokens.spec.ts).
+
+## Guards (ADR-0003)
+- A Guard is an optional daily or weekly brake on Net P&L loss, Trade count, or stop time, distinct from a Playbook Rule; profit targets are out of scope.
+- Daily Guards bucket by UTC close date; weekly Guards bucket by full ISO Monday-to-Sunday UTC week even across month edges.
+- Loss Guards take a positive USD limit and breach when bucket Net sum is at or below its negation; count Guards count every Trade including Breakevens and breach only above max; stop time is daily-only local HH:MM with breach only on a strictly-after local close.
+- Blank or zero unsets a Guard; negative loss/count and malformed stop time are rejected with a named-field message; missing or corrupt stored Guards fall back to unset.
+- Guards persist under `openjournal-guards` as daily maxLoss/maxTrades/stopTime plus weekly maxLoss/maxTrades; Guard evaluation always runs on the full journal and ignores the global filter.
+- Guards never block logging; breaches surface as soft warnings only: Journal cells stay neutral when empty, tint green when inside all set Guards and warning plus icon when breached with Net number styling untouched, day detail names breached daily and containing-week Guards, Trades banners today's UTC bucket only, Dashboard holds the guards editor plus this-week status.
+- Guard tints reuse existing semantic success/warning tokens only.

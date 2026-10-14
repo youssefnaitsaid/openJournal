@@ -37,6 +37,77 @@
     </div>
   </div>
 
+  <section aria-label="Guards" class="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
+    <div class="flex items-center gap-3">
+      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
+        <ng-icon name="lucideShield" class="size-5" />
+      </span>
+      <span>
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">Guards</h2>
+        <p class="text-sm text-muted-foreground">Optional daily and weekly brakes. Warnings only, logging is never blocked.</p>
+      </span>
+    </div>
+    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm">Daily loss Guard (USD)
+        <input
+          type="number"
+          min="0"
+          step="any"
+          aria-label="Daily loss Guard"
+          [value]="guardInputs().dailyMaxLoss"
+          (input)="onGuardField('dailyMaxLoss', $event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">Daily trade count Guard
+        <input
+          type="number"
+          min="0"
+          step="any"
+          aria-label="Daily trade count Guard"
+          [value]="guardInputs().dailyMaxTrades"
+          (input)="onGuardField('dailyMaxTrades', $event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">Daily stop time Guard
+        <input
+          type="time"
+          aria-label="Daily stop time Guard"
+          [value]="guardInputs().stopTime"
+          (input)="onGuardField('stopTime', $event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">Weekly loss Guard (USD)
+        <input
+          type="number"
+          min="0"
+          step="any"
+          aria-label="Weekly loss Guard"
+          [value]="guardInputs().weeklyMaxLoss"
+          (input)="onGuardField('weeklyMaxLoss', $event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm">Weekly trade count Guard
+        <input
+          type="number"
+          min="0"
+          step="any"
+          aria-label="Weekly trade count Guard"
+          [value]="guardInputs().weeklyMaxTrades"
+          (input)="onGuardField('weeklyMaxTrades', $event)"
+          class="rounded-xl border border-input bg-background px-3 py-2"
+        />
+      </label>
+    </div>
+    @for (error of guardErrors(); track error) {
+      <p class="mt-2 text-sm text-destructive">{{ error }}</p>
+    }
+    <p class="mt-2 text-sm" [class]="weekGuardBreaches().length > 0 ? 'text-warning' : 'text-muted-foreground'">{{ weekStatusText() }}</p>
+  </section>
+
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" />
 
   @if (store.isFiltering()) {

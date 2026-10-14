@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { Dashboard } from './dashboard';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
+import { GUARDS_STORAGE_KEY, saveGuards } from '../../guards';
 
 describe('Dashboard', () => {
   beforeEach(() => {
@@ -38,6 +39,50 @@ describe('Dashboard', () => {
     expect(content).toContain('0.94');
     expect(content).toContain('99');
     expect(content).toContain('-105');
+  });
+
+  it('edits Guards beside starting balance and persists them', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const loss = compiled.querySelector(
+      'input[aria-label="Daily loss Guard"]',
+    ) as HTMLInputElement;
+    expect(loss).not.toBeNull();
+    loss.value = '200';
+    loss.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(localStorage.getItem(GUARDS_STORAGE_KEY)).toContain('200');
+  });
+
+  it('rejects an invalid Guard naming it', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const loss = compiled.querySelector(
+      'input[aria-label="Daily loss Guard"]',
+    ) as HTMLInputElement;
+    loss.value = '-50';
+    loss.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(compiled.textContent).toContain('Daily loss Guard must be a positive amount');
+  });
+
+  it('reports this-week Guard status on full-journal truth', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const now = new Date().toISOString();
+    store.addTrade({ ...tradeInput({ asset: 'WEEK-LOSS', exitPrice: 90, fees: 5, closedAt: now }) });
+    saveGuards({
+      daily: { maxLoss: null, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: 100, maxTrades: null },
+    });
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Weekly loss Guard');
   });
 
   it('lists Recent Trades newest-first', async () => {
