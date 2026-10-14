@@ -3,12 +3,16 @@ import { tradeFixture } from './features/trades/trade-fixtures';
 import {
   GUARDS_STORAGE_KEY,
   UNSET_GUARDS,
+  guardsFor,
   hasAnyGuard,
   evaluateDayGuards,
   evaluateGuards,
   evaluateWeekGuards,
+  loadGuardMap,
   loadGuards,
+  saveGuardMap,
   saveGuards,
+  setGuardSettings,
   validateGuardInput,
   weekKeyOfDay,
 } from './guards';
@@ -145,6 +149,32 @@ describe('Guard persistence', () => {
     expect(loadGuards()).toEqual(UNSET_GUARDS);
     localStorage.setItem(GUARDS_STORAGE_KEY, JSON.stringify({ daily: { maxLoss: -50 } }));
     expect(loadGuards()).toEqual(UNSET_GUARDS);
+  });
+
+  it('keeps Guard settings isolated per portfolio', () => {
+    setGuardSettings(loadGuardMap(), 'es', {
+      daily: { maxLoss: 200, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: null, maxTrades: null },
+    });
+    const map = loadGuardMap();
+    expect(guardsFor(map, 'es').daily.maxLoss).toBe(200);
+    expect(guardsFor(map, 'swing')).toEqual(UNSET_GUARDS);
+    expect(hasAnyGuard(guardsFor(map, 'swing'))).toBe(false);
+  });
+
+  it('migrates a legacy single-portfolio Guard file into the default book', () => {
+    localStorage.setItem(
+      GUARDS_STORAGE_KEY,
+      JSON.stringify({
+        daily: { maxLoss: 200, maxTrades: null, stopTime: null },
+        weekly: { maxLoss: null, maxTrades: null },
+      }),
+    );
+    expect(guardsFor(loadGuardMap(), 'default').daily.maxLoss).toBe(200);
+    expect(loadGuards()).toEqual({
+      daily: { maxLoss: 200, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: null, maxTrades: null },
+    });
   });
 
   it('reads blank and zero as unset', () => {

@@ -160,6 +160,13 @@ describe('deriveTrade', () => {
     expect(trade.rMultiple).toBeCloseTo(1.95, 10);
   });
 
+  it('files a Trade into the default portfolio unless told otherwise', () => {
+    expect(deriveTrade(tradeInput(), 'p-1').portfolioId).toBe('default');
+    expect(deriveTrade(tradeInput({ portfolioId: 'swing' }), 'p-2').portfolioId).toBe(
+      'swing',
+    );
+  });
+
   it('normalizes a pre-grade Trade input to ungraded', () => {
     const { grade: _dropped, ...legacy } = tradeInput();
     const trade = deriveTrade(legacy, 'legacy-1');

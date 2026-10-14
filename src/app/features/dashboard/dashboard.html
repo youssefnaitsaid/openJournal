@@ -15,7 +15,7 @@
             <ng-icon [name]="isPositive() ? 'lucideTrendingUp' : 'lucideTrendingDown'" class="size-4" />
             {{ formatPercent(metrics().winRate) }}% win rate
           </span>
-          <span class="text-sm text-muted-foreground">Dashboard</span>
+          <span class="text-sm text-muted-foreground">{{ store.activeName() }}</span>
           @if (store.isFiltering()) {
             <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
               Filtered view
@@ -31,6 +31,7 @@
           aria-label="Starting balance"
           [value]="startingBalance()"
           (input)="onBalanceInput($event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>
@@ -56,6 +57,7 @@
           aria-label="Daily loss Guard"
           [value]="guardInputs().dailyMaxLoss"
           (input)="onGuardField('dailyMaxLoss', $event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>
@@ -67,6 +69,7 @@
           aria-label="Daily trade count Guard"
           [value]="guardInputs().dailyMaxTrades"
           (input)="onGuardField('dailyMaxTrades', $event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>
@@ -76,6 +79,7 @@
           aria-label="Daily stop time Guard"
           [value]="guardInputs().stopTime"
           (input)="onGuardField('stopTime', $event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>
@@ -87,6 +91,7 @@
           aria-label="Weekly loss Guard"
           [value]="guardInputs().weeklyMaxLoss"
           (input)="onGuardField('weeklyMaxLoss', $event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>
@@ -98,6 +103,7 @@
           aria-label="Weekly trade count Guard"
           [value]="guardInputs().weeklyMaxTrades"
           (input)="onGuardField('weeklyMaxTrades', $event)"
+          [disabled]="store.isAll()"
           class="rounded-xl border border-input bg-background px-3 py-2"
         />
       </label>

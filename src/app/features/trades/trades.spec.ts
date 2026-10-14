@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Trades } from './trades';
+import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from './trades-store';
 import { tradeInput } from './trade-fixtures';
-import { saveGuards } from '../../guards';
 import type { Emotion, Grade, Market, Mistake, Setup, Side } from './trade';
 
 function validValues() {
@@ -43,6 +43,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue(validValues());
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -59,6 +60,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue({ ...validValues(), chartUrl: 'not-a-url' });
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const store = TestBed.inject(TradesStore);
@@ -73,7 +75,8 @@ describe('Trades', () => {
     const now = new Date().toISOString();
     store.addTrade({ ...tradeInput({ asset: 'TODAY-LOSS', exitPrice: 90, fees: 5, closedAt: now }) });
     store.addTrade({ ...tradeInput({ asset: 'OLD-LOSS', exitPrice: 90, fees: 5, closedAt: '2026-10-03T14:30:00.000Z' }) });
-    saveGuards({
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.saveActiveGuards({
       daily: { maxLoss: 100, maxTrades: null, stopTime: null },
       weekly: { maxLoss: null, maxTrades: null },
     });
@@ -88,7 +91,8 @@ describe('Trades', () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade({ ...tradeInput({ asset: 'OLD-LOSS', exitPrice: 90, fees: 5, closedAt: '2026-10-03T14:30:00.000Z' }) });
-    saveGuards({
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.saveActiveGuards({
       daily: { maxLoss: 100, maxTrades: null, stopTime: null },
       weekly: { maxLoss: null, maxTrades: null },
     });
@@ -123,6 +127,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.controls.quantity.setValue(0);
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const store = TestBed.inject(TradesStore);
@@ -173,6 +178,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue(validValues());
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -223,6 +229,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue(validValues());
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -236,6 +243,7 @@ describe('Trades', () => {
     await component.store.whenReady();
     expect(component.form.controls.grade.value).toBe('');
     component.form.setValue({ ...validValues(), grade: '' as Grade });
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     const store = TestBed.inject(TradesStore);
     expect(store.trades()).toHaveLength(1);
@@ -247,6 +255,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue({ ...validValues(), grade: 'B' as Grade });
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const store = TestBed.inject(TradesStore);
@@ -272,6 +281,7 @@ describe('Trades', () => {
       mistake: 'Moved-stop' as Mistake,
       grade: 'B' as Grade,
     });
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     const store = TestBed.inject(TradesStore);
     expect(store.trades()[0]!.mistake).toBe('Moved-stop');
@@ -335,6 +345,7 @@ describe('Trades', () => {
     const component = fixture.componentInstance;
     await component.store.whenReady();
     component.form.setValue({ ...validValues(), tags: 'FOMC, earnings , FOMC,' });
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const store = TestBed.inject(TradesStore);
@@ -375,6 +386,7 @@ describe('Trades', () => {
     component.addRule('entry on retest');
     expect(component.checks()).toHaveLength(2);
     component.form.setValue(validValues());
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     const store = TestBed.inject(TradesStore);
     expect(store.trades()).toHaveLength(1);
@@ -390,6 +402,7 @@ describe('Trades', () => {
     component.addRule('entry on retest');
     component.form.setValue(validValues());
     component.toggleCheck(0);
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     await fixture.whenStable();
     const store = TestBed.inject(TradesStore);
@@ -415,6 +428,7 @@ describe('Trades', () => {
     component.addRule('risk ≤ 1%');
     component.form.setValue(validValues());
     component.toggleCheck(0);
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     component.addRule('entry on retest');
     const store = TestBed.inject(TradesStore);
@@ -433,5 +447,53 @@ describe('Trades', () => {
     component.unarchivePlaybook('Breakout');
     expect(component.setupOptions()).toContain('Breakout');
     expect(component.archivedPlaybooks()).not.toContain('Breakout');
+  });
+
+  it('scopes table rows to the active portfolio', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade({ ...tradeInput({ asset: 'MES' }) });
+    store.addPortfolio('Swing');
+    store.setActiveId(store.portfolios().find((p) => p.name === 'Swing')!.id);
+    store.addTrade({ ...tradeInput({ asset: 'AAPL', closedAt: '2026-10-02T14:30:00.000Z' }) });
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const rows = () =>
+      [...compiled.querySelectorAll('tbody tr')].map((r) =>
+        r.textContent?.replace(/\s+/g, ' '),
+      );
+    expect(rows().length).toBe(1);
+    expect(rows()[0]).toContain('AAPL');
+  });
+
+  it('locks the log form while All is active', async () => {    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...tradeInput({ asset: 'MES' }) });
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(
+      (compiled.querySelector('button[type="submit"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(compiled.textContent).toContain('pick a Portfolio');
+    component.form.setValue(validValues());
+    component.onSubmit();
+    expect(store.trades().length).toBe(1);
+  });
+
+  it('shares Tag vocabulary across portfolios', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade({ ...tradeInput({ asset: 'MES', tags: ['FOMC'] }) });
+    store.addPortfolio('Swing');
+    store.setActiveId(store.portfolios().find((p) => p.name === 'Swing')!.id);
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await fixture.whenStable();
+    expect(component.tagOptions()).toEqual(['FOMC']);
   });
 });

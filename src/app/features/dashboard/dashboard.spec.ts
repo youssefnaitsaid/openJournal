@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Dashboard } from './dashboard';
+import { ALL_PORTFOLIOS_ID, DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
-import { GUARDS_STORAGE_KEY, saveGuards } from '../../guards';
+import { GUARDS_STORAGE_KEY } from '../../guards';
 
 describe('Dashboard', () => {
   beforeEach(() => {
@@ -43,6 +44,8 @@ describe('Dashboard', () => {
 
   it('edits Guards beside starting balance and persists them', async () => {
     await seed();
+    const store = TestBed.inject(TradesStore);
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -75,7 +78,8 @@ describe('Dashboard', () => {
     await store.whenReady();
     const now = new Date().toISOString();
     store.addTrade({ ...tradeInput({ asset: 'WEEK-LOSS', exitPrice: 90, fees: 5, closedAt: now }) });
-    saveGuards({
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.saveActiveGuards({
       daily: { maxLoss: null, maxTrades: null, stopTime: null },
       weekly: { maxLoss: 100, maxTrades: null },
     });
@@ -100,6 +104,8 @@ describe('Dashboard', () => {
 
   it('steps the balance curve from the starting balance and persists changes', async () => {
     await seed();
+    const store = TestBed.inject(TradesStore);
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -111,7 +117,7 @@ describe('Dashboard', () => {
     balance.dispatchEvent(new Event('input'));
     await fixture.whenStable();
     expect(compiled.textContent).toContain('19994');
-    expect(localStorage.getItem('openjournal-starting-balance')).toBe('20000');
+    expect(localStorage.getItem('openjournal-portfolios')).toContain('20000');
   });
 
   it('shows Infinity as ∞ when there are wins but no losses', async () => {
@@ -207,5 +213,43 @@ describe('Dashboard', () => {
     expect(content).toContain('$0 · 0.00%');
     expect(content).toContain('W0 · L0 / Best W0 · L0');
     expect(content).toContain('$0.00');
+  });
+
+  it('scopes the hero to the active portfolio and sums All', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade({ ...tradeInput({ asset: 'AAPL', exitPrice: 110, fees: 1 }) });
+    store.addPortfolio('Swing');
+    store.setActiveId(store.portfolios().find((p) => p.name === 'Swing')!.id);
+    store.addTrade({
+      ...tradeInput({ asset: 'TSLA', exitPrice: 90, fees: 5, closedAt: '2026-10-02T14:30:00.000Z' }),
+    });
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = () => compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content()).toContain('-105');
+    expect(content()).toContain('Swing');
+    store.setActiveId(ALL_PORTFOLIOS_ID);
+    store.setPortfolioBalance(DEFAULT_PORTFOLIO_ID, 20000);
+    await fixture.whenStable();
+    expect(content()).toContain('-6');
+    expect(content()).toContain('All');
+    expect(content()).toContain('29994');
+  });
+
+  it('locks balance and Guard editing while All is active', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(
+      (compiled.querySelector('input[aria-label="Starting balance"]') as HTMLInputElement).disabled,
+    ).toBe(true);
+    expect(
+      (compiled.querySelector('input[aria-label="Daily loss Guard"]') as HTMLInputElement).disabled,
+    ).toBe(true);
+    expect(compiled.textContent).toContain('per Portfolio');
   });
 });

@@ -33,6 +33,83 @@
         {{ item.label }}
       </a>
     }
+    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Portfolios</p>
+    <div class="flex flex-col gap-2 px-3 py-1">
+      <label class="flex items-center gap-2 text-sm">
+        <ng-icon name="lucideWallet" class="size-4 shrink-0" />
+        <select
+          aria-label="Active portfolio"
+          (change)="onSelectActive($event)"
+          class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 px-2 py-1.5 text-sm font-medium text-sidebar-foreground"
+        >
+          <option [value]="allId" [selected]="store.activeId() === allId">All portfolios</option>
+          @for (p of store.portfolios(); track p.id) {
+            <option [value]="p.id" [selected]="store.activeId() === p.id">{{ p.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="flex gap-1.5">
+        <input
+          aria-label="New portfolio name"
+          placeholder="New portfolio"
+          [value]="newPortfolioName()"
+          (input)="onNewName($event)"
+          class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-background px-2 py-1.5 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/50"
+        />
+        <button
+          type="button"
+          aria-label="Add portfolio"
+          (click)="createPortfolio()"
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+        >
+          <ng-icon name="lucidePlus" class="size-4" />
+        </button>
+      </div>
+      @if (portfolioError() !== null) {
+        <p class="text-xs text-destructive">{{ portfolioError() }}</p>
+      }
+      @if (!store.isAll()) {
+        <div class="flex gap-1.5">
+          <input
+            aria-label="Rename portfolio to"
+            [placeholder]="store.activeName()"
+            [value]="renameValue()"
+            (input)="onRenameValue($event)"
+            class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-background px-2 py-1.5 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/50"
+          />
+          <button
+            type="button"
+            aria-label="Rename portfolio"
+            (click)="renameActive()"
+            class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <ng-icon name="lucidePencil" class="size-4" />
+          </button>
+          @if (!confirmingDelete()) {
+            <button
+              type="button"
+              aria-label="Delete portfolio"
+              (click)="deleteActive()"
+              class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <ng-icon name="lucideTrash2" class="size-4" />
+            </button>
+          } @else {
+            <button
+              type="button"
+              aria-label="Confirm delete portfolio"
+              (click)="deleteActive()"
+              class="inline-flex h-8 shrink-0 items-center rounded-xl border border-destructive bg-destructive px-2 text-xs font-medium text-destructive-foreground"
+            >
+              Confirm
+            </button>
+          }
+        </div>
+        @if (renameError() !== null) {
+          <p class="text-xs text-destructive">{{ renameError() }}</p>
+        }
+      }
+    </div>
     <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Workspace</p>
     @for (item of workspaceItems; track item.url) {
       <a

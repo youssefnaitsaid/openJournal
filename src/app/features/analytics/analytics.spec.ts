@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Analytics } from './analytics';
+import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
 
@@ -45,8 +46,7 @@ describe('Analytics', () => {
     });
   }
 
-  it('shows the hero with zeros and an empty state when nothing is logged', async () => {
-    const store = TestBed.inject(TradesStore);
+  it('shows the hero with zeros and an empty state when nothing is logged', async () => {    const store = TestBed.inject(TradesStore);
     await store.whenReady();
     const fixture = TestBed.createComponent(Analytics);
     await fixture.whenStable();
@@ -304,5 +304,38 @@ describe('Analytics', () => {
     expect(filtered.length).toBe(3);
     expect(filtered[2]).toContain('Swing');
     expect(filtered[2]).toContain('+$200.00');
+  });
+
+  it('scopes breakdowns to the active portfolio only', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...tradeInput({ asset: 'MAIN-WIN', exitPrice: 110, setup: 'Breakout' }) });
+    const error = store.addPortfolio('Swing');
+    expect(error).toBeNull();
+    const swing = store.portfolios().find((p) => p.name === 'Swing')!;
+    store.setActiveId(swing.id);
+    store.addTrade({
+      ...tradeInput({
+        asset: 'SWING-LOSS',
+        exitPrice: 90,
+        setup: 'Pullback',
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    });
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const breakdowns = () =>
+      compiled
+        .querySelector('[data-testid="breakdowns"]')
+        ?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(breakdowns()).toContain('Pullback');
+    expect(breakdowns()).toContain('-$100.00');
+    expect(breakdowns()).not.toContain('Breakout');
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    await fixture.whenStable();
+    expect(breakdowns()).toContain('Breakout');
+    expect(breakdowns()).toContain('+$100.00');
+    expect(breakdowns()).not.toContain('Pullback');
   });
 });
