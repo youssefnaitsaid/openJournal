@@ -2,12 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCalendarDays,
   lucideChevronLeft,
   lucideChevronRight,
   lucideClipboardCheck,
   lucideClipboardCopy,
-  lucideScrollText,
   lucideShieldAlert,
   lucideShieldCheck,
 } from '@ng-icons/lucide';
@@ -26,17 +24,17 @@ import {
 } from './journal-report-card';
 import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 
 @Component({
-  imports: [DatePipe, NgIcon, EmptyState, PageHero],
+  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule],
   providers: [
     provideIcons({
-      lucideCalendarDays,
       lucideChevronLeft,
       lucideChevronRight,
       lucideClipboardCheck,
       lucideClipboardCopy,
-      lucideScrollText,
       lucideShieldAlert,
       lucideShieldCheck,
     }),
