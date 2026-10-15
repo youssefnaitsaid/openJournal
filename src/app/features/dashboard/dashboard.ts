@@ -3,11 +3,13 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideChartLine,
-  lucideShield,
   lucideTrendingDown,
   lucideTrendingUp,
 } from '@ng-icons/lucide';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { TableModule } from 'primeng/table';
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
@@ -39,9 +41,9 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 }
 
 @Component({
-  imports: [DatePipe, NgIcon, QuickStats, EmptyState],
+  imports: [DatePipe, NgIcon, CardModule, InputTextModule, MessageModule, TableModule, QuickStats, EmptyState],
   providers: [
-    provideIcons({ lucideChartLine, lucideShield, lucideTrendingDown, lucideTrendingUp }),
+    provideIcons({ lucideTrendingDown, lucideTrendingUp }),
   ],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',

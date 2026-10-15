@@ -1,6 +1,6 @@
 <div [class]="gridClass()">
   @for (stat of stats(); track stat.label) {
-    <div class="hover-lift flex flex-col rounded-2xl border border-border bg-card px-6 py-4 shadow-sm">
+    <p-card>
       <div class="flex items-center gap-2 text-muted-foreground">
         <ng-icon [name]="stat.icon" class="size-3.5" />
         <p class="text-xs font-medium uppercase tracking-[0.18em]">{{ stat.label }}</p>
@@ -9,6 +9,6 @@
       @if (stat.info) {
         <p class="text-xs text-muted-foreground">{{ stat.info }}</p>
       }
-    </div>
+    </p-card>
   }
 </div>

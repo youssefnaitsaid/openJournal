@@ -1,9 +1,11 @@
 import { Component, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideInbox, lucidePlus } from '@ng-icons/lucide';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 
 @Component({
-  imports: [NgIcon],
+  imports: [NgIcon, ButtonModule, CardModule],
   providers: [provideIcons({ lucideInbox, lucidePlus })],
   selector: 'app-empty-state',
   templateUrl: './empty-state.html',
