@@ -131,7 +131,7 @@
         <p-select formControlName="mistake" [options]="mistakeOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Grade (optional)
-        <p-select formControlName="grade" [options]="[...grades]" placeholder="—" />
+        <p-select formControlName="grade" [options]="gradeOptions" optionLabel="label" optionValue="value" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
         <input pInputText formControlName="chartUrl" inputmode="url" placeholder="https://…" />
@@ -194,6 +194,7 @@
         <p-button
           type="button"
           label="Needs review"
+          [attr.aria-pressed]="needsReview()"
           [severity]="needsReview() ? undefined : 'secondary'"
           (onClick)="toggleReview()"
         />

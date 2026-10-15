@@ -82,18 +82,6 @@
   --success: oklch(0.64 0.16 145);
   --warning: oklch(0.77 0.13 82);
 
-  --gradient-hero: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 14%, transparent),
-    color-mix(in oklch, var(--accent) 12%, transparent) 55%,
-    transparent 80%
-  );
-  --gradient-header: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 10%, transparent),
-    transparent 75%
-  );
-
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -136,18 +124,6 @@
   --success: oklch(0.74 0.18 145);
   --warning: oklch(0.82 0.14 82);
 
-  --gradient-hero: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 16%, transparent),
-    color-mix(in oklch, var(--accent) 14%, transparent) 55%,
-    transparent 80%
-  );
-  --gradient-header: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 12%, transparent),
-    transparent 75%
-  );
-
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -167,55 +143,8 @@
   .text-warning {
     color: var(--warning);
   }
-  .bg-gradient-hero {
-    background-image: var(--gradient-hero);
-  }
-  .bg-gradient-header {
-    background-image: var(--gradient-header);
-  }
-  .animate-fade-in {
-    animation: oj-fade-in 0.4s var(--ease-out) both;
-  }
   .animate-fade-in-up {
     animation: oj-fade-in-up 0.5s var(--ease-out) both;
-  }
-  .animate-count-up {
-    animation: oj-count-up 0.6s var(--ease-out) both;
-  }
-  .stagger-1 {
-    animation-delay: 0ms;
-  }
-  .stagger-2 {
-    animation-delay: 50ms;
-  }
-  .stagger-3 {
-    animation-delay: 100ms;
-  }
-  .stagger-4 {
-    animation-delay: 150ms;
-  }
-  .stagger-5 {
-    animation-delay: 200ms;
-  }
-  .stagger-6 {
-    animation-delay: 250ms;
-  }
-  .hover-lift {
-    transition:
-      transform 0.2s var(--ease-out),
-      box-shadow 0.2s var(--ease-out);
-  }
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes oj-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 
@@ -223,17 +152,6 @@
   from {
     opacity: 0;
     transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes oj-count-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;

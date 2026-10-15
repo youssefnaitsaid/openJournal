@@ -80,7 +80,10 @@ export class Trades {
 
   readonly markets: readonly Market[] = MARKETS;
 
-  readonly grades: readonly Grade[] = GRADES;
+  readonly gradeOptions: { label: string; value: Grade | '' }[] = [
+    { label: '—', value: '' },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
+  ];
 
   readonly sides: readonly Side[] = ['Long', 'Short'];
 

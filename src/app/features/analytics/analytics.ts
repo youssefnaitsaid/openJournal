@@ -74,6 +74,24 @@ export class Analytics {
     computeComplianceCorrelation(this.store.activeFilteredTrades()),
   );
 
+  readonly complianceRows = computed(() => {
+    const compliance = this.compliance();
+    return [
+      {
+        bucket: '100% followed',
+        bucketTrades: compliance.full.trades,
+        bucketNet: compliance.full.netTotal,
+        bucketWinRate: compliance.full.winRate,
+      },
+      {
+        bucket: 'Partial (<100%)',
+        bucketTrades: compliance.partial.trades,
+        bucketNet: compliance.partial.netTotal,
+        bucketWinRate: compliance.partial.winRate,
+      },
+    ];
+  });
+
   readonly quickStats = computed<readonly QuickStat[]>(() => {
     const m = this.metrics();
     return [

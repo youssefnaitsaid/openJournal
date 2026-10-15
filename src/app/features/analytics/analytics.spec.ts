@@ -224,7 +224,7 @@ describe('Analytics', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('Avg compliance');
+    expect(content).toContain('Avg Compliance');
     expect(content).toContain('75.00%');
     expect(content).toContain('Compliance vs outcome');
     expect(content).toContain('100% followed');

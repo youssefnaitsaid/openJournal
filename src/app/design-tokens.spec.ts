@@ -54,4 +54,13 @@ describe('design tokens', () => {
       .map(([path]) => path);
     expect(offenders).toEqual([]);
   });
+
+  it('never revives the retired SaaS idioms', () => {
+    const BANNED_SLOP =
+      /bg-gradient-hero|bg-gradient-header|rounded-\[28px\]|rounded-\[24px\]|hover-lift|animate-count-up|stagger-[1-6]/;
+    const offenders = Object.entries(templates)
+      .filter(([, source]) => BANNED_SLOP.test(source as string))
+      .map(([path]) => path);
+    expect(offenders).toEqual([]);
+  });
 });

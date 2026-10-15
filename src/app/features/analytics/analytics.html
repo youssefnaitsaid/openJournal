@@ -12,7 +12,7 @@
     <app-filter-bar />
   </p-card>
 
-  <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R, and avg compliance per value">
+  <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per value">
     <div class="mb-3 flex justify-end">
       <p-select
         aria-label="Breakdown dimension"
@@ -30,15 +30,15 @@
         description="Log your first trade to see risk-adjusted edge here."
       />
     } @else {
-      <p-table [value]="breakdowns()">
+      <p-table [value]="[...breakdowns()]">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="value">{{ dimensionLabel() }} <p-sortIcon field="value" /></th>
             <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
-            <th pSortableColumn="netTotal" class="text-right">Net <p-sortIcon field="netTotal" /></th>
+            <th pSortableColumn="netTotal" class="text-right">Net P&amp;L <p-sortIcon field="netTotal" /></th>
             <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
-            <th pSortableColumn="avgR" class="text-right">Avg R <p-sortIcon field="avgR" /></th>
-            <th pSortableColumn="avgCompliance" class="text-right">Avg compliance <p-sortIcon field="avgCompliance" /></th>
+            <th pSortableColumn="avgR" class="text-right">Avg R-Multiple <p-sortIcon field="avgR" /></th>
+            <th pSortableColumn="avgCompliance" class="text-right">Avg Compliance <p-sortIcon field="avgCompliance" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
@@ -55,7 +55,7 @@
     }
   </p-card>
 
-  <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R, and avg compliance per time bucket">
+  <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per time bucket">
     <div class="mb-3 flex justify-end">
       <p-select
         aria-label="Time-pattern dimension"
@@ -73,15 +73,15 @@
         description="Log your first trade to see time-patterned edge here."
       />
     } @else {
-      <p-table [value]="timePatterns()">
+      <p-table [value]="[...timePatterns()]">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="value">{{ timeDimensionLabel() }} <p-sortIcon field="value" /></th>
             <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
-            <th pSortableColumn="netTotal" class="text-right">Net <p-sortIcon field="netTotal" /></th>
+            <th pSortableColumn="netTotal" class="text-right">Net P&amp;L <p-sortIcon field="netTotal" /></th>
             <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
-            <th pSortableColumn="avgR" class="text-right">Avg R <p-sortIcon field="avgR" /></th>
-            <th pSortableColumn="avgCompliance" class="text-right">Avg compliance <p-sortIcon field="avgCompliance" /></th>
+            <th pSortableColumn="avgR" class="text-right">Avg R-Multiple <p-sortIcon field="avgR" /></th>
+            <th pSortableColumn="avgCompliance" class="text-right">Avg Compliance <p-sortIcon field="avgCompliance" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
@@ -106,12 +106,12 @@
         description="Touch a playbook checklist when logging to score compliance."
       />
     } @else {
-      <p-table [value]="[{ bucket: '100% followed', bucketTrades: compliance().full.trades, bucketNet: compliance().full.netTotal, bucketWinRate: compliance().full.winRate }, { bucket: 'Partial (<100%)', bucketTrades: compliance().partial.trades, bucketNet: compliance().partial.netTotal, bucketWinRate: compliance().partial.winRate }]">
+      <p-table [value]="complianceRows()">
         <ng-template pTemplate="header">
           <tr>
             <th>Bucket</th>
             <th class="text-right">Trades</th>
-            <th class="text-right">Net</th>
+            <th class="text-right">Net P&amp;L</th>
             <th class="text-right">Win-rate</th>
           </tr>
         </ng-template>
