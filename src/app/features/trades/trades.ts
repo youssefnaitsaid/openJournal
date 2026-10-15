@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { Table, SortableColumn, SortIcon } from 'primeng/table';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -56,7 +57,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, DatePipe, NgIcon, Table, SortableColumn, SortIcon, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({ lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties }),
   ],

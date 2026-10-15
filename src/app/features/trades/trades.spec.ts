@@ -496,4 +496,43 @@ describe('Trades', () => {
     await fixture.whenStable();
     expect(component.tagOptions()).toEqual(['FOMC']);
   });
+
+  it('sorts rows by Net P&L through the table header', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade(tradeInput({ asset: 'WIN-A', exitPrice: 110, closedAt: '2026-10-03T14:30:00.000Z' }));
+    store.addTrade(tradeInput({ asset: 'LOSS-B', exitPrice: 90, fees: 5, closedAt: '2026-10-02T14:30:00.000Z' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const firstAsset = () =>
+      compiled.querySelector('tbody tr')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(firstAsset()).toContain('WIN-A');
+    const netHeader = [...compiled.querySelectorAll('th')].find((h) =>
+      h.textContent?.includes('Net'),
+    )!;
+    netHeader.click();
+    await fixture.whenStable();
+    expect(firstAsset()).toContain('LOSS-B');
+  });
+
+  it('paginates long histories instead of rendering every row', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    for (let i = 0; i < 12; i++) {
+      store.addTrade(
+        tradeInput({
+          asset: `PAGED-${i}`,
+          closedAt: `2026-10-${String(i + 1).padStart(2, '0')}T14:30:00.000Z`,
+        }),
+      );
+    }
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelectorAll('tbody tr').length).toBe(10);
+    expect(compiled.querySelector('.p-paginator')).not.toBeNull();
+  });
 });
