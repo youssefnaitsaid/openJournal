@@ -12,7 +12,7 @@
   "private": true,
   "packageManager": "npm@11.12.1",
   "dependencies": {
-    "@angular/cdk": "22.0.0",
+    "@angular/cdk": "^22.2.3",
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
@@ -21,12 +21,14 @@
     "@angular/router": "^22.2.0",
     "@ng-icons/core": "^36.1.0",
     "@ng-icons/lucide": "^36.1.0",
+    "@primeuix/themes": "^3.0.1",
     "@signaldb/angular": "^1.0.6",
     "@signaldb/core": "^1.8.1",
     "@signaldb/localstorage": "^1.0.1",
-    "@spartan-ng/brain": "^1.6.3",
+    "primeng": "^22.1.2",
     "rxjs": "~7.8.0",
     "tailwind-merge": "^3.5.0",
+    "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -36,7 +38,6 @@
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
     "@playwright/test": "^1.64.0",
-    "@spartan-ng/cli": "^1.6.3",
     "@tailwindcss/postcss": "^4.1.12",
     "jsdom": "^22.0.0",
     "postcss": "^8.5.3",
