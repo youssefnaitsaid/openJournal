@@ -132,11 +132,8 @@ describe('Analytics', () => {
     const fixture = TestBed.createComponent(Analytics);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const options = [...compiled.querySelectorAll('option')].map((o) =>
-      o.textContent?.trim(),
-    );
-    expect(options).toContain('Tag');
     const component = fixture.componentInstance;
+    expect(component.dimensions.map((d) => d.label)).toContain('Tag');
     component.dimension.set('tag');
     fixture.detectChanges();
     await fixture.whenStable();
@@ -178,11 +175,8 @@ describe('Analytics', () => {
     const fixture = TestBed.createComponent(Analytics);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const options = [...compiled.querySelectorAll('option')].map((o) =>
-      o.textContent?.trim(),
-    );
-    expect(options).toContain('Grade');
     const component = fixture.componentInstance;
+    expect(component.dimensions.map((d) => d.label)).toContain('Grade');
     expect(component.dimension()).toBe('setup');
     component.dimension.set('grade');
     fixture.detectChanges();

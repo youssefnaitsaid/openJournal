@@ -8,176 +8,125 @@
 
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3" />
 
-  <section class="rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-6">
+  <p-card>
     <app-filter-bar />
-  </section>
+  </p-card>
 
-  <section data-testid="breakdowns" class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-6">
-      <div class="flex items-center gap-3">
-        <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-          <ng-icon name="lucideTarget" class="size-5" />
-        </span>
-        <span>
-          <h2 class="text-lg font-semibold tracking-tight text-foreground">Breakdown by {{ dimensionLabel() }}</h2>
-          <p class="text-sm text-muted-foreground">Count, Net P&L, win-rate, avg R, and avg compliance per value</p>
-        </span>
-      </div>
-      <select
-        id="breakdown-dimension"
-        name="breakdown-dimension"
-        [value]="dimension()"
-        (change)="onDimensionChange($event)"
+  <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R, and avg compliance per value">
+    <div class="mb-3 flex justify-end">
+      <p-select
         aria-label="Breakdown dimension"
-        class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-      >
-        @for (opt of dimensions; track opt.value) {
-          <option [value]="opt.value" [selected]="opt.value === dimension()">{{ opt.label }}</option>
-        }
-      </select>
+        [options]="[...dimensions]"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="dimension()"
+        (onChange)="dimension.set($event.value)"
+      />
     </div>
-    <div class="px-4 py-4 sm:px-6">
-      @if (breakdowns().length === 0) {
-        <app-empty-state
-          icon="lucideInbox"
-          title="No trades yet"
-          description="Log your first trade to see risk-adjusted edge here."
-        />
-      } @else {
-        <table class="w-full text-sm">
-          <thead>
-              <tr class="text-left text-muted-foreground">
-                <th class="py-1 pr-3 font-medium">{{ dimensionLabel() }}</th>
-                <th class="py-1 pr-3 text-right font-medium">Trades</th>
-                <th class="py-1 pr-3 text-right font-medium">Net</th>
-                <th class="py-1 pr-3 text-right font-medium">Win-rate</th>
-                <th class="py-1 pr-3 text-right font-medium">Avg R</th>
-                <th class="py-1 text-right font-medium">Avg compliance</th>
-              </tr>
-          </thead>
-          <tbody>
-            @for (row of breakdowns(); track row.value) {
-              <tr class="border-t border-border">
-                <td class="py-2 pr-3 font-medium">{{ row.value }}</td>
-                <td class="py-2 pr-3 text-right">{{ row.trades }}</td>
-                <td class="py-2 pr-3 text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
-                <td class="py-2 pr-3 text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
-                <td class="py-2 pr-3 text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
-                <td class="py-2 text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </div>
-  </section>
+    @if (breakdowns().length === 0) {
+      <app-empty-state
+        icon="lucideInbox"
+        title="No trades yet"
+        description="Log your first trade to see risk-adjusted edge here."
+      />
+    } @else {
+      <p-table [value]="breakdowns()">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="value">{{ dimensionLabel() }} <p-sortIcon field="value" /></th>
+            <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
+            <th pSortableColumn="netTotal" class="text-right">Net <p-sortIcon field="netTotal" /></th>
+            <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
+            <th pSortableColumn="avgR" class="text-right">Avg R <p-sortIcon field="avgR" /></th>
+            <th pSortableColumn="avgCompliance" class="text-right">Avg compliance <p-sortIcon field="avgCompliance" /></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td class="font-medium">{{ row.value }}</td>
+            <td class="text-right">{{ row.trades }}</td>
+            <td class="text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
+            <td class="text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
+            <td class="text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
+            <td class="text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
 
-  <section data-testid="time-patterns" class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center justify-between gap-3 border-b border-border p-4 sm:p-6">
-      <div class="flex items-center gap-3">
-        <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-          <ng-icon name="lucideTarget" class="size-5" />
-        </span>
-        <span>
-          <h2 class="text-lg font-semibold tracking-tight text-foreground">Time-pattern by {{ timeDimensionLabel() }}</h2>
-          <p class="text-sm text-muted-foreground">Count, Net P&L, win-rate, avg R, and avg compliance per time bucket</p>
-        </span>
-      </div>
-      <select
-        id="time-dimension"
-        name="time-dimension"
-        [value]="timeDimension()"
-        (change)="onTimeDimensionChange($event)"
+  <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R, and avg compliance per time bucket">
+    <div class="mb-3 flex justify-end">
+      <p-select
         aria-label="Time-pattern dimension"
-        class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-      >
-        @for (opt of timeDimensions; track opt.value) {
-          <option [value]="opt.value" [selected]="opt.value === timeDimension()">{{ opt.label }}</option>
-        }
-      </select>
+        [options]="[...timeDimensions]"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="timeDimension()"
+        (onChange)="timeDimension.set($event.value)"
+      />
     </div>
-    <div class="px-4 py-4 sm:px-6">
-      @if (timePatterns().length === 0) {
-        <app-empty-state
-          icon="lucideInbox"
-          title="No trades yet"
-          description="Log your first trade to see time-patterned edge here."
-        />
-      } @else {
-        <table class="w-full text-sm">
-          <thead>
-              <tr class="text-left text-muted-foreground">
-                <th class="py-1 pr-3 font-medium">{{ timeDimensionLabel() }}</th>
-                <th class="py-1 pr-3 text-right font-medium">Trades</th>
-                <th class="py-1 pr-3 text-right font-medium">Net</th>
-                <th class="py-1 pr-3 text-right font-medium">Win-rate</th>
-                <th class="py-1 pr-3 text-right font-medium">Avg R</th>
-                <th class="py-1 text-right font-medium">Avg compliance</th>
-              </tr>
-          </thead>
-          <tbody>
-            @for (row of timePatterns(); track row.value) {
-              <tr class="border-t border-border">
-                <td class="py-2 pr-3 font-medium">{{ row.value }}</td>
-                <td class="py-2 pr-3 text-right">{{ row.trades }}</td>
-                <td class="py-2 pr-3 text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
-                <td class="py-2 pr-3 text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
-                <td class="py-2 pr-3 text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
-                <td class="py-2 text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </div>
-  </section>
+    @if (timePatterns().length === 0) {
+      <app-empty-state
+        icon="lucideInbox"
+        title="No trades yet"
+        description="Log your first trade to see time-patterned edge here."
+      />
+    } @else {
+      <p-table [value]="timePatterns()">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="value">{{ timeDimensionLabel() }} <p-sortIcon field="value" /></th>
+            <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
+            <th pSortableColumn="netTotal" class="text-right">Net <p-sortIcon field="netTotal" /></th>
+            <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
+            <th pSortableColumn="avgR" class="text-right">Avg R <p-sortIcon field="avgR" /></th>
+            <th pSortableColumn="avgCompliance" class="text-right">Avg compliance <p-sortIcon field="avgCompliance" /></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td class="font-medium">{{ row.value }}</td>
+            <td class="text-right">{{ row.trades }}</td>
+            <td class="text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
+            <td class="text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
+            <td class="text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
+            <td class="text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTarget" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Compliance vs outcome</h2>
-        <p class="text-sm text-muted-foreground">100% followed vs partial checklists, unscored excluded</p>
-      </span>
-    </div>
-    <div class="px-4 py-4 sm:px-6">
-      @if (compliance().scored === 0) {
-        <app-empty-state
-          icon="lucideInbox"
-          title="No scored trades yet"
-          description="Touch a playbook checklist when logging to score compliance."
-        />
-      } @else {
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left text-muted-foreground">
-              <th class="py-1 pr-3 font-medium">Bucket</th>
-              <th class="py-1 pr-3 text-right font-medium">Trades</th>
-              <th class="py-1 pr-3 text-right font-medium">Net</th>
-              <th class="py-1 text-right font-medium">Win-rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-t border-border">
-              <td class="py-2 pr-3 font-medium">100% followed</td>
-              <td class="py-2 pr-3 text-right">{{ compliance().full.trades }}</td>
-              <td class="py-2 pr-3 text-right" [class]="compliance().full.netTotal > 0 ? 'text-success' : compliance().full.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(compliance().full.netTotal) }}</td>
-              <td class="py-2 text-right text-foreground">{{ formatPercent(compliance().full.winRate) }}</td>
-            </tr>
-            <tr class="border-t border-border">
-              <td class="py-2 pr-3 font-medium">Partial (&lt;100%)</td>
-              <td class="py-2 pr-3 text-right">{{ compliance().partial.trades }}</td>
-              <td class="py-2 pr-3 text-right" [class]="compliance().partial.netTotal > 0 ? 'text-success' : compliance().partial.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(compliance().partial.netTotal) }}</td>
-              <td class="py-2 text-right text-foreground">{{ formatPercent(compliance().partial.winRate) }}</td>
-            </tr>
-          </tbody>
-        </table>
-        @if (compliance().unscored > 0) {
-          <p class="mt-2 text-xs text-muted-foreground">{{ compliance().unscored }} unscored {{ compliance().unscored === 1 ? 'trade' : 'trades' }} excluded.</p>
-        }
+  <p-card header="Compliance vs outcome" subheader="100% followed vs partial checklists, unscored excluded">
+    @if (compliance().scored === 0) {
+      <app-empty-state
+        icon="lucideInbox"
+        title="No scored trades yet"
+        description="Touch a playbook checklist when logging to score compliance."
+      />
+    } @else {
+      <p-table [value]="[{ bucket: '100% followed', bucketTrades: compliance().full.trades, bucketNet: compliance().full.netTotal, bucketWinRate: compliance().full.winRate }, { bucket: 'Partial (<100%)', bucketTrades: compliance().partial.trades, bucketNet: compliance().partial.netTotal, bucketWinRate: compliance().partial.winRate }]">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Bucket</th>
+            <th class="text-right">Trades</th>
+            <th class="text-right">Net</th>
+            <th class="text-right">Win-rate</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td class="font-medium">{{ row.bucket }}</td>
+            <td class="text-right">{{ row.bucketTrades }}</td>
+            <td class="text-right" [class]="row.bucketNet > 0 ? 'text-success' : row.bucketNet < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.bucketNet) }}</td>
+            <td class="text-right text-foreground">{{ formatPercent(row.bucketWinRate) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+      @if (compliance().unscored > 0) {
+        <p class="mt-2 text-xs text-muted-foreground">{{ compliance().unscored }} unscored {{ compliance().unscored === 1 ? 'trade' : 'trades' }} excluded.</p>
       }
-    </div>
-  </section>
+    }
+  </p-card>
 </section>
