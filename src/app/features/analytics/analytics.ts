@@ -26,7 +26,7 @@ export class Analytics {
   readonly store = inject(TradesStore);
 
   readonly metrics = computed(() =>
-    computeRMetrics(this.store.filteredTrades()),
+    computeRMetrics(this.store.activeFilteredTrades()),
   );
 
   readonly dimension = signal<BreakdownDimension>('setup');
@@ -49,7 +49,7 @@ export class Analytics {
   );
 
   readonly breakdowns = computed(() =>
-    computeBreakdowns(this.store.filteredTrades(), this.dimension()),
+    computeBreakdowns(this.store.activeFilteredTrades(), this.dimension()),
   );
 
   readonly timeDimension = signal<TimeDimension>('weekday');
@@ -66,11 +66,11 @@ export class Analytics {
   );
 
   readonly timePatterns = computed(() =>
-    computeTimePatterns(this.store.filteredTrades(), this.timeDimension()),
+    computeTimePatterns(this.store.activeFilteredTrades(), this.timeDimension()),
   );
 
   readonly compliance = computed(() =>
-    computeComplianceCorrelation(this.store.filteredTrades()),
+    computeComplianceCorrelation(this.store.activeFilteredTrades()),
   );
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {

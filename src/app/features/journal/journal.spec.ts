@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Journal } from './journal';
+import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
-import { UNSET_GUARDS, saveGuards } from '../../guards';
+import { UNSET_GUARDS } from '../../guards';
 
 describe('Journal', () => {
   beforeEach(() => {
@@ -224,7 +225,9 @@ describe('Journal', () => {
 
   it('marks Guard-breached days and inside days on the heatmap', async () => {
     await seed();
-    saveGuards({
+    const store = TestBed.inject(TradesStore);
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.saveActiveGuards({
       daily: { maxLoss: 100, maxTrades: null, stopTime: null },
       weekly: { ...UNSET_GUARDS.weekly },
     });
@@ -250,7 +253,9 @@ describe('Journal', () => {
 
   it('names breached daily and containing-week Guards in day detail', async () => {
     await seed();
-    saveGuards({
+    const store = TestBed.inject(TradesStore);
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.saveActiveGuards({
       daily: { maxLoss: 100, maxTrades: null, stopTime: null },
       weekly: { maxLoss: null, maxTrades: 1 },
     });
@@ -291,5 +296,19 @@ describe('Journal', () => {
     expect(
       compiled.querySelector('[aria-label="Copy month report card"]')?.textContent,
     ).toContain('Copied');
+  });
+
+  it('scopes the calendar to the active portfolio only', async () => {
+    await seed();
+    const store = TestBed.inject(TradesStore);
+    store.addPortfolio('Swing');
+    store.setActiveId(store.portfolios().find((p) => p.name === 'Swing')!.id);
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('No trades this day');
+    expect(content).not.toContain('-105');
   });
 });

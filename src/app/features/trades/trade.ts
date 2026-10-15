@@ -108,6 +108,7 @@ export interface TradeInput {
   chartUrl: string;
   notes: string;
   tags?: string[];
+  portfolioId?: string;
 }
 
 export interface Trade extends TradeInput {
@@ -115,6 +116,7 @@ export interface Trade extends TradeInput {
   grade: Grade | '';
   rules: RuleCheck[];
   compliance: number | null;  tags: string[];
+  portfolioId: string;
   gross: number;
   net: number;
   risked: number;

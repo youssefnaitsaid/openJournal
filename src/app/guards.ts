@@ -1,4 +1,5 @@
 import type { Trade } from './features/trades/trade';
+import { DEFAULT_PORTFOLIO_ID } from './portfolios';
 
 export interface DailyGuards {
   maxLoss: number | null;
@@ -58,31 +59,74 @@ function stopTimeOrUnset(value: unknown): string | null {
   return stopTimeMinutes(value) === null ? null : value.trim();
 }
 
-export function loadGuards(): GuardSettings {
-  try {
-    const raw = localStorage.getItem(GUARDS_STORAGE_KEY);
-    if (raw === null) return structuredClone(UNSET_GUARDS);
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null) return structuredClone(UNSET_GUARDS);
-    const { daily, weekly } = parsed as { daily?: Partial<DailyGuards>; weekly?: Partial<WeeklyGuards> };
-    return {
-      daily: {
-        maxLoss: positiveOrUnset(daily?.maxLoss),
-        maxTrades: positiveOrUnset(daily?.maxTrades),
-        stopTime: stopTimeOrUnset(daily?.stopTime),
-      },
-      weekly: {
-        maxLoss: positiveOrUnset(weekly?.maxLoss),
-        maxTrades: positiveOrUnset(weekly?.maxTrades),
-      },
-    };
-  } catch {
+export function normalizeGuardSettings(value: unknown): GuardSettings {
+  if (typeof value !== 'object' || value === null)
     return structuredClone(UNSET_GUARDS);
+  const { daily, weekly } = value as {
+    daily?: Partial<DailyGuards>;
+    weekly?: Partial<WeeklyGuards>;
+  };
+  return {
+    daily: {
+      maxLoss: positiveOrUnset(daily?.maxLoss),
+      maxTrades: positiveOrUnset(daily?.maxTrades),
+      stopTime: stopTimeOrUnset(daily?.stopTime),
+    },
+    weekly: {
+      maxLoss: positiveOrUnset(weekly?.maxLoss),
+      maxTrades: positiveOrUnset(weekly?.maxTrades),
+    },
+  };
+}
+
+export function loadGuardMap(): Record<string, GuardSettings> {
+  const raw = localStorage.getItem(GUARDS_STORAGE_KEY);
+  if (raw === null) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))
+      return {};
+    const record = parsed as Record<string, unknown>;
+    if ('daily' in record || 'weekly' in record) {
+      return { [DEFAULT_PORTFOLIO_ID]: normalizeGuardSettings(parsed) };
+    }
+    const out: Record<string, GuardSettings> = {};
+    for (const [key, entry] of Object.entries(record)) {
+      out[key] = normalizeGuardSettings(entry);
+    }
+    return out;
+  } catch {
+    return {};
   }
 }
 
+export function saveGuardMap(map: Record<string, GuardSettings>): void {
+  localStorage.setItem(GUARDS_STORAGE_KEY, JSON.stringify(map));
+}
+
+export function guardsFor(
+  map: Record<string, GuardSettings>,
+  portfolioId: string,
+): GuardSettings {
+  return structuredClone(map[portfolioId] ?? UNSET_GUARDS);
+}
+
+export function setGuardSettings(
+  map: Record<string, GuardSettings>,
+  portfolioId: string,
+  settings: GuardSettings,
+): Record<string, GuardSettings> {
+  const next = { ...map, [portfolioId]: settings };
+  saveGuardMap(next);
+  return next;
+}
+
+export function loadGuards(): GuardSettings {
+  return guardsFor(loadGuardMap(), DEFAULT_PORTFOLIO_ID);
+}
+
 export function saveGuards(settings: GuardSettings): void {
-  localStorage.setItem(GUARDS_STORAGE_KEY, JSON.stringify(settings));
+  setGuardSettings(loadGuardMap(), DEFAULT_PORTFOLIO_ID, settings);
 }
 
 export interface GuardFormInput {

@@ -1,4 +1,5 @@
 import { GRADES } from './trade';
+import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import type { Grade, RuleCheck, Side, Trade, TradeInput } from './trade';
 
 export type Outcome = 'Win' | 'Loss' | 'Breakeven';
@@ -110,5 +111,5 @@ export function deriveTrade(input: TradeInput, id: string): Trade {
     ? (input.grade as Grade)
     : '';
   const rules = normalizeRuleChecks(input.rules);
-  return { ...input, grade, rules, compliance: complianceOf(rules), tags: normalizeTags(input.tags), id, gross, net, risked, rMultiple: rMultiple(net, risked) };
+  return { ...input, portfolioId: input.portfolioId ?? DEFAULT_PORTFOLIO_ID, grade, rules, compliance: complianceOf(rules), tags: normalizeTags(input.tags), id, gross, net, risked, rMultiple: rMultiple(net, risked) };
 }

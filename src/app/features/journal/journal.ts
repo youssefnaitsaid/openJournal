@@ -17,7 +17,6 @@ import {
   GUARD_LABELS,
   evaluateGuards,
   hasAnyGuard,
-  loadGuards,
   weekKeyOfDay,
 } from '../../guards';
 import type { GuardBreach } from '../../guards';
@@ -25,7 +24,6 @@ import {
   computeMonthReportCard,
   formatMonthReportCard,
 } from './journal-report-card';
-import { loadStartingBalance } from '../../settings';
 import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
 
@@ -50,14 +48,14 @@ import { PageHero } from '../../ui/page-hero';
 export class Journal {
   readonly store = inject(TradesStore);
 
-  readonly startingBalance = signal(loadStartingBalance());
+  readonly startingBalance = computed(() => this.store.activeBalance());
 
-  readonly guards = signal(loadGuards());
+  readonly guards = computed(() => this.store.activeGuards());
 
   readonly hasGuards = computed(() => hasAnyGuard(this.guards()));
 
   readonly guardEvaluation = computed(() =>
-    evaluateGuards(this.store.trades(), this.guards()),
+    evaluateGuards(this.store.activeTrades(), this.guards()),
   );
 
   readonly dayBreaches = (date: string): readonly GuardBreach[] =>
@@ -91,12 +89,12 @@ export class Journal {
   readonly dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   readonly weeks = computed(() =>
-    buildMonth(this.store.trades(), this.cursor().year, this.cursor().month),
+    buildMonth(this.store.activeTrades(), this.cursor().year, this.cursor().month),
   );
 
   readonly summary = computed(() =>
     monthSummary(
-      this.store.trades(),
+      this.store.activeTrades(),
       this.cursor().year,
       this.cursor().month,
       this.startingBalance(),
@@ -105,7 +103,7 @@ export class Journal {
 
   readonly reportCard = computed(() =>
     computeMonthReportCard(
-      this.store.trades(),
+      this.store.activeTrades(),
       this.cursor().year,
       this.cursor().month,
     ),
@@ -128,7 +126,7 @@ export class Journal {
     const day = this.selectedDay();
     if (day === null) return [];
     return this.store
-      .trades()
+      .activeTrades()
       .filter((t) => t.closedAt.slice(0, 10) === day);
   });
 

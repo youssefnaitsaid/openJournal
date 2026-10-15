@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
-import { GUARD_LABELS, evaluateGuards, loadGuards } from '../../guards';
+import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
 import { FilterBar } from '../../ui/filter-bar';
@@ -76,11 +76,11 @@ export class Trades {
   readonly gradeFilter = signal<Grade | ''>('');
   readonly needsReview = signal(false);
 
-  readonly guards = signal(loadGuards());
+  readonly guards = computed(() => this.store.activeGuards());
 
   readonly todayGuardBreaches = computed((): readonly GuardBreach[] => {
     const today = new Date().toISOString().slice(0, 10);
-    return evaluateGuards(this.store.trades(), this.guards()).days.get(today)?.breached ?? [];
+    return evaluateGuards(this.store.activeTrades(), this.guards()).days.get(today)?.breached ?? [];
   });
 
   readonly todayGuardLabels = computed(() =>
@@ -200,7 +200,7 @@ export class Trades {
   }
 
   readonly rows = computed(() => {
-    const all = this.store.filteredByCloseDesc();
+    const all = this.store.activeByCloseDesc();
     if (this.needsReview()) {
       const reviewRank = (t: Trade): number => (t.grade === 'D' ? 0 : 1);
       const selected = this.gradeFilter();
@@ -272,6 +272,7 @@ export class Trades {
   }
 
   onSubmit(): void {
+    if (!this.store.canLog()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

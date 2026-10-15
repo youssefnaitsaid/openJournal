@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -12,13 +12,10 @@ import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
-import { loadStartingBalance, saveStartingBalance } from '../../settings';
 import {
   GUARD_LABELS,
   evaluateGuards,
   hasAnyGuard,
-  loadGuards,
-  saveGuards,
   toGuardFormInput,
   validateGuardInput,
   weekKeyOfDay,
@@ -54,21 +51,32 @@ export class Dashboard {
   readonly store = inject(TradesStore);
   private readonly router = inject(Router);
 
-  readonly startingBalance = signal(loadStartingBalance());
+  readonly startingBalance = computed(() => this.store.activeBalance());
 
-  readonly guards = signal(loadGuards());
-  readonly guardInputs = signal<GuardFormInput>(toGuardFormInput(loadGuards()));
+  readonly guards = computed(() => this.store.activeGuards());
+  readonly guardInputs = signal<GuardFormInput>(
+    toGuardFormInput(this.store.activeGuards()),
+  );
   readonly guardErrors = signal<readonly string[]>([]);
+
+  constructor() {
+    effect(() => {
+      this.guardInputs.set(toGuardFormInput(this.guards()));
+      this.guardErrors.set([]);
+    });
+  }
 
   readonly weekGuardBreaches = computed(() => {
     const guards = this.guards();
     if (!hasAnyGuard(guards)) return [];
     const today = new Date().toISOString().slice(0, 10);
     const week = weekKeyOfDay(today);
-    return evaluateGuards(this.store.trades(), guards).weeks.get(week)?.breached ?? [];
+    return evaluateGuards(this.store.activeTrades(), guards).weeks.get(week)?.breached ?? [];
   });
 
   readonly weekStatusText = computed(() => {
+    if (this.store.isAll())
+      return 'All portfolios: Guards are set per Portfolio — select one to manage them';
     if (!hasAnyGuard(this.guards())) return 'No Guards set';
     const breached = this.weekGuardBreaches();
     if (breached.length === 0) return 'This week: inside all Guards';
@@ -84,13 +92,12 @@ export class Dashboard {
     const { settings, errors } = validateGuardInput(next);
     this.guardErrors.set(errors);
     if (errors.length === 0) {
-      this.guards.set(settings);
-      saveGuards(settings);
+      this.store.saveActiveGuards(settings);
     }
   }
 
   readonly metrics = computed(() =>
-    computeMetrics(this.store.trades(), this.startingBalance()),
+    computeMetrics(this.store.activeTrades(), this.startingBalance()),
   );
 
   readonly profitFactorText = computed(() => {
@@ -105,12 +112,12 @@ export class Dashboard {
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
 
   readonly filteredStrip = computed(() => {
-    const filtered = this.store.filteredTrades();
+    const filtered = this.store.activeFilteredTrades();
     const metrics = computeMetrics(filtered, this.startingBalance());
     const risk = computeRMetrics(filtered);
     return {
       shown: filtered.length,
-      total: this.store.trades().length,
+      total: this.store.activeTrades().length,
       netTotal: metrics.netTotal,
       winRate: metrics.winRate,
       avgR: risk.rExpectancy,
@@ -179,10 +186,10 @@ export class Dashboard {
   };
 
   onBalanceInput(event: Event): void {
+    if (this.store.isAll()) return;
     const value = Number((event.target as HTMLInputElement).value);
     if (Number.isFinite(value) && value >= 0) {
-      this.startingBalance.set(value);
-      saveStartingBalance(value);
+      this.store.setPortfolioBalance(this.store.activeId(), value);
     }
   }
 
