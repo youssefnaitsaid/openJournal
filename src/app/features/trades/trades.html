@@ -23,10 +23,10 @@
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Market
-        <p-select formControlName="market" [options]="markets" />
+        <p-select formControlName="market" [options]="[...markets]" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Side
-        <p-select formControlName="side" [options]="sides" />
+        <p-select formControlName="side" [options]="[...sides]" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Quantity
         <p-inputnumber formControlName="quantity" />
@@ -131,7 +131,7 @@
         <p-select formControlName="mistake" [options]="mistakeOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Grade (optional)
-        <p-select formControlName="grade" [options]="grades" placeholder="—" />
+        <p-select formControlName="grade" [options]="[...grades]" placeholder="—" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
         <input pInputText formControlName="chartUrl" inputmode="url" placeholder="https://…" />
@@ -209,7 +209,7 @@
       } @else {
         <div class="overflow-x-auto">
           <p-table [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
-            <ng-template #header>
+            <ng-template pTemplate="header">
               <tr>
                 <th pSortableColumn="openedAt">Open date <p-sortIcon field="openedAt" /></th>
                 <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
@@ -237,7 +237,7 @@
                 <th>Chart</th>
               </tr>
             </ng-template>
-            <ng-template #body let-trade>
+            <ng-template pTemplate="body" let-trade>
               <tr>
                 <td>{{ trade.openedAt | date:'medium' }}</td>
                 <td>{{ trade.closedAt | date:'medium' }}</td>
