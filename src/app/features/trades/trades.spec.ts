@@ -145,11 +145,7 @@ describe('Trades', () => {
     component.addCustomSetup('Opening-drive');
     await fixture.whenStable();
     expect(component.setupOptions()).toContain('Opening-drive');
-    const compiled = fixture.nativeElement as HTMLElement;
-    const setup = compiled.querySelector(
-      'select[formControlName="setup"]',
-    ) as HTMLSelectElement;
-    expect([...setup.options].map((o) => o.value)).toContain('Opening-drive');
+    expect(component.form.controls.setup.value).toBe('Opening-drive');
     expect(
       JSON.parse(
         localStorage.getItem('openjournal-taxonomy') ?? '{}',

@@ -11,91 +11,70 @@
   </app-page-hero>
 
   @if (todayGuardLabels().length > 0) {
-    <section aria-label="Today guard status" class="flex items-center gap-3 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-6">
-      <span class="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-warning">
-        <ng-icon name="lucideShieldAlert" class="size-5" />
-      </span>
-      <p class="text-sm font-medium text-warning">Today breached Guard: {{ todayGuardLabels().join(', ') }}</p>
-    </section>
+    <p-message severity="warn" aria-label="Today guard status">Today breached Guard: {{ todayGuardLabels().join(', ') }}</p-message>
   }
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideArrowDownUp" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Log trade</h2>
-        <p class="text-sm text-muted-foreground">One closed round-trip with an entry and an exit</p>
-      </span>
-    </div>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 px-4 py-6 sm:grid-cols-2 sm:px-6">
+  <p-card header="Log trade" subheader="One closed round-trip with an entry and an exit">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <label class="flex flex-col gap-1 text-sm">Asset
-        <input formControlName="asset" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="asset" />
         @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
-          <span class="text-sm text-destructive">Asset is required.</span>
+          <p-message severity="error">Asset is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Market
-        <select formControlName="market" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (m of markets; track m) { <option [value]="m">{{ m }}</option> }
-        </select>
+        <p-select formControlName="market" [options]="markets" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Side
-        <select formControlName="side" class="rounded-xl border border-input bg-background px-3 py-2">
-          <option value="Long">Long</option>
-          <option value="Short">Short</option>
-        </select>
+        <p-select formControlName="side" [options]="sides" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Quantity
-        <input type="number" step="any" min="0" formControlName="quantity" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="quantity" />
         @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
-          <span class="text-sm text-destructive">Quantity must be above zero.</span>
+          <p-message severity="error">Quantity must be above zero.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Multiplier
-        <input type="number" step="any" min="0" formControlName="multiplier" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="multiplier" />
         @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
-          <span class="text-sm text-destructive">Multiplier must be above zero.</span>
+          <p-message severity="error">Multiplier must be above zero.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Entry price
-        <input type="number" step="any" formControlName="entryPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="entryPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Exit price
-        <input type="number" step="any" formControlName="exitPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="exitPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Fees
-        <input type="number" step="any" min="0" formControlName="fees" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="fees" />
         @if (form.controls.fees.touched && form.controls.fees.invalid) {
-          <span class="text-sm text-destructive">Fees cannot be negative.</span>
+          <p-message severity="error">Fees cannot be negative.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Stop price (optional)
-        <input type="number" step="any" formControlName="stopPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="stopPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Take price (optional)
-        <input type="number" step="any" formControlName="takePrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="takePrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Risked override (optional)
-        <input type="number" step="any" min="0" formControlName="riskedAmount" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="riskedAmount" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Opened at
-        <input type="datetime-local" formControlName="openedAt" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText type="datetime-local" formControlName="openedAt" />
         @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
-          <span class="text-sm text-destructive">Opened at is required.</span>
+          <p-message severity="error">Opened at is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Closed at
-        <input type="datetime-local" formControlName="closedAt" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText type="datetime-local" formControlName="closedAt" />
         @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
-          <span class="text-sm text-destructive">Closed at is required.</span>
+          <p-message severity="error">Closed at is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Setup
-        <select formControlName="setup" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (s of setupOptions(); track s) { <option [value]="s">{{ s }}</option> }
-        </select>
+        <p-select formControlName="setup" [options]="setupOptions()" />
       </label>
       <div class="flex flex-col gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
         <span class="font-medium">Playbook rules for {{ playbook().setup }}</span>
@@ -106,18 +85,16 @@
             @for (rule of playbook().rules; track rule; let i = $index) {
               <li class="flex items-center gap-2">
                 <span class="flex-1">{{ rule }}</span>
-                <button type="button" (click)="removeRule(i)" [attr.aria-label]="'Remove rule ' + rule" class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">Remove</button>
+                <p-button type="button" size="small" severity="secondary" label="Remove" [ariaLabel]="'Remove rule ' + rule" (onClick)="removeRule(i)" />
               </li>
             }
           </ul>
         }
         <div class="flex gap-2">
-          <input #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-          <button type="button" (click)="addRule(newRule.value); newRule.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add rule</button>
+          <input pInputText #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 text-sm" />
+          <p-button type="button" severity="secondary" label="Add rule" (onClick)="addRule(newRule.value); newRule.value = ''" />
         </div>
-        <button type="button" (click)="togglePlaybookArchived()" class="self-start rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground">
-          {{ playbook().archived ? 'Unarchive setup' : 'Archive setup' }}
-        </button>
+        <p-button type="button" severity="secondary" [label]="playbook().archived ? 'Unarchive setup' : 'Archive setup'" (onClick)="togglePlaybookArchived()" />
         @if (archivedPlaybooks().length > 0) {
           <div class="flex flex-col gap-1">
             <span class="text-xs text-muted-foreground">Archived setups stay in history:</span>
@@ -125,7 +102,7 @@
               @for (name of archivedPlaybooks(); track name) {
                 <li class="flex items-center gap-2">
                   <span class="flex-1 text-xs">{{ name }}</span>
-                  <button type="button" (click)="unarchivePlaybook(name)" [attr.aria-label]="'Unarchive ' + name" class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">Unarchive</button>
+                  <p-button type="button" size="small" severity="secondary" label="Unarchive" [ariaLabel]="'Unarchive ' + name" (onClick)="unarchivePlaybook(name)" />
                 </li>
               }
             </ul>
@@ -136,120 +113,90 @@
         <fieldset class="flex flex-col gap-1 rounded-xl border border-border bg-background px-3 py-2 text-sm">
           <legend class="px-1 text-sm">Playbook checklist (optional)</legend>
           @for (check of checks(); track check.text; let i = $index) {
-            <label class="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" [checked]="check.followed" (change)="toggleCheck(i)" class="size-4" />
+            <div class="inline-flex items-center gap-2 text-sm">
+              <p-checkbox [binary]="true" [ngModel]="check.followed" [ngModelOptions]="{ standalone: true }" (onChange)="toggleCheck(i)" />
               {{ check.text }}
-            </label>
+            </div>
           }
           <span class="text-xs text-muted-foreground">Untouched checklist logs the Trade unscored, like a blank Grade.</span>
         </fieldset>
       }
       <label class="flex flex-col gap-1 text-sm">Emotion before
-        <select formControlName="emotionBefore" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
-        </select>
+        <p-select formControlName="emotionBefore" [options]="emotionOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Emotion after
-        <select formControlName="emotionAfter" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
-        </select>
+        <p-select formControlName="emotionAfter" [options]="emotionOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Mistake
-        <select formControlName="mistake" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (m of mistakeOptions(); track m) { <option [value]="m">{{ m }}</option> }
-        </select>
+        <p-select formControlName="mistake" [options]="mistakeOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Grade (optional)
-        <select formControlName="grade" class="rounded-xl border border-input bg-background px-3 py-2">
-          <option value="">—</option>
-          @for (g of grades; track g) { <option [value]="g">{{ g }}</option> }
-        </select>
+        <p-select formControlName="grade" [options]="grades" placeholder="—" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
-        <input formControlName="chartUrl" inputmode="url" placeholder="https://…" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="chartUrl" inputmode="url" placeholder="https://…" />
         @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
-          <span class="text-sm text-destructive">Enter a valid URL starting with http(s), or leave empty.</span>
+          <p-message severity="error">Enter a valid URL starting with http(s), or leave empty.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Notes
-        <input formControlName="notes" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="notes" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Tags (optional, comma-separated)
-        <input formControlName="tags" list="tag-options" placeholder="FOMC, earnings" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="tags" list="tag-options" placeholder="FOMC, earnings" />
         <span class="text-xs text-muted-foreground">Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
         <datalist id="tag-options">
           @for (t of tagOptions(); track t) { <option [value]="t"></option> }
         </datalist>
       </label>
       <div class="sm:col-span-2">
-        <button type="submit" [disabled]="!store.canLog()" class="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">Log trade</button>
+        <p-button type="submit" label="Log trade" [disabled]="!store.canLog()" />
         @if (!store.canLog()) {
           <p class="text-sm text-muted-foreground">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
         }
       </div>
     </form>
-  </section>
+  </p-card>
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTags" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Custom tags</h2>
-        <p class="text-sm text-muted-foreground">Grow your Setup, Emotion, Mistake, and Tag vocabulary</p>
-      </span>
-    </div>
-    <form class="flex flex-col gap-2 px-4 py-6 sm:px-6" aria-label="Custom tags">
+  <p-card header="Custom tags" subheader="Grow your Setup, Emotion, Mistake, and Tag vocabulary">
+    <form class="flex flex-col gap-2" aria-label="Custom tags">
       <div class="flex gap-2">
-        <input #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomSetup(newSetup.value); newSetup.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add setup</button>
+        <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add setup" (onClick)="addCustomSetup(newSetup.value); newSetup.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add emotion</button>
+        <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add emotion" (onClick)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomMistake(newMistake.value); newMistake.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add mistake</button>
+        <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add mistake" (onClick)="addCustomMistake(newMistake.value); newMistake.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomTag(newTag.value); newTag.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add tag</button>
+        <input pInputText #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add tag" (onClick)="addCustomTag(newTag.value); newTag.value = ''" />
       </div>
     </form>
-  </section>
+  </p-card>
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTableProperties" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Trade history</h2>
-        <p class="text-sm text-muted-foreground">Newest close first</p>
-      </span>
-    </div>
-    <div class="px-4 py-4 sm:px-6">
+  <p-card header="Trade history" subheader="Newest close first">
+    <div>
       <app-filter-bar />
       <div class="mb-3 mt-3 flex flex-wrap items-center gap-2" aria-label="Trade filters">
         <label class="inline-flex items-center gap-2 text-sm text-muted-foreground">Grade
-          <select
+          <p-select
             aria-label="Grade filter"
-            [value]="gradeFilter()"
-            (change)="onGradeFilterChange($event)"
-            class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-          >
-            <option value="">All</option>
-            @for (g of grades; track g) { <option [value]="g" [selected]="g === gradeFilter()">{{ g }}</option> }
-          </select>
+            [options]="gradeFilterOptions"
+            [ngModel]="gradeFilter()"
+            (onChange)="gradeFilter.set($event.value)"
+          />
         </label>
-        <button
+        <p-button
           type="button"
-          (click)="toggleReview()"
-          [attr.aria-pressed]="needsReview()"
-          [class]="needsReview() ? 'rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground' : 'rounded-full border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground'"
-        >Needs review</button>
+          label="Needs review"
+          [severity]="needsReview() ? undefined : 'secondary'"
+          (onClick)="toggleReview()"
+        />
       </div>
       @if (rows().length === 0) {
         <app-empty-state
@@ -338,5 +285,5 @@
         </div>
       }
     </div>
-  </section>
+  </p-card>
 </section>

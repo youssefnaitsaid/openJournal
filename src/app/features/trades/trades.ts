@@ -4,13 +4,21 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
+  FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { lucideArrowDownUp } from '@ng-icons/lucide';
 import { Table, SortableColumn, SortIcon } from 'primeng/table';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
+import { InputNumber } from 'primeng/inputnumber';
+import { Checkbox } from 'primeng/checkbox';
+import { Card } from 'primeng/card';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -57,9 +65,9 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, DatePipe, NgIcon, Table, SortableColumn, SortIcon, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgIcon, Table, SortableColumn, SortIcon, Button, InputText, InputNumber, Checkbox, Message, Select, Card, EmptyState, FilterBar, PageHero],
   providers: [
-    provideIcons({ lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties }),
+    provideIcons({ lucideArrowDownUp }),
   ],
   selector: 'app-trades',
   styleUrl: './trades.css',
@@ -73,6 +81,13 @@ export class Trades {
   readonly markets: readonly Market[] = MARKETS;
 
   readonly grades: readonly Grade[] = GRADES;
+
+  readonly sides: readonly Side[] = ['Long', 'Short'];
+
+  readonly gradeFilterOptions: { label: string; value: Grade | '' }[] = [
+    { label: 'All', value: '' },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
+  ];
 
   readonly gradeFilter = signal<Grade | ''>('');
   readonly needsReview = signal(false);
@@ -223,11 +238,6 @@ export class Trades {
     const next = !this.needsReview();
     this.needsReview.set(next);
     if (!next) this.gradeFilter.set('');
-  }
-
-  onGradeFilterChange(event: Event): void {
-    const el = event.target as HTMLSelectElement | null;
-    if (el) this.gradeFilter.set(el.value as Grade | '');
   }
 
   readonly form = this.fb.nonNullable.group({
