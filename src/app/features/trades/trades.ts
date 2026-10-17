@@ -44,7 +44,6 @@ import type {
   RuleCheck,
   Setup,
   Side,
-  Trade,
   TradeInput,
 } from './trade';
 import { isValidChartUrl, normalizeTags } from './trade-math';
@@ -86,14 +85,6 @@ export class Trades {
   ];
 
   readonly sides: readonly Side[] = ['Long', 'Short'];
-
-  readonly gradeFilterOptions: { label: string; value: Grade | '' }[] = [
-    { label: 'All', value: '' },
-    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
-  ];
-
-  readonly gradeFilter = signal<Grade | ''>('');
-  readonly needsReview = signal(false);
 
   readonly guards = computed(() => this.store.activeGuards());
 
@@ -145,30 +136,7 @@ export class Trades {
     return normalizeTags(value.split(','));
   }
 
-  readonly rows = computed(() => {
-    const all = this.store.activeByCloseDesc();
-    if (this.needsReview()) {
-      const reviewRank = (t: Trade): number => (t.grade === 'D' ? 0 : 1);
-      const selected = this.gradeFilter();
-      const inReview = all.filter((t) => t.grade === 'C' || t.grade === 'D');
-      const list =
-        selected === '' ? inReview : inReview.filter((t) => t.grade === selected);
-      return [...list].sort(
-        (a, b) =>
-          reviewRank(a) - reviewRank(b) ||
-          +new Date(b.closedAt) - +new Date(a.closedAt),
-      );
-    }
-    const grade = this.gradeFilter();
-    if (grade === '') return all;
-    return all.filter((t) => t.grade === grade);
-  });
-
-  toggleReview(): void {
-    const next = !this.needsReview();
-    this.needsReview.set(next);
-    if (!next) this.gradeFilter.set('');
-  }
+  readonly rows = computed(() => this.store.activeByCloseDesc());
 
   readonly form = this.fb.nonNullable.group({
     asset: ['', Validators.required],

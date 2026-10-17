@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Grade } from './trade';
 import { tradeFixture } from './trade-fixtures';
 import {
   EMPTY_FILTER,
@@ -35,6 +36,8 @@ const FLAT_UNTAGGED = () =>
     asset: 'mes',
     closedAt: '2026-10-03T14:30:00.000Z',
   });
+
+const graded = (grade: Grade | '') => tradeFixture({ asset: `G-${grade || 'NONE'}`, grade });
 
 describe('applyGlobalFilter', () => {
   it('returns every Trade when the filter is empty', () => {
@@ -126,5 +129,96 @@ describe('applyGlobalFilter', () => {
       applyGlobalFilter([legacy], { ...EMPTY_FILTER, tag: 'FOMC' }),
     ).toEqual([]);
     expect(applyGlobalFilter([legacy], EMPTY_FILTER)).toEqual([legacy]);
+  });
+
+  it('keeps the Grade axis empty by default and inactive', () => {
+    expect(EMPTY_FILTER.grade).toBe('');
+    expect(EMPTY_FILTER.needsReview).toBe(false);
+    expect(isFilterActive(EMPTY_FILTER)).toBe(false);
+  });
+
+  it('matches Grade exactly and excludes ungraded Trades', () => {
+    const trades = [graded('A'), graded('C'), graded('D'), graded('')];
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, grade: 'C' }),
+    ).toEqual([trades[1]]);
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, grade: 'A' }),
+    ).toEqual([trades[0]]);
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, grade: 'B' }),
+    ).toEqual([]);
+    expect(isFilterActive({ ...EMPTY_FILTER, grade: 'D' })).toBe(true);
+  });
+
+  it('keeps Trades flagged for review (Grade C or D) when Needs review is on', () => {
+    const trades = [graded('A'), graded('B'), graded('C'), graded('D'), graded('')];
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, needsReview: true }),
+    ).toEqual([trades[2], trades[3]]);
+    expect(isFilterActive({ ...EMPTY_FILTER, needsReview: true })).toBe(true);
+    expect(isFilterActive({ ...EMPTY_FILTER, needsReview: false })).toBe(false);
+  });
+
+  it('ANDs Needs review with Grade: only the flagged half survives', () => {
+    const trades = [graded('C'), graded('D')];
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, needsReview: true, grade: 'C' }),
+    ).toEqual([trades[0]]);
+    expect(
+      applyGlobalFilter(trades, { ...EMPTY_FILTER, needsReview: true, grade: 'A' }),
+    ).toEqual([]);
+  });
+
+  it('ANDs Grade with the existing axes', () => {
+    const fomcWinA = tradeFixture({
+      asset: 'MES',
+      grade: 'A',
+      quantity: 2,
+      entryPrice: 5000,
+      exitPrice: 5010,
+      closedAt: '2026-10-02T14:30:00.000Z',
+      setup: 'Breakout',
+      tags: ['FOMC'],
+    });
+    const fomcWinB = tradeFixture({
+      asset: 'MES',
+      grade: 'B',
+      quantity: 2,
+      entryPrice: 5000,
+      exitPrice: 5010,
+      closedAt: '2026-10-02T14:30:00.000Z',
+      setup: 'Breakout',
+      tags: ['FOMC'],
+    });
+    const plainLossC = tradeFixture({
+      asset: 'AAPL',
+      grade: 'C',
+      quantity: 10,
+      entryPrice: 200,
+      exitPrice: 210,
+      side: 'Short',
+      closedAt: '2026-10-05T14:30:00.000Z',
+      setup: 'Pullback',
+    });
+    const trades = [fomcWinA, fomcWinB, plainLossC];
+    expect(
+      applyGlobalFilter(trades, {
+        ...EMPTY_FILTER,
+        grade: 'A',
+        tag: 'FOMC',
+        outcome: 'Win',
+        setup: 'Breakout',
+        dateFrom: '2026-10-01',
+        dateTo: '2026-10-03',
+      }),
+    ).toEqual([fomcWinA]);
+    expect(
+      applyGlobalFilter(trades, {
+        ...EMPTY_FILTER,
+        needsReview: true,
+        side: 'Short',
+      }),
+    ).toEqual([plainLossC]);
   });
 });

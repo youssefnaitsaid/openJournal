@@ -286,7 +286,7 @@ describe('Trades', () => {
     expect(store.trades()[0]!.grade).toBe('B');
   });
 
-  it('filters by Grade and reviews C and D worst-first, restoring defaults off', async () => {
+  it('filters rows by the global Grade and Needs review axes, newest close first', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
@@ -310,26 +310,23 @@ describe('Trades', () => {
       'A-OLD',
     ]);
 
-    component.gradeFilter.set('C');
+    store.setFilter({ grade: 'C' });
     expect(component.rows().map((t) => t.asset)).toEqual(['C-MID']);
 
-    component.gradeFilter.set('');
-    component.toggleReview();
+    store.setFilter({ grade: '', needsReview: true });
     expect(component.rows().map((t) => t.asset)).toEqual([
       'D-NEW',
-      'D-OLD',
       'C-MID',
+      'D-OLD',
     ]);
 
-    component.gradeFilter.set('D');
+    store.setFilter({ grade: 'D' });
     expect(component.rows().map((t) => t.asset)).toEqual(['D-NEW', 'D-OLD']);
 
-    component.gradeFilter.set('A');
+    store.setFilter({ grade: 'A' });
     expect(component.rows()).toEqual([]);
 
-    component.gradeFilter.set('');
-    component.toggleReview();
-    expect(component.gradeFilter()).toBe('');
+    store.resetFilter();
     expect(component.rows().map((t) => t.asset)).toEqual([
       'D-NEW',
       'C-MID',
@@ -370,9 +367,9 @@ describe('Trades', () => {
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A', 'PLAIN-B']);
     store.setFilter({ tag: 'FOMC' });
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
-    component.gradeFilter.set('B');
+    store.setFilter({ grade: 'B' });
     expect(component.rows()).toEqual([]);
-    component.gradeFilter.set('A');
+    store.setFilter({ grade: 'A' });
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
   });
 

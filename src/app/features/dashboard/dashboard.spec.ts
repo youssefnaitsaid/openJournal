@@ -117,6 +117,51 @@ describe('Dashboard', () => {
     expect(content).toContain('100.00');
   });
 
+  it('cuts the filtered strip with the Grade and Needs review axes while the hero keeps full truth', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'A-WIN',
+        grade: 'A',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'C-LOSS',
+        grade: 'C',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    store.setFilter({ needsReview: true });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Filtered view');
+    expect(content).toContain('1 of 2 Trades');
+    expect(content).toContain('-$100.00');
+    expect(content).toContain('0.00%');
+    expect(content).toContain('100');
+    expect(content).toContain('50.00% win rate');
+    store.setFilter({ grade: 'A' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const composed = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(composed).toContain('0 of 2 Trades');
+    expect(composed).toContain('50.00% win rate');
+  });
+
   it('shows a Total trades KPI card', async () => {
     await seed();
     const fixture = TestBed.createComponent(Dashboard);

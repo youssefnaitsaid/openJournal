@@ -73,6 +73,22 @@
         size="small"
       />
     </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Grade
+      <p-select
+        ariaLabel="Grade filter"
+        [options]="gradeSelectOptions"
+        [ngModel]="store.filter().grade"
+        (onChange)="onGradeChange($event)"
+        size="small"
+      />
+    </label>
+    <p-toggleButton
+      ariaLabel="Needs review filter"
+      onLabel="Needs review"
+      offLabel="Needs review"
+      [(ngModel)]="needsReviewModel"
+      size="small"
+    />
     @if (store.isFiltering()) {
       <p-button
         type="button"

@@ -8,8 +8,9 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
-import { SETUPS } from '../features/trades/trade';
-import type { Side } from '../features/trades/trade';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { SETUPS, GRADES } from '../features/trades/trade';
+import type { Grade, Side } from '../features/trades/trade';
 import type { GlobalFilter, OutcomeFilter } from '../features/trades/trades-filter';
 import { TradesStore } from '../features/trades/trades-store';
 import {
@@ -19,7 +20,7 @@ import {
 } from '../features/journal/taxonomy';
 
 @Component({
-  imports: [FormsModule, NgIcon, ButtonModule, CardModule, DatePickerModule, InputTextModule, SelectModule, TagModule],
+  imports: [FormsModule, NgIcon, ButtonModule, CardModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule],
   providers: [provideIcons({ lucideListFilter, lucideRotateCcw })],
   selector: 'app-filter-bar',
   templateUrl: './filter-bar.html',
@@ -57,6 +58,11 @@ export class FilterBar {
     { label: 'Win', value: 'Win' },
     { label: 'Loss', value: 'Loss' },
     { label: 'Breakeven', value: 'Breakeven' },
+  ];
+
+  readonly gradeSelectOptions: { label: string; value: '' | Grade }[] = [
+    { label: 'All', value: '' },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as '' | Grade })),
   ];
 
   readonly dateFromValue = computed(() => {
@@ -110,6 +116,22 @@ export class FilterBar {
         ? ((event.target as HTMLSelectElement | null)?.value as OutcomeFilter)
         : event.value;
     if (value !== undefined) this.store.setFilter({ outcome: value });
+  }
+
+  onGradeChange(event: Event | { value: '' | Grade }): void {
+    const value =
+      event instanceof Event
+        ? ((event.target as HTMLSelectElement | null)?.value as '' | Grade)
+        : event.value;
+    if (value !== undefined) this.store.setFilter({ grade: value });
+  }
+
+  get needsReviewModel(): boolean {
+    return this.store.filter().needsReview;
+  }
+
+  set needsReviewModel(value: boolean) {
+    this.store.setFilter({ needsReview: value === true });
   }
 
   onDateChange(field: 'dateFrom' | 'dateTo', value: Date | null): void {

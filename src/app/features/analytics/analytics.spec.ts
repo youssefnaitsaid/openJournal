@@ -191,6 +191,53 @@ describe('Analytics', () => {
     expect(rows[1]).toContain('D');
   });
 
+  it('cuts Analytics sections with the global Grade and Needs review axes', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({
+        asset: 'A-WIN',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 120,
+        riskedAmount: 100,
+        grade: 'A',
+      }),
+    );
+    store.addTrade(
+      tradeInput({
+        asset: 'D-LOSS',
+        quantity: 10,
+        entryPrice: 100,
+        exitPrice: 90,
+        riskedAmount: 100,
+        grade: 'D',
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const component = fixture.componentInstance;
+    component.dimension.set('grade');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const breakdownRows = () =>
+      [...compiled.querySelector('[data-testid="breakdowns"]')!.querySelectorAll('tbody tr')].map(
+        (r) => r.textContent?.replace(/\s+/g, ' '),
+      );
+    expect(breakdownRows().length).toBe(2);
+    store.setFilter({ needsReview: true });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(breakdownRows().length).toBe(1);
+    expect(breakdownRows()[0]).toContain('D');
+    store.setFilter({ grade: 'A' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(breakdownRows().length).toBe(0);
+  });
+
   it('shows avg compliance per Setup and a full-versus-partial correlation', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();

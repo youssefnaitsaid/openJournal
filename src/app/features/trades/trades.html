@@ -127,23 +127,6 @@
   <p-card header="Trade history" subheader="Newest close first">
     <div>
       <app-filter-bar />
-      <div class="mb-3 mt-3 flex flex-wrap items-center gap-2" aria-label="Trade filters">
-        <label class="inline-flex items-center gap-2 text-sm text-muted-foreground">Grade
-          <p-select
-            aria-label="Grade filter"
-            [options]="gradeFilterOptions"
-            [ngModel]="gradeFilter()"
-            (onChange)="gradeFilter.set($event.value)"
-          />
-        </label>
-        <p-button
-          type="button"
-          label="Needs review"
-          [attr.aria-pressed]="needsReview()"
-          [severity]="needsReview() ? undefined : 'secondary'"
-          (onClick)="toggleReview()"
-        />
-      </div>
       @if (rows().length === 0) {
         <app-empty-state
           icon="lucideInbox"

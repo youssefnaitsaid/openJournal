@@ -1,4 +1,4 @@
-import type { Side, Trade } from './trade';
+import type { Grade, Side, Trade } from './trade';
 
 export type OutcomeFilter = 'All' | 'Win' | 'Loss' | 'Breakeven';
 
@@ -10,6 +10,8 @@ export interface GlobalFilter {
   readonly side: '' | Side;
   readonly tag: string;
   readonly outcome: OutcomeFilter;
+  readonly grade: '' | Grade;
+  readonly needsReview: boolean;
 }
 
 export const EMPTY_FILTER: GlobalFilter = {
@@ -20,6 +22,8 @@ export const EMPTY_FILTER: GlobalFilter = {
   side: '',
   tag: '',
   outcome: 'All',
+  grade: '',
+  needsReview: false,
 };
 
 export function isFilterActive(filter: GlobalFilter): boolean {
@@ -30,7 +34,9 @@ export function isFilterActive(filter: GlobalFilter): boolean {
     filter.setup !== '' ||
     filter.side !== '' ||
     filter.tag !== '' ||
-    filter.outcome !== 'All'
+    filter.outcome !== 'All' ||
+    filter.grade !== '' ||
+    filter.needsReview !== false
   );
 }
 
@@ -45,6 +51,8 @@ export function applyGlobalFilter(
     if (filter.setup !== '' && t.setup !== filter.setup) return false;
     if (filter.side !== '' && t.side !== filter.side) return false;
     if (filter.tag !== '' && !(t.tags ?? []).includes(filter.tag)) return false;
+    if (filter.grade !== '' && t.grade !== filter.grade) return false;
+    if (filter.needsReview && t.grade !== 'C' && t.grade !== 'D') return false;
     if (filter.outcome === 'Win' && !(t.net > 0)) return false;
     if (filter.outcome === 'Loss' && !(t.net < 0)) return false;
     if (filter.outcome === 'Breakeven' && t.net !== 0) return false;
