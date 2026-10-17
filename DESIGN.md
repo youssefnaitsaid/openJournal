@@ -14,7 +14,7 @@ The only color sources in templates are the PrimeNG Aura scales that `tailwindcs
 
 - surface scale: `bg-surface-0`, `text-surface-700`, `text-surface-600 dark:text-surface-300` for secondary copy, `border-surface-200 dark:border-surface-700`, `hover:bg-surface-100 dark:hover:bg-surface-800`; `src/styles.css` applies the same pair to `body`.
 - primary scale: `text-primary` / `bg-primary` from the NoirSlate primary (zinc) mapping.
-- selection and tinting: `bg-highlight` (Aura `--p-highlight-background`/`-color`) for the active nav item and the selected calendar day — never a bespoke tint.
+- selection and tinting: `bg-highlight` (Aura `--p-highlight-background`/`-color`) for the active nav item and the selected calendar day — never a bespoke tint. Every `bg-highlight` surface carries its token foreground `text-highlight` (static class, `routerLinkActive`, or `[class.text-highlight]` beside the `[class.bg-highlight]` binding): the light-theme highlight background is near-black, so `bg-highlight` alone renders an unreadable black pill. Enforced by `design-tokens.spec.ts`.
 - semantic state: component `severity` — `p-tag` `success`/`danger`/`warn`/`secondary` for gains, losses, Guard status and counts, `p-message severity="error"` for inline validation. No `text-success`/`text-warning`/`text-destructive` classes.
 - dark mode: class-based on `documentElement`, shared by PrimeNG (`darkModeSelector: '.dark'`) and Tailwind via `@custom-variant dark (&:where(.dark, .dark *))` in `src/styles.css`, so `dark:` utilities follow the toggle and not the OS preference.
 
