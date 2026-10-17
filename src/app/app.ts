@@ -24,6 +24,7 @@ import { TagModule } from 'primeng/tag';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ALL_PORTFOLIOS_ID } from './portfolios';
 import { TradesStore } from './features/trades/trades-store';
+import { formatSignedDollars } from './features/dashboard/dashboard-metrics';
 import { ThemeService } from './theme';
 
 interface NavItem {
@@ -98,6 +99,8 @@ export class App {
   );
 
   protected readonly tradeCount = computed(() => this.store.activeTrades().length);
+
+  protected readonly formatSignedDollars = formatSignedDollars;
 
   protected onSelectActive(event: Event | { value: string }): void {
     const value =

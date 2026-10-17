@@ -107,7 +107,7 @@
         <ng-template pTemplate="end">
           @if (tradeCount() > 0) {
             <p-tag
-              [value]="'Net ' + netTotal()"
+              [value]="'Net ' + formatSignedDollars(netTotal())"
               [severity]="netTotal() >= 0 ? 'success' : 'danger'"
             />
           }

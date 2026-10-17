@@ -55,7 +55,7 @@ describe('Dashboard', () => {
     expect(content).toContain('50.00');
     expect(content).toContain('0.94');
     expect(content).toContain('99');
-    expect(content).toContain('-105');
+    expect(content).toContain('-$105.00');
   });
 
   function bandMap(compiled: HTMLElement): Map<string, string> {
@@ -80,9 +80,9 @@ describe('Dashboard', () => {
     expect(band.get('Trade win %')).toBe('50.00');
     expect(band.get('Profit factor')).toBe('0.94');
     expect(band.get('Day win %')).toBe('50.00');
-    expect(band.get('Avg win / loss')).toBe('99 / -105');
+    expect(band.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(band.get('Total trades')).toBe('2');
-    expect(band.get('Max drawdown')).toBe('$105 · 1.04%');
+    expect(band.get('Max drawdown')).toBe('$105.00 · 1.04%');
     expect(band.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
     expect(band.get('Expectancy / Trade')).toBe('-$3.00');
   });
@@ -94,14 +94,14 @@ describe('Dashboard', () => {
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(bandMap(compiled).get('Current balance')).toBe('9994');
+    expect(bandMap(compiled).get('Current balance')).toBe('$9,994.00');
     // The end value appears exactly once: the redundant big number under the chart is gone.
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content.split('9994').length - 1).toBe(1);
+    expect(content.split('9,994.00').length - 1).toBe(1);
     store.setPortfolioBalance(DEFAULT_PORTFOLIO_ID, 20000);
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(bandMap(compiled).get('Current balance')).toBe('19994');
+    expect(bandMap(compiled).get('Current balance')).toBe('$19,994.00');
     expect(localStorage.getItem('openjournal-portfolios')).toContain('20000');
   });
 
@@ -349,6 +349,6 @@ describe('Dashboard', () => {
     await fixture.whenStable();
     expect(content()).toContain('-$6.00');
     expect(content()).toContain('All');
-    expect(content()).toContain('29994');
+    expect(content()).toContain('$29,994.00');
   });
 });

@@ -11,17 +11,28 @@ export interface KpiLine {
 }
 
 // Presentation-only formatters: the band shows the same derived numbers the
-// old tile strip showed, without shadow semantic tokens or grouping commas.
+// old tile strip showed, now with thousands grouping so a trading desk scans
+// currency at speed. Values are unchanged; only their display is tightened.
+const money2 = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const moneyAuto = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+
 export const formatBandNumber = (value: number): string => `${value}`;
 
 export const formatPercent = (value: number): string => value.toFixed(2);
 
 export const formatSignedDollars = (value: number): string => {
-  const abs = Math.abs(value).toFixed(2);
+  const abs = money2.format(Math.abs(value));
   if (value > 0) return `+$${abs}`;
   if (value < 0) return `-$${abs}`;
   return `$0.00`;
 };
+
+// Unsigned currency with grouping and fixed cents — balances and drawdown.
+export const formatDollars = (value: number): string =>
+  `$${money2.format(value)}`;
 
 export const formatProfitFactor = (value: number): string =>
   Number.isFinite(value) ? value.toFixed(2) : '∞';
@@ -42,7 +53,7 @@ export interface GuardStatusInput {
 // names trail. Never renders an editor — this is presentation of Guard state.
 export function formatGuardStatus(input: GuardStatusInput): string {
   const segments: string[] = [];
-  const money = (value: number): string => `$${formatBandNumber(value)}`;
+  const money = (value: number): string => `$${moneyAuto.format(value)}`;
   if (input.dailyLoss.limit !== null)
     segments.push(
       `Daily loss ${money(input.dailyLoss.spent)} / ${money(input.dailyLoss.limit)}`,
@@ -76,20 +87,18 @@ export function computeKpiBand(
     { label: 'Day win %', value: formatPercent(m.dayWinRate) },
     {
       label: 'Avg win / loss',
-      value: `${formatBandNumber(m.avgWin)} / ${formatBandNumber(m.avgLoss)}`,
+      value: `${formatSignedDollars(m.avgWin)} / ${formatSignedDollars(m.avgLoss)}`,
     },
     { label: 'Total trades', value: `${m.totalTrades}` },
     {
       label: 'Max drawdown',
-      value: `$${formatBandNumber(m.maxDrawdown)} · ${formatPercent(m.maxDrawdownPct)}%`,
+      value: `${formatDollars(m.maxDrawdown)} · ${formatPercent(m.maxDrawdownPct)}%`,
     },
     { label: 'Streaks', value: formatStreaks(m) },
     { label: 'Expectancy / Trade', value: formatSignedDollars(m.expectancy) },
     {
       label: 'Current balance',
-      value: `${formatBandNumber(
-        startingBalance + m.netTotal,
-      )}`,
+      value: formatDollars(startingBalance + m.netTotal),
     },
   ];
 }
