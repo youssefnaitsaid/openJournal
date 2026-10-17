@@ -8,7 +8,7 @@
     <nav aria-label="Primary mobile" class="flex flex-col gap-1">
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Overview</p>
       @for (item of overviewItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>
@@ -26,14 +26,14 @@
       </div>
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
       @for (item of workspaceItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>
       }
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Configuration</p>
       @for (item of settingsItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>
@@ -52,21 +52,21 @@
     <nav aria-label="Primary" class="flex flex-col gap-1">
       <p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Overview</p>
       @for (item of overviewItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>
       }
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
       @for (item of workspaceItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>
       }
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Configuration</p>
       @for (item of settingsItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
+        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">
           <ng-icon [name]="item.icon" class="size-4 shrink-0" />
           <span class="truncate">{{ item.label }}</span>
         </a>

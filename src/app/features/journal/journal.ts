@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChevronDown,
@@ -54,6 +55,7 @@ import { TableModule } from 'primeng/table';
 })
 export class Journal {
   readonly store = inject(TradesStore);
+  private readonly router = inject(Router);
 
   readonly startingBalance = computed(() => this.store.activeBalance());
 
@@ -181,6 +183,10 @@ export class Journal {
       year: now.getUTCFullYear(),
       month: now.getUTCMonth(),
     });
+  }
+
+  goToTrades(): void {
+    void this.router.navigate(['/trades']);
   }
 
   copyReport(): void {
