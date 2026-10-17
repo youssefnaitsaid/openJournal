@@ -132,9 +132,12 @@ export class Analytics {
       )
       .slice(0, 10);
     // Bars carry the desk's sign semantics from the preset, not Chart.js
-    // defaults: green gains, red losses, zinc for flat.
-    const gain = this.chartToken('--p-green-500', '#22c55e');
-    const loss = this.chartToken('--p-red-500', '#ef4444');
+    // defaults: green gains, red losses, zinc for flat. One notch below the
+    // 500-step keeps the calm-desk read; dark lifts two steps so bars stay
+    // legible on the slate-950 surface.
+    const dark = this.theme.isDark();
+    const gain = this.chartToken(dark ? '--p-green-300' : '--p-green-600', dark ? '#86efac' : '#16a34a');
+    const loss = this.chartToken(dark ? '--p-red-300' : '--p-red-600', dark ? '#fca5a5' : '#dc2626');
     const flat = this.chartToken('--p-zinc-500', '#71717a');
     return {
       labels: rows.map((r) => r.value),
