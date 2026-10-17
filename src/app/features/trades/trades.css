@@ -1,0 +1,23 @@
+/* Desk density: the history table is the working surface; tighter cells put
+   more rows and more columns in the viewport without shrinking type. */
+:host ::ng-deep .p-datatable-table .p-datatable-thead > tr > th,
+:host ::ng-deep .p-datatable-table .p-datatable-tbody > tr > td {
+  padding-block: 0.5rem;
+  white-space: nowrap;
+}
+
+/* The expansion row carries free text (notes, rule snapshots); it wraps. */
+:host ::ng-deep .p-datatable-table .p-datatable-tbody > .p-datatable-row-expansion > td {
+  white-space: normal;
+}
+
+/* Aura caps p-tag at 12.5rem; a grouped "+$3,917.00" chip must never fold. */
+:host ::ng-deep .p-datatable-table p-tag {
+  white-space: nowrap;
+}
+
+/* Tag chips sit side by side; as flex roots they would stretch full-width
+   and fold the cell into a column. */
+:host ::ng-deep .p-datatable-table p-chip {
+  flex: 0 0 auto;
+}

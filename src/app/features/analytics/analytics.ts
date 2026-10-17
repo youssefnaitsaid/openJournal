@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TradesStore } from '../trades/trades-store';
+import { formatSignedDollars } from '../dashboard/dashboard-metrics';
 import {
   computeBreakdowns,
   computeComplianceCorrelation,
@@ -157,12 +158,10 @@ export class Analytics {
     return `0.00R`;
   };
 
-  readonly formatSignedDollars = (value: number): string => {
-    const abs = Math.abs(value).toFixed(2);
-    if (value > 0) return `+$${abs}`;
-    if (value < 0) return `-$${abs}`;
-    return `$0.00`;
-  };
+  // Currency presentation delegates to the shared grouped formatter so a
+  // five-figure Risked Amount / Net P&L reads as $7,794.82 here exactly as it
+  // does on the dashboard, trades table, and journal; derivations untouched.
+  readonly formatSignedDollars = formatSignedDollars;
 
   readonly formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 

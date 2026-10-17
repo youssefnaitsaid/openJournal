@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChevronDown,
@@ -12,6 +13,10 @@ import {
 } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
+import {
+  formatDollars,
+  formatSignedDollars,
+} from '../dashboard/dashboard-metrics';
 import {
   GUARD_LABELS,
   evaluateGuards,
@@ -50,6 +55,7 @@ import { TableModule } from 'primeng/table';
 })
 export class Journal {
   readonly store = inject(TradesStore);
+  private readonly router = inject(Router);
 
   readonly startingBalance = computed(() => this.store.activeBalance());
 
@@ -179,6 +185,10 @@ export class Journal {
     });
   }
 
+  goToTrades(): void {
+    void this.router.navigate(['/trades']);
+  }
+
   copyReport(): void {
     const text = this.reportMarkdown();
     const done = () => this.copied.set(true);
@@ -199,12 +209,12 @@ export class Journal {
   readonly profitFactorText = (value: number): string =>
     Number.isFinite(value) ? value.toFixed(2) : '∞';
 
-  readonly signedDollars = (value: number): string => {
-    const abs = Math.abs(value).toFixed(2);
-    if (value > 0) return `+$${abs}`;
-    if (value < 0) return `-$${abs}`;
-    return `$0.00`;
-  };
+  // Currency presentation delegates to the shared grouped formatters so a
+  // five-figure month reads as $17,175.00 here exactly as it does on the
+  // dashboard and in the shell chip; the derivations are untouched.
+  readonly signedDollars = formatSignedDollars;
+  readonly formatSignedDollars = formatSignedDollars;
+  readonly formatDollars = formatDollars;
 
   readonly setupText = (entry: { value: string; netTotal: number } | null): string =>
     entry === null ? '—' : `${entry.value} (${this.signedDollars(entry.netTotal)})`;

@@ -181,12 +181,12 @@ describe('computeKpiBand', () => {
     expect(asMap.get('Trade win %')).toBe('50.00');
     expect(asMap.get('Profit factor')).toBe('0.94');
     expect(asMap.get('Day win %')).toBe('50.00');
-    expect(asMap.get('Avg win / loss')).toBe('99 / -105');
+    expect(asMap.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(asMap.get('Total trades')).toBe('2');
-    expect(asMap.get('Max drawdown')).toBe('$105 · 1.04%');
+    expect(asMap.get('Max drawdown')).toBe('$105.00 · 1.04%');
     expect(asMap.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
     expect(asMap.get('Expectancy / Trade')).toBe('-$3.00');
-    expect(asMap.get('Current balance')).toBe('9994');
+    expect(asMap.get('Current balance')).toBe('$9,994.00');
   });
 
   it('renders ∞ for an infinite profit factor', () => {

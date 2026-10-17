@@ -53,6 +53,7 @@ import type {
   TradeInput,
 } from './trade';
 import { isValidChartUrl, normalizeTags } from './trade-math';
+import { formatSignedDollars } from '../dashboard/dashboard-metrics';
 import { TradesStore } from './trades-store';
 import {
   activeSetupOptions,
@@ -175,6 +176,33 @@ export class Trades {
 
   readonly formatCompliance = (value: number | null): string =>
     value === null ? '' : `${value.toFixed(2)}%`;
+
+  // Presentation-only formatters for the history table: thousands grouping so
+  // a desk scans numbers at speed; values are the same derivations.
+  private readonly priceFormat = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 4,
+  });
+  // en-US currency style already places a loss as "-$100.00", never "$-100.00".
+  private readonly moneyFormat = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // Prices keep their own precision (forex runs 4 decimals); no cents padding.
+  readonly formatPrice = (value: number | null): string =>
+    value === null ? '—' : this.priceFormat.format(value);
+
+  // Money columns read as dollars: grouping plus fixed cents.
+  readonly formatMoney = (value: number): string =>
+    this.moneyFormat.format(value);
+
+  readonly formatSignedDollars = formatSignedDollars;
+
+  // R-Multiple carries its unit and sign; risked 0 means "no R", shown blank-style.
+  readonly formatR = (value: number, risked: number): string =>
+    risked === 0 ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(2)}R`;
 
   parseTags(value: string): string[] {
     return normalizeTags(value.split(','));
