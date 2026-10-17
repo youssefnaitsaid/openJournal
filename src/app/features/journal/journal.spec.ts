@@ -51,7 +51,7 @@ describe('Journal', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('99');
-    expect(content).toContain('-105');
+    expect(content).toContain('-$105.00');
   });
 
   it('paginates months and returns to this month', async () => {
@@ -168,8 +168,8 @@ describe('Journal', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('-6');
-    expect(content).toContain('9994');
+    expect(content).toContain('-$6.00');
+    expect(content).toContain('9,994');
   });
 
   it('renders user-added tag values with no code change', async () => {
@@ -190,11 +190,11 @@ describe('Journal', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('+99');
+    expect(content).toContain('+$99.00');
     const dangerTags = [...compiled.querySelectorAll('p-tag')]
       .filter((el) => el.className.includes('p-tag-danger'))
       .map((el) => el.textContent?.trim());
-    expect(dangerTags.some((t) => t?.includes('-105'))).toBe(true);
+    expect(dangerTags.some((t) => t?.includes('-$105.00'))).toBe(true);
   });
 
   it('renders local dates without raw ISO', async () => {
@@ -236,7 +236,7 @@ describe('Journal', () => {
           (b as HTMLElement).querySelector('p-tag')?.className.match(/p-tag-(success|danger|secondary)/)?.[0] ?? null,
       }),
     );
-    expect(cells.find((c) => c.day === '05')?.net).toBe('0');
+    expect(cells.find((c) => c.day === '05')?.net).toBe('$0.00');
     expect(cells.find((c) => c.day === '05')?.severity).toBe('p-tag-secondary');
     expect(cells.find((c) => c.day === '01')?.severity).toBe('p-tag-success');
     expect(cells.find((c) => c.day === '03')?.severity).toBe('p-tag-danger');

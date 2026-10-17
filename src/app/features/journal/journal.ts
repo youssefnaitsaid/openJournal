@@ -13,6 +13,10 @@ import {
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
 import {
+  formatDollars,
+  formatSignedDollars,
+} from '../dashboard/dashboard-metrics';
+import {
   GUARD_LABELS,
   evaluateGuards,
   hasAnyGuard,
@@ -199,12 +203,12 @@ export class Journal {
   readonly profitFactorText = (value: number): string =>
     Number.isFinite(value) ? value.toFixed(2) : '∞';
 
-  readonly signedDollars = (value: number): string => {
-    const abs = Math.abs(value).toFixed(2);
-    if (value > 0) return `+$${abs}`;
-    if (value < 0) return `-$${abs}`;
-    return `$0.00`;
-  };
+  // Currency presentation delegates to the shared grouped formatters so a
+  // five-figure month reads as $17,175.00 here exactly as it does on the
+  // dashboard and in the shell chip; the derivations are untouched.
+  readonly signedDollars = formatSignedDollars;
+  readonly formatSignedDollars = formatSignedDollars;
+  readonly formatDollars = formatDollars;
 
   readonly setupText = (entry: { value: string; netTotal: number } | null): string =>
     entry === null ? '—' : `${entry.value} (${this.signedDollars(entry.netTotal)})`;
