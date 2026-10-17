@@ -45,6 +45,12 @@ describe('FilterBar', () => {
     }
   });
 
+  it('renders as a flat toolbar without wrapping itself in a card', async () => {
+    const { fixture } = await harness();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('p-card')).toBeNull();
+  });
+
   it('narrows the journal when a Tag is picked and reports n of m', async () => {
     const { fixture, store } = await harness();
     (fixture.componentInstance as unknown as { onTagChange: (e: { value: string }) => void }).onTagChange({

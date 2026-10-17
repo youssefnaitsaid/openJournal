@@ -1,4 +1,6 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -64,7 +66,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({ lucideArrowDownUp }),
   ],
@@ -76,6 +78,39 @@ export class Trades {
   readonly store = inject(TradesStore);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  // The log form is hidden behind the hero button until deliberately revealed
+  // (the dominant task - scan/sort/filter history - owns the viewport).
+  readonly logFormOpen = signal(false);
+  private readonly assetInput = viewChild<ElementRef<HTMLInputElement>>('assetInput');
+
+  openLogForm(): void {
+    this.logFormOpen.set(true);
+    // Render the revealed form, then focus its first field for quick capture.
+    this.cdr.detectChanges();
+    this.assetInput()?.nativeElement.focus();
+  }
+
+  closeLogForm(): void {
+    this.logFormOpen.set(false);
+  }
+
+  toggleLogForm(): void {
+    if (this.logFormOpen()) {
+      this.closeLogForm();
+    } else {
+      this.openLogForm();
+    }
+  }
+
+  resetFilters(): void {
+    this.store.resetFilter();
+  }
+
+  // Honest history count for the hero: "n of m" while filtering (filtered vs
+  // active-Portfolio total), otherwise the plain total.
+  readonly historyTotal = computed(() => this.store.activeTrades().length);
 
   readonly markets: readonly Market[] = MARKETS;
 
@@ -176,10 +211,6 @@ export class Trades {
       });
   }
 
-  goToForm(): void {
-    document.getElementById('log-trade')?.scrollIntoView?.({ behavior: 'smooth' });
-  }
-
   onSubmit(): void {
     if (!this.store.canLog()) return;
     if (this.form.invalid) {
@@ -230,5 +261,7 @@ export class Trades {
       notes: '',
       tags: '',
     });
+    // Capture done: collapse back so the working surface (history) returns.
+    this.logFormOpen.set(false);
   }
 }

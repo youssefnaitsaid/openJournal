@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideListFilter, lucideRotateCcw } from '@ng-icons/lucide';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -20,7 +19,7 @@ import {
 } from '../features/journal/taxonomy';
 
 @Component({
-  imports: [FormsModule, NgIcon, ButtonModule, CardModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule],
+  imports: [FormsModule, NgIcon, ButtonModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule],
   providers: [provideIcons({ lucideListFilter, lucideRotateCcw })],
   selector: 'app-filter-bar',
   templateUrl: './filter-bar.html',
