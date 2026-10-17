@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideChevronDown,
   lucideChevronLeft,
   lucideChevronRight,
   lucideClipboardCheck,
@@ -29,12 +30,12 @@ import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
-import { DataViewModule } from 'primeng/dataview';
 
 @Component({
-  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule, ButtonModule, TagModule, TableModule, DataViewModule],
+  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule, ButtonModule, TagModule, TableModule],
   providers: [
     provideIcons({
+      lucideChevronDown,
       lucideChevronLeft,
       lucideChevronRight,
       lucideClipboardCheck,
@@ -111,11 +112,32 @@ export class Journal {
     ),
   );
 
+  // A month without closes goes quiet: the summary and report card are
+  // suppressed, not zero-filled. Month navigation keeps working either way.
+  readonly monthHasCloses = computed(() => this.reportCard().totalTrades > 0);
+
   readonly reportMarkdown = computed(() =>
     formatMonthReportCard(this.reportCard()),
   );
 
   readonly copied = signal(false);
+
+  // Row-expansion state for the selected day's table. Owned here (not via
+  // pRowToggler) because the zoneless harness never sees PrimeNG's in-place
+  // mutation of expandedRowKeys: a signal write re-binds the input and renders.
+  readonly expandedDayRows = signal<Record<string, boolean>>({});
+
+  toggleDayRow(id: string): void {
+    this.expandedDayRows.update((keys) => {
+      const next = { ...keys };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = true;
+      }
+      return next;
+    });
+  }
 
   readonly monthLabel = computed(() =>
     new Date(Date.UTC(this.cursor().year, this.cursor().month, 1)).toLocaleString(
