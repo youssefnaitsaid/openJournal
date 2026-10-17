@@ -176,7 +176,7 @@ const ACCEPTED_FIXTURE = `
     <ng-template pTemplate="icon"><ng-icon name="lucideDownload" /></ng-template>
   </p-button>
 </td>
-<p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Overview</p>
+<p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Overview</p>
 <a routerLink="/dashboard" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">Dashboard</a>
 <p-drawer [(visible)]="sidebarOpen" position="left" header="openJournal"><aside class="w-80"></aside></p-drawer>
 `;
