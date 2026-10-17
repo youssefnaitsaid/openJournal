@@ -1,96 +1,90 @@
-<div class="flex flex-wrap items-center gap-2" aria-label="Global filter">
-  <span class="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-    <ng-icon name="lucideListFilter" class="size-4" />
-    Filter
-  </span>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">From
-    <input
-      type="date"
-      aria-label="From date"
-      [value]="store.filter().dateFrom"
-      (change)="onTextChange('dateFrom', $event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    />
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">To
-    <input
-      type="date"
-      aria-label="To date"
-      [value]="store.filter().dateTo"
-      (change)="onTextChange('dateTo', $event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    />
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Asset
-    <input
-      aria-label="Asset filter"
-      placeholder="e.g. MES"
-      [value]="store.filter().asset"
-      (input)="onTextChange('asset', $event)"
-      class="w-28 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    />
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Setup
-    <select
-      aria-label="Setup filter"
-      [value]="store.filter().setup"
-      (change)="onSetupChange($event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    >
-      <option value="">All</option>
-      @for (s of setupOptions(); track s) {
-        <option [value]="s" [selected]="s === store.filter().setup">{{ s }}</option>
-      }
-    </select>
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Side
-    <select
-      aria-label="Side filter"
-      [value]="store.filter().side"
-      (change)="onSideChange($event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    >
-      <option value="">All</option>
-      <option value="Long" [selected]="store.filter().side === 'Long'">Long</option>
-      <option value="Short" [selected]="store.filter().side === 'Short'">Short</option>
-    </select>
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Tag
-    <select
-      aria-label="Tag filter"
-      [value]="store.filter().tag"
-      (change)="onTagChange($event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    >
-      <option value="">All</option>
-      @for (t of tagOptions(); track t) {
-        <option [value]="t" [selected]="t === store.filter().tag">{{ t }}</option>
-      }
-    </select>
-  </label>
-  <label class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">Outcome
-    <select
-      aria-label="Outcome filter"
-      [value]="store.filter().outcome"
-      (change)="onOutcomeChange($event)"
-      class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-    >
-      <option value="All" [selected]="store.filter().outcome === 'All'">All</option>
-      <option value="Win" [selected]="store.filter().outcome === 'Win'">Win</option>
-      <option value="Loss" [selected]="store.filter().outcome === 'Loss'">Loss</option>
-      <option value="Breakeven" [selected]="store.filter().outcome === 'Breakeven'">Breakeven</option>
-    </select>
-  </label>
-  @if (store.isFiltering()) {
-    <button
-      type="button"
-      aria-label="Reset filter"
-      (click)="reset()"
-      class="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground"
-    >
-      <ng-icon name="lucideRotateCcw" class="size-4" />
-      Reset
-    </button>
-  }
-  <span class="text-sm text-muted-foreground" aria-label="Filtered count">{{ countText() }} Trades</span>
-</div>
+<p-card aria-label="Global filter">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="inline-flex items-center gap-1.5 text-sm font-medium">
+      <ng-icon name="lucideListFilter" class="size-4" />
+      Filter
+    </span>
+    <label class="inline-flex items-center gap-1.5 text-sm">From
+      <p-datepicker
+        ariaLabel="From date"
+        [ngModel]="dateFromValue()"
+        (onSelect)="onDateChange('dateFrom', $event)"
+        (onClear)="onDateChange('dateFrom', null)"
+        [showClear]="true"
+        dateFormat="yy-mm-dd"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">To
+      <p-datepicker
+        ariaLabel="To date"
+        [ngModel]="dateToValue()"
+        (onSelect)="onDateChange('dateTo', $event)"
+        (onClear)="onDateChange('dateTo', null)"
+        [showClear]="true"
+        dateFormat="yy-mm-dd"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Asset
+      <input
+        pInputText
+        aria-label="Asset filter"
+        placeholder="e.g. MES"
+        [value]="store.filter().asset"
+        (input)="onTextChange('asset', $event)"
+        class="w-28"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Setup
+      <p-select
+        ariaLabel="Setup filter"
+        [options]="setupSelectOptions()"
+        [ngModel]="store.filter().setup"
+        (onChange)="onSetupChange($event)"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Side
+      <p-select
+        ariaLabel="Side filter"
+        [options]="sideSelectOptions()"
+        [ngModel]="store.filter().side"
+        (onChange)="onSideChange($event)"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Tag
+      <p-select
+        ariaLabel="Tag filter"
+        [options]="tagSelectOptions()"
+        [ngModel]="store.filter().tag"
+        (onChange)="onTagChange($event)"
+        size="small"
+      />
+    </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Outcome
+      <p-select
+        ariaLabel="Outcome filter"
+        [options]="outcomeSelectOptions"
+        [ngModel]="store.filter().outcome"
+        (onChange)="onOutcomeChange($event)"
+        size="small"
+      />
+    </label>
+    @if (store.isFiltering()) {
+      <p-button
+        type="button"
+        ariaLabel="Reset filter"
+        icon="pi pi-refresh"
+        label="Reset"
+        severity="secondary"
+        size="small"
+        [outlined]="true"
+        (onClick)="reset()"
+      />
+    }
+    <p-tag [value]="countText() + ' Trades'" severity="secondary" />
+  </div>
+</p-card>

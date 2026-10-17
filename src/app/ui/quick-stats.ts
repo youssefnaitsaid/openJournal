@@ -10,6 +10,7 @@ import {
   lucideTarget,
   lucideTrendingDown,
 } from '@ng-icons/lucide';
+import { CardModule } from 'primeng/card';
 
 export interface QuickStat {
   readonly icon: string;
@@ -20,7 +21,7 @@ export interface QuickStat {
 }
 
 @Component({
-  imports: [NgIcon],
+  imports: [NgIcon, CardModule],
   providers: [
     provideIcons({
       lucideArrowDownUp,

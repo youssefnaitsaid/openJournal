@@ -1,33 +1,24 @@
-# DESIGN.md — design token contract
+# DESIGN.md — PrimeNG Aura Noir/Slate trading desk
 
-All color and surface styling goes through the Spartan zinc theme
-(`src/styles.css`, light + `:root.dark` variants). Templates may only use
-theme token utilities:
+Components render at PrimeNG Aura preset defaults customized once as `NoirSlate` (`src/app/app.config.ts` via `definePreset(Aura, …)`): primary maps to the zinc scale (noir monochrome variant), light + dark surfaces map to slate, `darkModeSelector: '.dark'` shared with the existing dark toggle. No per-component visual overrides, no custom palette, no custom motion on components. Source: v21 Noir + Surface theming docs and PrimeNG MCP `chart`/`datepicker`/`drawer`/`toolbar`/`menu`/`select`/`button` APIs.
 
-- surfaces: `bg-background`, `bg-card`, `bg-sidebar`
-- text: `text-foreground`, `text-muted-foreground`, `text-sidebar-foreground`
-- accents: `bg-primary`, `text-primary-foreground`, `bg-sidebar-accent`,
-  `text-sidebar-accent-foreground`
-- lines: `border-border`, `border-input`
-- states: `text-destructive`, `text-success`, `text-warning`, `outline-ring/50`
-- motion/surface utilities (defined in `src/styles.css`, theme-owned):
-  `animate-fade-in`, `animate-fade-in-up`, `animate-count-up`,
-  `stagger-1`…`stagger-6`, `hover-lift`, `bg-gradient-hero`, `bg-gradient-header`
+Shell and surfaces use Tailwind layout utilities plus PrimeNG structure:
 
-Shape uses Tailwind layout utilities plus the `rounded-[28px]` hero/card
-and `rounded-2xl` stat idioms below. No hex colors, `rgb()`, `oklch()`,
-hard-coded Tailwind palette shades (`bg-red-500`, …), arbitrary color
-values (`bg-[#…]`), or inline `style=` attributes in any `*.html`
-template. The theme owns the palette so light/dark stay consistent.
-Enforced by `src/app/design-tokens.spec.ts`.
+- shell: `p-drawer` (mobile) + static `aside` with `p-menu` Overview/Workspace, `p-toolbar` header with `p-avatar` brand, `p-tag` Net P&L pill, icon `p-button` nav/dark toggles; Portfolio switcher as `p-select`, inputs as `pInputText`, `p-dialog` manager + `p-confirmdialog` delete + `p-toast` feedback; `@ng-icons/lucide` for icons.
+- data: sortable `p-table` everywhere (Trades history with paginator + CSV export + row expansion for notes and `{rule text, followed}` snapshot; Dashboard recent; Journal day detail; Analytics breakdowns/time-patterns/compliance), `p-chart` line for the balance curve and bar for breakdown Net (runtime `chart.js`), `p-datepicker` for filter range + Guard stop time (`timeOnly`), `p-inputnumber` for balance/Guard/count/price/quantity editors, `p-select` for every categorical axis (Market/Side/Setup/Emotion/Mistake/Grade/dimensions/filters), `p-checkbox` Playbook checklist, `p-textarea` notes, `p-chip` Tags, `p-tag` Net/Grade/Compliance/Guard/count states, `p-message` validation + Guard warnings.
+- domain exceptions with PrimeNG around them: the Journal month calendar stays a custom UTC close-date grid (close-date bucketing, Guard tints, gain `+` prefix, flat `0` neutral, day selection have no PrimeNG equivalent); the log-form timestamps stay `pInputText` datetime-local (reactive form models UTC ISO strings).
+
+The retired idioms never return: kickers/eyebrows, gradient hero/header washes, `rounded-[28px]` hero/card, stat-strip repetition as decoration, `hover-lift`, `animate-count-up`, `stagger-*` delays, colored `border-left` callouts, glass decoration. No hex colors, `rgb()`, `oklch()`, hard-coded Tailwind palette shades (`bg-red-500`, …), arbitrary color values (`bg-[#…]`), or inline `style=` attributes in any `*.html` template. Enforced by `src/app/design-tokens.spec.ts` (248 tests green).
 
 ## Semantic tokens
 
-- `success`: gains, positive trends, winning days (`oklch(0.64 0.16 145)` light / `oklch(0.74 0.18 145)` dark)
-- `warning`: caution states (`oklch(0.77 0.13 82)` light / `oklch(0.82 0.14 82)` dark)
-## Card idioms
+- `success`: gains, positive Net, winning days and cells, 100%-followed rules.
+- `warning`: Guard warnings and breached-but-open states.
+- `destructive`/`danger`: losses, negative Net, errors, destructive actions.
+- `dark`: class-based dark mode on `documentElement`, shared by Tailwind and the PrimeNG Aura preset (`darkModeSelector`).
 
-- hero banner: `relative overflow-hidden rounded-[28px] border border-border bg-card` with a `bg-gradient-hero` overlay, headline number with `animate-count-up`, trend pill `rounded-full border border-border bg-background`
-- stat strip: `rounded-2xl border border-border bg-card`, label `text-xs uppercase tracking-[0.18em] text-muted-foreground`, value `text-lg font-bold`
-- content card: `overflow-hidden rounded-[28px] border border-border bg-card` with header row (gradient `rounded-2xl` icon tile + title/subtitle) and padded body
-- empty state: gradient `rounded-[24px]` icon tile + title + description + `rounded-full` call to action
+## Notes kept while building
+
+- Tabular numerals in tables; chronological time-pattern rows (Monday→Sunday, 00→23, Intraday→Swing) with all fixed rows present even when empty.
+- Derivations own the numbers (`.facts` + `GLOSSARY.md` untouched): Net P&L is the single source of truth; filtered views never create a second truth; Compliance/Mistake/Grade stay process signals independent of outcome.
+- Production budget is 1MB warn / 1.5MB error (`angular.json`) for the PrimeNG + `chart.js` runtime.

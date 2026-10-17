@@ -3,8 +3,40 @@
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css';
 
-@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+@import 'tailwindcss-primeui';
 /* You can add global styles to this file, and also import other style files */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
 
 :root {
   color-scheme: light;
@@ -34,6 +66,7 @@
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.705 0.015 286.067);
@@ -48,18 +81,6 @@
 
   --success: oklch(0.64 0.16 145);
   --warning: oklch(0.77 0.13 82);
-
-  --gradient-hero: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 14%, transparent),
-    color-mix(in oklch, var(--accent) 12%, transparent) 55%,
-    transparent 80%
-  );
-  --gradient-header: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 10%, transparent),
-    transparent 75%
-  );
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -87,6 +108,7 @@
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.21 0.006 285.885);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
@@ -101,18 +123,6 @@
 
   --success: oklch(0.74 0.18 145);
   --warning: oklch(0.82 0.14 82);
-
-  --gradient-hero: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 16%, transparent),
-    color-mix(in oklch, var(--accent) 14%, transparent) 55%,
-    transparent 80%
-  );
-  --gradient-header: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--primary) 12%, transparent),
-    transparent 75%
-  );
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -133,55 +143,8 @@
   .text-warning {
     color: var(--warning);
   }
-  .bg-gradient-hero {
-    background-image: var(--gradient-hero);
-  }
-  .bg-gradient-header {
-    background-image: var(--gradient-header);
-  }
-  .animate-fade-in {
-    animation: oj-fade-in 0.4s var(--ease-out) both;
-  }
   .animate-fade-in-up {
     animation: oj-fade-in-up 0.5s var(--ease-out) both;
-  }
-  .animate-count-up {
-    animation: oj-count-up 0.6s var(--ease-out) both;
-  }
-  .stagger-1 {
-    animation-delay: 0ms;
-  }
-  .stagger-2 {
-    animation-delay: 50ms;
-  }
-  .stagger-3 {
-    animation-delay: 100ms;
-  }
-  .stagger-4 {
-    animation-delay: 150ms;
-  }
-  .stagger-5 {
-    animation-delay: 200ms;
-  }
-  .stagger-6 {
-    animation-delay: 250ms;
-  }
-  .hover-lift {
-    transition:
-      transform 0.2s var(--ease-out),
-      box-shadow 0.2s var(--ease-out);
-  }
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes oj-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 
@@ -189,17 +152,6 @@
   from {
     opacity: 0;
     transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes oj-count-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;

@@ -1,6 +1,5 @@
 <section class="animate-fade-in-up flex flex-col gap-6">
   <app-page-hero
-    eyebrow="Workspace"
     title="Trades"
     subtitle="Log closed Trades once, review the full history."
     icon="lucideArrowDownUp"
@@ -11,91 +10,70 @@
   </app-page-hero>
 
   @if (todayGuardLabels().length > 0) {
-    <section aria-label="Today guard status" class="flex items-center gap-3 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-6">
-      <span class="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-warning">
-        <ng-icon name="lucideShieldAlert" class="size-5" />
-      </span>
-      <p class="text-sm font-medium text-warning">Today breached Guard: {{ todayGuardLabels().join(', ') }}</p>
-    </section>
+    <p-message severity="warn" aria-label="Today guard status">Today breached Guard: {{ todayGuardLabels().join(', ') }}</p-message>
   }
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideArrowDownUp" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Log trade</h2>
-        <p class="text-sm text-muted-foreground">One closed round-trip with an entry and an exit</p>
-      </span>
-    </div>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 px-4 py-6 sm:grid-cols-2 sm:px-6">
+  <p-card header="Log trade" subheader="One closed round-trip with an entry and an exit">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <label class="flex flex-col gap-1 text-sm">Asset
-        <input formControlName="asset" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="asset" />
         @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
-          <span class="text-sm text-destructive">Asset is required.</span>
+          <p-message severity="error">Asset is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Market
-        <select formControlName="market" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (m of markets; track m) { <option [value]="m">{{ m }}</option> }
-        </select>
+        <p-select formControlName="market" [options]="[...markets]" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Side
-        <select formControlName="side" class="rounded-xl border border-input bg-background px-3 py-2">
-          <option value="Long">Long</option>
-          <option value="Short">Short</option>
-        </select>
+        <p-select formControlName="side" [options]="[...sides]" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Quantity
-        <input type="number" step="any" min="0" formControlName="quantity" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="quantity" />
         @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
-          <span class="text-sm text-destructive">Quantity must be above zero.</span>
+          <p-message severity="error">Quantity must be above zero.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Multiplier
-        <input type="number" step="any" min="0" formControlName="multiplier" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="multiplier" />
         @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
-          <span class="text-sm text-destructive">Multiplier must be above zero.</span>
+          <p-message severity="error">Multiplier must be above zero.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Entry price
-        <input type="number" step="any" formControlName="entryPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="entryPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Exit price
-        <input type="number" step="any" formControlName="exitPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="exitPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Fees
-        <input type="number" step="any" min="0" formControlName="fees" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="fees" />
         @if (form.controls.fees.touched && form.controls.fees.invalid) {
-          <span class="text-sm text-destructive">Fees cannot be negative.</span>
+          <p-message severity="error">Fees cannot be negative.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Stop price (optional)
-        <input type="number" step="any" formControlName="stopPrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="stopPrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Take price (optional)
-        <input type="number" step="any" formControlName="takePrice" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="takePrice" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Risked override (optional)
-        <input type="number" step="any" min="0" formControlName="riskedAmount" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <p-inputnumber formControlName="riskedAmount" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Opened at
-        <input type="datetime-local" formControlName="openedAt" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText type="datetime-local" formControlName="openedAt" />
         @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
-          <span class="text-sm text-destructive">Opened at is required.</span>
+          <p-message severity="error">Opened at is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Closed at
-        <input type="datetime-local" formControlName="closedAt" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText type="datetime-local" formControlName="closedAt" />
         @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
-          <span class="text-sm text-destructive">Closed at is required.</span>
+          <p-message severity="error">Closed at is required.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Setup
-        <select formControlName="setup" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (s of setupOptions(); track s) { <option [value]="s">{{ s }}</option> }
-        </select>
+        <p-select formControlName="setup" [options]="setupOptions()" />
       </label>
       <div class="flex flex-col gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
         <span class="font-medium">Playbook rules for {{ playbook().setup }}</span>
@@ -106,18 +84,16 @@
             @for (rule of playbook().rules; track rule; let i = $index) {
               <li class="flex items-center gap-2">
                 <span class="flex-1">{{ rule }}</span>
-                <button type="button" (click)="removeRule(i)" [attr.aria-label]="'Remove rule ' + rule" class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">Remove</button>
+                <p-button type="button" size="small" severity="secondary" label="Remove" [ariaLabel]="'Remove rule ' + rule" (onClick)="removeRule(i)" />
               </li>
             }
           </ul>
         }
         <div class="flex gap-2">
-          <input #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-          <button type="button" (click)="addRule(newRule.value); newRule.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add rule</button>
+          <input pInputText #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 text-sm" />
+          <p-button type="button" severity="secondary" label="Add rule" (onClick)="addRule(newRule.value); newRule.value = ''" />
         </div>
-        <button type="button" (click)="togglePlaybookArchived()" class="self-start rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground">
-          {{ playbook().archived ? 'Unarchive setup' : 'Archive setup' }}
-        </button>
+        <p-button type="button" severity="secondary" [label]="playbook().archived ? 'Unarchive setup' : 'Archive setup'" (onClick)="togglePlaybookArchived()" />
         @if (archivedPlaybooks().length > 0) {
           <div class="flex flex-col gap-1">
             <span class="text-xs text-muted-foreground">Archived setups stay in history:</span>
@@ -125,7 +101,7 @@
               @for (name of archivedPlaybooks(); track name) {
                 <li class="flex items-center gap-2">
                   <span class="flex-1 text-xs">{{ name }}</span>
-                  <button type="button" (click)="unarchivePlaybook(name)" [attr.aria-label]="'Unarchive ' + name" class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">Unarchive</button>
+                  <p-button type="button" size="small" severity="secondary" label="Unarchive" [ariaLabel]="'Unarchive ' + name" (onClick)="unarchivePlaybook(name)" />
                 </li>
               }
             </ul>
@@ -136,120 +112,91 @@
         <fieldset class="flex flex-col gap-1 rounded-xl border border-border bg-background px-3 py-2 text-sm">
           <legend class="px-1 text-sm">Playbook checklist (optional)</legend>
           @for (check of checks(); track check.text; let i = $index) {
-            <label class="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" [checked]="check.followed" (change)="toggleCheck(i)" class="size-4" />
+            <div class="inline-flex items-center gap-2 text-sm">
+              <p-checkbox [binary]="true" [ngModel]="check.followed" [ngModelOptions]="{ standalone: true }" (onChange)="toggleCheck(i)" />
               {{ check.text }}
-            </label>
+            </div>
           }
           <span class="text-xs text-muted-foreground">Untouched checklist logs the Trade unscored, like a blank Grade.</span>
         </fieldset>
       }
       <label class="flex flex-col gap-1 text-sm">Emotion before
-        <select formControlName="emotionBefore" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
-        </select>
+        <p-select formControlName="emotionBefore" [options]="emotionOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Emotion after
-        <select formControlName="emotionAfter" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (e of emotionOptions(); track e) { <option [value]="e">{{ e }}</option> }
-        </select>
+        <p-select formControlName="emotionAfter" [options]="emotionOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Mistake
-        <select formControlName="mistake" class="rounded-xl border border-input bg-background px-3 py-2">
-          @for (m of mistakeOptions(); track m) { <option [value]="m">{{ m }}</option> }
-        </select>
+        <p-select formControlName="mistake" [options]="mistakeOptions()" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Grade (optional)
-        <select formControlName="grade" class="rounded-xl border border-input bg-background px-3 py-2">
-          <option value="">—</option>
-          @for (g of grades; track g) { <option [value]="g">{{ g }}</option> }
-        </select>
+        <p-select formControlName="grade" [options]="gradeOptions" optionLabel="label" optionValue="value" />
       </label>
       <label class="flex flex-col gap-1 text-sm">Chart URL (optional)
-        <input formControlName="chartUrl" inputmode="url" placeholder="https://…" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="chartUrl" inputmode="url" placeholder="https://…" />
         @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
-          <span class="text-sm text-destructive">Enter a valid URL starting with http(s), or leave empty.</span>
+          <p-message severity="error">Enter a valid URL starting with http(s), or leave empty.</p-message>
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Notes
-        <input formControlName="notes" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <textarea pTextarea formControlName="notes" rows="2"></textarea>
       </label>
       <label class="flex flex-col gap-1 text-sm">Tags (optional, comma-separated)
-        <input formControlName="tags" list="tag-options" placeholder="FOMC, earnings" class="rounded-xl border border-input bg-background px-3 py-2" />
+        <input pInputText formControlName="tags" list="tag-options" placeholder="FOMC, earnings" />
         <span class="text-xs text-muted-foreground">Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
         <datalist id="tag-options">
           @for (t of tagOptions(); track t) { <option [value]="t"></option> }
         </datalist>
       </label>
       <div class="sm:col-span-2">
-        <button type="submit" [disabled]="!store.canLog()" class="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">Log trade</button>
+        <p-button type="submit" label="Log trade" [disabled]="!store.canLog()" />
         @if (!store.canLog()) {
           <p class="text-sm text-muted-foreground">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
         }
       </div>
     </form>
-  </section>
+  </p-card>
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTags" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Custom tags</h2>
-        <p class="text-sm text-muted-foreground">Grow your Setup, Emotion, Mistake, and Tag vocabulary</p>
-      </span>
-    </div>
-    <form class="flex flex-col gap-2 px-4 py-6 sm:px-6" aria-label="Custom tags">
+  <p-card header="Custom tags" subheader="Grow your Setup, Emotion, Mistake, and Tag vocabulary">
+    <form class="flex flex-col gap-2" aria-label="Custom tags">
       <div class="flex gap-2">
-        <input #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomSetup(newSetup.value); newSetup.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add setup</button>
+        <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add setup" (onClick)="addCustomSetup(newSetup.value); newSetup.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add emotion</button>
+        <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add emotion" (onClick)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomMistake(newMistake.value); newMistake.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add mistake</button>
+        <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add mistake" (onClick)="addCustomMistake(newMistake.value); newMistake.value = ''" />
       </div>
       <div class="flex gap-2">
-        <input #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button type="button" (click)="addCustomTag(newTag.value); newTag.value = ''" class="rounded-full border border-border px-4 py-2 text-sm">Add tag</button>
+        <input pInputText #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 text-sm" />
+        <p-button type="button" severity="secondary" label="Add tag" (onClick)="addCustomTag(newTag.value); newTag.value = ''" />
       </div>
     </form>
-  </section>
+  </p-card>
 
-  <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
-    <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideTableProperties" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Trade history</h2>
-        <p class="text-sm text-muted-foreground">Newest close first</p>
-      </span>
-    </div>
-    <div class="px-4 py-4 sm:px-6">
+  <p-card header="Trade history" subheader="Newest close first">
+    <div>
       <app-filter-bar />
       <div class="mb-3 mt-3 flex flex-wrap items-center gap-2" aria-label="Trade filters">
         <label class="inline-flex items-center gap-2 text-sm text-muted-foreground">Grade
-          <select
+          <p-select
             aria-label="Grade filter"
-            [value]="gradeFilter()"
-            (change)="onGradeFilterChange($event)"
-            class="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-foreground"
-          >
-            <option value="">All</option>
-            @for (g of grades; track g) { <option [value]="g" [selected]="g === gradeFilter()">{{ g }}</option> }
-          </select>
+            [options]="gradeFilterOptions"
+            [ngModel]="gradeFilter()"
+            (onChange)="gradeFilter.set($event.value)"
+          />
         </label>
-        <button
+        <p-button
           type="button"
-          (click)="toggleReview()"
+          label="Needs review"
           [attr.aria-pressed]="needsReview()"
-          [class]="needsReview() ? 'rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground' : 'rounded-full border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground'"
-        >Needs review</button>
+          [severity]="needsReview() ? undefined : 'secondary'"
+          (onClick)="toggleReview()"
+        />
       </div>
       @if (rows().length === 0) {
         <app-empty-state
@@ -260,85 +207,112 @@
           (action)="goToForm()"
         />
       } @else {
+        <div class="mb-2 flex justify-end">
+          <p-button type="button" label="Export CSV" icon="pi pi-download" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()" />
+        </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-left text-muted-foreground">
-                <th class="py-1 pr-3 font-medium">Open date</th>
-                <th class="py-1 pr-3 font-medium">Close date</th>
-                <th class="py-1 pr-3 font-medium">Asset</th>
-                <th class="py-1 pr-3 font-medium">Market</th>
-                <th class="py-1 pr-3 font-medium">Side</th>
-                <th class="py-1 pr-3 font-medium">Quantity</th>
-                <th class="py-1 pr-3 font-medium">Multiplier</th>
-                <th class="py-1 pr-3 font-medium">Entry</th>
-                <th class="py-1 pr-3 font-medium">Exit</th>
-                <th class="py-1 pr-3 font-medium">Gross</th>
-                <th class="py-1 pr-3 font-medium">Fees</th>
-                <th class="py-1 pr-3 font-medium">Net P&amp;L</th>
-                <th class="py-1 pr-3 font-medium">Stop</th>
-                <th class="py-1 pr-3 font-medium">Take</th>
-                <th class="py-1 pr-3 font-medium">Risked</th>
-                <th class="py-1 pr-3 font-medium">R-Multiple</th>
-                <th class="py-1 pr-3 font-medium">Setup</th>
-                <th class="py-1 pr-3 font-medium">Emotion before</th>
-                <th class="py-1 pr-3 font-medium">Emotion after</th>
-                <th class="py-1 pr-3 font-medium">Mistake</th>
-                <th class="py-1 pr-3 font-medium">Grade</th>
-                <th class="py-1 pr-3 font-medium">Compliance</th>
-                <th class="py-1 pr-3 font-medium">Tags</th>
-                <th class="py-1 pr-3 font-medium">Chart</th>
+          <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="{}">
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="w-10"></th>
+                <th pSortableColumn="openedAt">Open date <p-sortIcon field="openedAt" /></th>
+                <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
+                <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
+                <th pSortableColumn="market">Market <p-sortIcon field="market" /></th>
+                <th pSortableColumn="side">Side <p-sortIcon field="side" /></th>
+                <th pSortableColumn="quantity">Quantity <p-sortIcon field="quantity" /></th>
+                <th pSortableColumn="multiplier">Multiplier <p-sortIcon field="multiplier" /></th>
+                <th pSortableColumn="entryPrice">Entry <p-sortIcon field="entryPrice" /></th>
+                <th pSortableColumn="exitPrice">Exit <p-sortIcon field="exitPrice" /></th>
+                <th pSortableColumn="gross">Gross <p-sortIcon field="gross" /></th>
+                <th pSortableColumn="fees">Fees <p-sortIcon field="fees" /></th>
+                <th pSortableColumn="net">Net P&amp;L <p-sortIcon field="net" /></th>
+                <th pSortableColumn="stopPrice">Stop <p-sortIcon field="stopPrice" /></th>
+                <th pSortableColumn="takePrice">Take <p-sortIcon field="takePrice" /></th>
+                <th pSortableColumn="risked">Risked <p-sortIcon field="risked" /></th>
+                <th pSortableColumn="rMultiple">R-Multiple <p-sortIcon field="rMultiple" /></th>
+                <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
+                <th pSortableColumn="emotionBefore">Emotion before <p-sortIcon field="emotionBefore" /></th>
+                <th pSortableColumn="emotionAfter">Emotion after <p-sortIcon field="emotionAfter" /></th>
+                <th pSortableColumn="mistake">Mistake <p-sortIcon field="mistake" /></th>
+                <th pSortableColumn="grade">Grade <p-sortIcon field="grade" /></th>
+                <th pSortableColumn="compliance">Compliance <p-sortIcon field="compliance" /></th>
+                <th>Tags</th>
+                <th>Chart</th>
               </tr>
-            </thead>
-            <tbody>
-              @for (trade of rows(); track trade.id) {
-                <tr class="border-t border-border">
-                  <td class="py-1 pr-3">{{ trade.openedAt | date:'medium' }}</td>
-                  <td class="py-1 pr-3">{{ trade.closedAt | date:'medium' }}</td>
-                  <td class="py-1 pr-3 font-medium">{{ trade.asset }}</td>
-                  <td class="py-1 pr-3">{{ trade.market }}</td>
-                  <td class="py-1 pr-3">{{ trade.side }}</td>
-                  <td class="py-1 pr-3">{{ trade.quantity }}</td>
-                  <td class="py-1 pr-3">{{ trade.multiplier }}</td>
-                  <td class="py-1 pr-3">{{ trade.entryPrice }}</td>
-                  <td class="py-1 pr-3">{{ trade.exitPrice }}</td>
-                  <td class="py-1 pr-3">{{ trade.gross }}</td>
-                  <td class="py-1 pr-3">{{ trade.fees }}</td>
-                  <td class="py-1 pr-3" [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
-                  <td class="py-1 pr-3">{{ trade.stopPrice }}</td>
-                  <td class="py-1 pr-3">{{ trade.takePrice }}</td>
-                  <td class="py-1 pr-3">{{ trade.risked }}</td>
-                  <td class="py-1 pr-3">{{ trade.rMultiple }}</td>
-                  <td class="py-1 pr-3">{{ trade.setup }}</td>
-                  <td class="py-1 pr-3">{{ trade.emotionBefore }}</td>
-                  <td class="py-1 pr-3">{{ trade.emotionAfter }}</td>
-                  <td class="py-1 pr-3">{{ trade.mistake }}</td>
-                  <td class="py-1 pr-3">
-                    @if (trade.grade !== '') {
-                      <span class="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ trade.grade }}</span>
-                    }
-                  </td>
-                  <td class="py-1 pr-3">
-                    @if (trade.compliance !== null) {
-                      <span class="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ formatCompliance(trade.compliance) }}</span>
-                    }
-                  </td>
-                  <td class="py-1 pr-3">
+            </ng-template>
+            <ng-template pTemplate="body" let-trade let-expanded="expanded">
+              <tr>
+                <td>
+                  <p-button type="button" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" [text]="true" [rounded]="true" size="small" [pRowToggler]="trade" ariaLabel="Toggle details" />
+                </td>
+                <td>{{ trade.openedAt | date:'medium' }}</td>
+                <td>{{ trade.closedAt | date:'medium' }}</td>
+                <td class="font-medium">{{ trade.asset }}</td>
+                <td>{{ trade.market }}</td>
+                <td>{{ trade.side }}</td>
+                <td>{{ trade.quantity }}</td>
+                <td>{{ trade.multiplier }}</td>
+                <td>{{ trade.entryPrice }}</td>
+                <td>{{ trade.exitPrice }}</td>
+                <td>{{ trade.gross }}</td>
+                <td>{{ trade.fees }}</td>
+                <td [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
+                <td>{{ trade.stopPrice }}</td>
+                <td>{{ trade.takePrice }}</td>
+                <td>{{ trade.risked }}</td>
+                <td>{{ trade.rMultiple }}</td>
+                <td>{{ trade.setup }}</td>
+                <td>{{ trade.emotionBefore }}</td>
+                <td>{{ trade.emotionAfter }}</td>
+                <td>{{ trade.mistake }}</td>
+                <td>
+                  @if (trade.grade !== '') {
+                    <p-tag [value]="trade.grade" severity="secondary" />
+                  }
+                </td>
+                <td>
+                  @if (trade.compliance !== null) {
+                    <p-tag [value]="formatCompliance(trade.compliance)" severity="secondary" />
+                  }
+                </td>
+                <td>
+                  <div class="flex flex-wrap gap-1">
                     @for (tag of trade.tags; track tag) {
-                      <span class="mr-1 inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ tag }}</span>
+                      <p-chip [label]="tag" />
                     }
-                  </td>
-                  <td class="py-1 pr-3">
-                    @if (trade.chartUrl !== '') {
-                      <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="underline">chart</a>
+                  </div>
+                </td>
+                <td>
+                  @if (trade.chartUrl !== '') {
+                    <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="underline">chart</a>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="rowexpansion" let-trade>
+              <tr>
+                <td colspan="26">
+                  <div class="flex flex-col gap-2 text-sm">
+                    @if (trade.notes !== '') {
+                      <p>{{ trade.notes }}</p>
                     }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                    @if ((trade.rules ?? []).length > 0) {
+                      <ul class="flex flex-col gap-1">
+                        @for (rule of trade.rules; track rule.text) {
+                          <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
+                        }
+                      </ul>
+                    } @else {
+                      <span>Unscored — checklist untouched.</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
       }
     </div>
-  </section>
+  </p-card>
 </section>

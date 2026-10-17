@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideTarget } from '@ng-icons/lucide';
+import { FormsModule } from '@angular/forms';
 import { TradesStore } from '../trades/trades-store';
 import {
   computeBreakdowns,
@@ -14,10 +13,13 @@ import { EmptyState } from '../../ui/empty-state';
 import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
+import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 
 @Component({
-  imports: [NgIcon, EmptyState, FilterBar, PageHero, QuickStats],
-  providers: [provideIcons({ lucideTarget })],
+  imports: [FormsModule, EmptyState, FilterBar, PageHero, QuickStats, CardModule, ChartModule, SelectModule, TableModule],
   selector: 'app-analytics',
   styleUrl: './analytics.css',
   templateUrl: './analytics.html',
@@ -72,6 +74,43 @@ export class Analytics {
   readonly compliance = computed(() =>
     computeComplianceCorrelation(this.store.activeFilteredTrades()),
   );
+
+  readonly complianceRows = computed(() => {
+    const compliance = this.compliance();
+    return [
+      {
+        bucket: '100% followed',
+        bucketTrades: compliance.full.trades,
+        bucketNet: compliance.full.netTotal,
+        bucketWinRate: compliance.full.winRate,
+      },
+      {
+        bucket: 'Partial (<100%)',
+        bucketTrades: compliance.partial.trades,
+        bucketNet: compliance.partial.netTotal,
+        bucketWinRate: compliance.partial.winRate,
+      },
+    ];
+  });
+
+  readonly breakdownChart = computed(() => {
+    const rows = this.breakdowns().slice(0, 10);
+    return {
+      labels: rows.map((r) => r.value),
+      datasets: [
+        {
+          label: 'Net P&L',
+          data: rows.map((r) => r.netTotal),
+        },
+      ],
+    };
+  });
+
+  readonly chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {
     const m = this.metrics();
@@ -136,16 +175,6 @@ export class Analytics {
 
   readonly formatCompliance = (value: number | null): string =>
     value === null ? '—' : `${value.toFixed(2)}%`;
-
-  onDimensionChange(event: Event): void {
-    const el = event.target as HTMLSelectElement | null;
-    if (el) this.dimension.set(el.value as BreakdownDimension);
-  }
-
-  onTimeDimensionChange(event: Event): void {
-    const el = event.target as HTMLSelectElement | null;
-    if (el) this.timeDimension.set(el.value as TimeDimension);
-  }
 
   private readonly rClass = (value: number): string =>
     value > 0 ? 'text-success' : value < 0 ? 'text-destructive' : 'text-foreground';

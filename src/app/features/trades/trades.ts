@@ -4,12 +4,25 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
+  FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties } from '@ng-icons/lucide';
+import { lucideArrowDownUp } from '@ng-icons/lucide';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { SelectModule } from 'primeng/select';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { CheckboxModule } from 'primeng/checkbox';
+import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -56,9 +69,9 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, DatePipe, NgIcon, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
-    provideIcons({ lucideArrowDownUp, lucideShieldAlert, lucideTags, lucideTableProperties }),
+    provideIcons({ lucideArrowDownUp }),
   ],
   selector: 'app-trades',
   styleUrl: './trades.css',
@@ -71,7 +84,17 @@ export class Trades {
 
   readonly markets: readonly Market[] = MARKETS;
 
-  readonly grades: readonly Grade[] = GRADES;
+  readonly gradeOptions: { label: string; value: Grade | '' }[] = [
+    { label: '—', value: '' },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
+  ];
+
+  readonly sides: readonly Side[] = ['Long', 'Short'];
+
+  readonly gradeFilterOptions: { label: string; value: Grade | '' }[] = [
+    { label: 'All', value: '' },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
+  ];
 
   readonly gradeFilter = signal<Grade | ''>('');
   readonly needsReview = signal(false);
@@ -222,11 +245,6 @@ export class Trades {
     const next = !this.needsReview();
     this.needsReview.set(next);
     if (!next) this.gradeFilter.set('');
-  }
-
-  onGradeFilterChange(event: Event): void {
-    const el = event.target as HTMLSelectElement | null;
-    if (el) this.gradeFilter.set(el.value as Grade | '');
   }
 
   readonly form = this.fb.nonNullable.group({

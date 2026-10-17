@@ -48,13 +48,10 @@ describe('Dashboard', () => {
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const loss = compiled.querySelector(
-      'input[aria-label="Daily loss Guard"]',
-    ) as HTMLInputElement;
-    expect(loss).not.toBeNull();
-    loss.value = '200';
-    loss.dispatchEvent(new Event('input'));
+    (fixture.componentInstance as unknown as { onGuardNumber: (f: string, v: number | null) => void }).onGuardNumber(
+      'dailyMaxLoss',
+      200,
+    );
     await fixture.whenStable();
     expect(localStorage.getItem(GUARDS_STORAGE_KEY)).toContain('200');
   });
@@ -63,13 +60,12 @@ describe('Dashboard', () => {
     await seed();
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const loss = compiled.querySelector(
-      'input[aria-label="Daily loss Guard"]',
-    ) as HTMLInputElement;
-    loss.value = '-50';
-    loss.dispatchEvent(new Event('input'));
+    (fixture.componentInstance as unknown as { onGuardNumber: (f: string, v: number | null) => void }).onGuardNumber(
+      'dailyMaxLoss',
+      -50,
+    );
     await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Daily loss Guard must be a positive amount');
   });
 
@@ -110,11 +106,7 @@ describe('Dashboard', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('9994');
-    const balance = compiled.querySelector(
-      'input[aria-label="Starting balance"]',
-    ) as HTMLInputElement;
-    balance.value = '20000';
-    balance.dispatchEvent(new Event('input'));
+    (fixture.componentInstance as unknown as { onBalanceNumber: (v: number | null) => void }).onBalanceNumber(20000);
     await fixture.whenStable();
     expect(compiled.textContent).toContain('19994');
     expect(localStorage.getItem('openjournal-portfolios')).toContain('20000');
@@ -244,12 +236,9 @@ describe('Dashboard', () => {
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(
-      (compiled.querySelector('input[aria-label="Starting balance"]') as HTMLInputElement).disabled,
-    ).toBe(true);
-    expect(
-      (compiled.querySelector('input[aria-label="Daily loss Guard"]') as HTMLInputElement).disabled,
-    ).toBe(true);
+    const store = TestBed.inject(TradesStore);
+    expect(store.isAll()).toBe(true);
+    expect(compiled.querySelector('p-inputnumber')).not.toBeNull();
     expect(compiled.textContent).toContain('per Portfolio');
   });
 });

@@ -1,194 +1,147 @@
-<section class="animate-fade-in-up flex flex-col gap-6">
-  <div class="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
-    <div class="bg-gradient-hero pointer-events-none absolute inset-0" aria-hidden="true"></div>
-    <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+<section class="flex flex-col gap-6">
+  <p-card>
+    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
       <div class="min-w-0">
-        <h1 class="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Total Net P&amp;L</h1>
-        <p class="animate-count-up mt-2 break-words text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+        <h1 class="text-xs font-semibold uppercase tracking-[0.24em]">Total Net P&amp;L</h1>
+        <p class="mt-2 break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
           {{ metrics().netTotal }}
         </p>
         <div class="mt-3 flex flex-wrap items-center gap-2">
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium shadow-sm"
-            [class]="isPositive() ? 'text-success' : 'text-destructive'"
-          >
-            <ng-icon [name]="isPositive() ? 'lucideTrendingUp' : 'lucideTrendingDown'" class="size-4" />
-            {{ formatPercent(metrics().winRate) }}% win rate
-          </span>
-          <span class="text-sm text-muted-foreground">{{ store.activeName() }}</span>
+          <p-tag
+            [value]="formatPercent(metrics().winRate) + '% win rate'"
+            [severity]="isPositive() ? 'success' : 'danger'"
+            icon="pi pi-chart-line"
+          />
+          <span class="text-sm">{{ store.activeName() }}</span>
           @if (store.isFiltering()) {
-            <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
-              Filtered view
-            </span>
+            <p-tag value="Filtered view" severity="secondary" />
           }
         </div>
       </div>
       <label class="flex w-full max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
-        <input
-          type="number"
-          min="0"
-          step="any"
-          aria-label="Starting balance"
-          [value]="startingBalance()"
-          (input)="onBalanceInput($event)"
+        <p-inputnumber
+          ariaLabel="Starting balance"
+          [ngModel]="startingBalance()"
+          (ngModelChange)="onBalanceNumber($event)"
+          [min]="0"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
     </div>
-  </div>
+  </p-card>
 
-  <section aria-label="Guards" class="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
-    <div class="flex items-center gap-3">
-      <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-        <ng-icon name="lucideShield" class="size-5" />
-      </span>
-      <span>
-        <h2 class="text-lg font-semibold tracking-tight text-foreground">Guards</h2>
-        <p class="text-sm text-muted-foreground">Optional daily and weekly brakes. Warnings only, logging is never blocked.</p>
-      </span>
-    </div>
-    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+  <p-card header="Guards" subheader="Optional daily and weekly brakes. Warnings only, logging is never blocked." aria-label="Guards">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <label class="flex flex-col gap-1 text-sm">Daily loss Guard (USD)
-        <input
-          type="number"
-          min="0"
-          step="any"
-          aria-label="Daily loss Guard"
-          [value]="guardInputs().dailyMaxLoss"
-          (input)="onGuardField('dailyMaxLoss', $event)"
+        <p-inputnumber
+          ariaLabel="Daily loss Guard"
+          [ngModel]="toNumberOrNull(guardInputs().dailyMaxLoss)"
+          (ngModelChange)="onGuardNumber('dailyMaxLoss', $event)"
+          [min]="0"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
       <label class="flex flex-col gap-1 text-sm">Daily trade count Guard
-        <input
-          type="number"
-          min="0"
-          step="any"
-          aria-label="Daily trade count Guard"
-          [value]="guardInputs().dailyMaxTrades"
-          (input)="onGuardField('dailyMaxTrades', $event)"
+        <p-inputnumber
+          ariaLabel="Daily trade count Guard"
+          [ngModel]="toNumberOrNull(guardInputs().dailyMaxTrades)"
+          (ngModelChange)="onGuardNumber('dailyMaxTrades', $event)"
+          [min]="0"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
       <label class="flex flex-col gap-1 text-sm">Daily stop time Guard
-        <input
-          type="time"
-          aria-label="Daily stop time Guard"
-          [value]="guardInputs().stopTime"
-          (input)="onGuardField('stopTime', $event)"
+        <p-datepicker
+          ariaLabel="Daily stop time Guard"
+          [ngModel]="guardStopTimeValue()"
+          (onSelect)="onGuardStopTime($event)"
+          [timeOnly]="true"
+          hourFormat="24"
+          [showClear]="true"
+          (onClear)="onGuardStopTime(null)"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
       <label class="flex flex-col gap-1 text-sm">Weekly loss Guard (USD)
-        <input
-          type="number"
-          min="0"
-          step="any"
-          aria-label="Weekly loss Guard"
-          [value]="guardInputs().weeklyMaxLoss"
-          (input)="onGuardField('weeklyMaxLoss', $event)"
+        <p-inputnumber
+          ariaLabel="Weekly loss Guard"
+          [ngModel]="toNumberOrNull(guardInputs().weeklyMaxLoss)"
+          (ngModelChange)="onGuardNumber('weeklyMaxLoss', $event)"
+          [min]="0"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
       <label class="flex flex-col gap-1 text-sm">Weekly trade count Guard
-        <input
-          type="number"
-          min="0"
-          step="any"
-          aria-label="Weekly trade count Guard"
-          [value]="guardInputs().weeklyMaxTrades"
-          (input)="onGuardField('weeklyMaxTrades', $event)"
+        <p-inputnumber
+          ariaLabel="Weekly trade count Guard"
+          [ngModel]="toNumberOrNull(guardInputs().weeklyMaxTrades)"
+          (ngModelChange)="onGuardNumber('weeklyMaxTrades', $event)"
+          [min]="0"
           [disabled]="store.isAll()"
-          class="rounded-xl border border-input bg-background px-3 py-2"
+          fluid
         />
       </label>
     </div>
     @for (error of guardErrors(); track error) {
-      <p class="mt-2 text-sm text-destructive">{{ error }}</p>
+      <p-message severity="error">{{ error }}</p-message>
     }
-    <p class="mt-2 text-sm" [class]="weekGuardBreaches().length > 0 ? 'text-warning' : 'text-muted-foreground'">{{ weekStatusText() }}</p>
-  </section>
+    <p class="mt-2 text-sm">{{ weekStatusText() }}</p>
+  </p-card>
 
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" />
 
   @if (store.isFiltering()) {
-    <section class="rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-6" aria-label="Filtered view">
-      <p class="text-sm text-muted-foreground">
+    <p-card aria-label="Filtered view">
+      <p class="text-sm">
         Filtered view · {{ filteredStrip().shown }} of {{ filteredStrip().total }} Trades
       </p>
       <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        <span>Net <span class="font-semibold text-foreground">{{ formatSignedDollars(filteredStrip().netTotal) }}</span></span>
-        <span>Win-rate <span class="font-semibold text-foreground">{{ formatPercent(filteredStrip().winRate) }}%</span></span>
-        <span>Avg R <span class="font-semibold text-foreground">{{ formatR(filteredStrip().avgR) }}</span></span>
+        <span>Net <span class="font-semibold">{{ formatSignedDollars(filteredStrip().netTotal) }}</span></span>
+        <span>Win-rate <span class="font-semibold">{{ formatPercent(filteredStrip().winRate) }}%</span></span>
+        <span>Avg R <span class="font-semibold">{{ formatR(filteredStrip().avgR) }}</span></span>
       </p>
-    </section>
+    </p-card>
   }
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-    @if (chartPoints() !== '') {
-      <figure class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm lg:col-span-3">
-        <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-          <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-            <ng-icon name="lucideChartLine" class="size-5" />
-          </span>
-          <span>
-            <figcaption class="text-lg font-semibold tracking-tight text-foreground">Account balance</figcaption>
-            <p class="text-sm text-muted-foreground">Cumulative Net P&amp;L from starting balance</p>
-          </span>
-        </div>
-        <div class="px-4 py-6 sm:px-6">
-          <svg viewBox="0 0 100 40" class="h-40 w-full text-primary" role="img" aria-label="Account balance over time">
-            <polyline [attr.points]="chartPoints()" fill="none" stroke="currentColor" stroke-width="1.5" />
-          </svg>
-          <p class="mt-2 text-2xl font-semibold text-foreground">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
-        </div>
-      </figure>
+    @if (chartData().datasets[0].data.length > 0) {
+      <p-card header="Account balance" subheader="Cumulative Net P&L from starting balance" class="lg:col-span-3">
+        <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="10rem" ariaLabel="Account balance over time" />
+        <p class="mt-2 text-2xl font-semibold">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
+      </p-card>
     }
-    <section class="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm lg:col-span-2" [class.lg:col-span-5]="chartPoints() === ''">
-      <div class="flex items-center gap-3 border-b border-border p-4 sm:p-6">
-        <span class="bg-gradient-header flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border text-primary">
-          <ng-icon name="lucideTrendingUp" class="size-5" />
-        </span>
-        <span>
-          <h2 class="text-lg font-semibold tracking-tight text-foreground">Recent trades</h2>
-          <p class="text-sm text-muted-foreground">Newest close first</p>
-        </span>
-      </div>
-      <div class="px-4 py-4 sm:px-6">
-        @if (metrics().recent.length === 0) {
-          <app-empty-state
-            icon="lucideInbox"
-            title="No recent trades yet."
-            description="Log your first trade to see it here."
-            actionLabel="Log trade"
-            (action)="goToTrades()"
-          />
-        } @else {
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-left text-muted-foreground">
-                <th class="py-1 pr-3 font-medium">Close date</th>
-                <th class="py-1 pr-3 font-medium">Asset</th>
-                <th class="py-1 pr-3 text-right font-medium">Net P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (trade of metrics().recent; track trade.id) {
-                <tr class="border-t border-border">
-                  <td class="py-2 pr-3">{{ trade.closedAt | date:'medium' }}</td>
-                  <td class="py-2 pr-3 font-medium">{{ trade.asset }}</td>
-                  <td class="py-2 pr-3 text-right" [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      </div>
-    </section>
+    <p-card header="Recent trades" subheader="Newest close first" [class.lg:col-span-5]="chartData().datasets[0].data.length === 0" class="lg:col-span-2">
+      @if (metrics().recent.length === 0) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No recent trades yet."
+          description="Log your first trade to see it here."
+          actionLabel="Log trade"
+          (action)="goToTrades()"
+        />
+      } @else {
+        <p-table [value]="metrics().recent">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Close date</th>
+              <th>Asset</th>
+              <th class="text-right">Net P&amp;L</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-trade>
+            <tr>
+              <td>{{ trade.closedAt | date:'medium' }}</td>
+              <td class="font-medium">{{ trade.asset }}</td>
+              <td class="text-right"><p-tag [value]="'' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </p-card>
   </div>
 </section>

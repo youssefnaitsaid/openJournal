@@ -5,9 +5,10 @@ import {
   lucideCalendarDays,
   lucideChartLine,
 } from '@ng-icons/lucide';
+import { CardModule } from 'primeng/card';
 
 @Component({
-  imports: [NgIcon],
+  imports: [NgIcon, CardModule],
   providers: [
     provideIcons({ lucideArrowDownUp, lucideCalendarDays, lucideChartLine }),
   ],

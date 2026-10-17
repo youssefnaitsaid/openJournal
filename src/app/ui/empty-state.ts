@@ -1,10 +1,12 @@
 import { Component, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideInbox, lucidePlus } from '@ng-icons/lucide';
+import { lucideInbox } from '@ng-icons/lucide';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 
 @Component({
-  imports: [NgIcon],
-  providers: [provideIcons({ lucideInbox, lucidePlus })],
+  imports: [NgIcon, ButtonModule, CardModule],
+  providers: [provideIcons({ lucideInbox })],
   selector: 'app-empty-state',
   templateUrl: './empty-state.html',
 })
@@ -13,6 +15,5 @@ export class EmptyState {
   readonly title = input.required<string>();
   readonly description = input('');
   readonly actionLabel = input('');
-  readonly actionIcon = input('lucidePlus');
   readonly action = output<void>();
 }
