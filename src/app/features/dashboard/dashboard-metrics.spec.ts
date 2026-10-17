@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { tradeFixture } from '../trades/trade-fixtures';
-import { computeMetrics } from './dashboard-metrics';
+import {
+  computeKpiBand,
+  computeMetrics,
+  formatGuardStatus,
+  formatProfitFactor,
+  formatStreaks,
+} from './dashboard-metrics';
+import type { GuardStatusInput } from './dashboard-metrics';
 
 const WIN_A = () =>
   tradeFixture({
@@ -163,5 +170,70 @@ describe('computeMetrics', () => {
     const m = computeMetrics([LOSS()], 0);
     expect(m.maxDrawdown).toBe(105);
     expect(m.maxDrawdownPct).toBe(0);
+  });
+});
+
+describe('computeKpiBand', () => {
+  it('shows the same derived numbers the tile strip showed, plus current balance', () => {
+    const m = computeMetrics([WIN_A(), LOSS()], 10000);
+    const band = computeKpiBand(m, 10000);
+    const asMap = new Map(band.map((l) => [l.label, l.value]));
+    expect(asMap.get('Trade win %')).toBe('50.00');
+    expect(asMap.get('Profit factor')).toBe('0.94');
+    expect(asMap.get('Day win %')).toBe('50.00');
+    expect(asMap.get('Avg win / loss')).toBe('99 / -105');
+    expect(asMap.get('Total trades')).toBe('2');
+    expect(asMap.get('Max drawdown')).toBe('$105 · 1.04%');
+    expect(asMap.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
+    expect(asMap.get('Expectancy / Trade')).toBe('-$3.00');
+    expect(asMap.get('Current balance')).toBe('9994');
+  });
+
+  it('renders ∞ for an infinite profit factor', () => {
+    const m = computeMetrics([WIN_A()], 10000);
+    const band = computeKpiBand(m, 10000);
+    expect(new Map(band.map((l) => [l.label, l.value])).get('Profit factor')).toBe(
+      '∞',
+    );
+  });
+});
+
+describe('pure formatters', () => {
+  it('formatProfitFactor keeps ∞ only for a non-finite value', () => {
+    expect(formatProfitFactor(Number.POSITIVE_INFINITY)).toBe('∞');
+    expect(formatProfitFactor(0.94)).toBe('0.94');
+  });
+
+  it('formatStreaks names current and best runs', () => {
+    const m = computeMetrics([WIN_A(), WIN_B(), LOSS()], 10000);
+    expect(formatStreaks(m)).toBe('W0 · L1 / Best W2 · L1');
+  });
+
+  it('formatGuardStatus lists only configured limits and appends breaches', () => {
+    const input: GuardStatusInput = {
+      dailyLoss: { spent: 60, limit: 200 },
+      dailyTrades: { count: 2, limit: null },
+      dailyStop: null,
+      weeklyLoss: { spent: 120, limit: 500 },
+      weeklyTrades: { count: 5, limit: 10 },
+      breaches: ['Weekly loss Guard'],
+    };
+    expect(formatGuardStatus(input)).toBe(
+      'Daily loss $60 / $200 · Weekly loss $120 / $500 · Weekly trades 5 / 10 · Breached: Weekly loss Guard',
+    );
+  });
+
+  it('formatGuardStatus reports inside-all when nothing is breached', () => {
+    const input: GuardStatusInput = {
+      dailyLoss: { spent: 0, limit: 200 },
+      dailyTrades: { count: 1, limit: 3 },
+      dailyStop: '15:30',
+      weeklyLoss: { spent: 0, limit: null },
+      weeklyTrades: { count: 1, limit: null },
+      breaches: [],
+    };
+    expect(formatGuardStatus(input)).toBe(
+      'Daily loss $0 / $200 · Daily trades 1 / 3 · Stop 15:30 · Inside all Guards',
+    );
   });
 });

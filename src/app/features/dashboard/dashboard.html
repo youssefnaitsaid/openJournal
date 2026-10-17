@@ -1,27 +1,43 @@
 <section class="flex flex-col gap-6">
-  <p-card>
-    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-      <div class="min-w-0">
-        <h1 class="text-xs font-semibold uppercase tracking-[0.24em]">Total Net P&amp;L</h1>
-        <p class="mt-2 break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-          {{ metrics().netTotal }}
-        </p>
-        <div class="mt-3 flex flex-wrap items-center gap-2">
-          <p-tag
-            [value]="formatPercent(metrics().winRate) + '% win rate'"
-            [severity]="isPositive() ? 'success' : 'danger'"
-            icon="pi pi-chart-line"
-          />
-          <span class="text-sm">{{ store.activeName() }}</span>
-          @if (store.isFiltering()) {
-            <p-tag value="Filtered view" severity="secondary" />
-          }
-        </div>
-      </div>
-    </div>
-  </p-card>
+  <app-page-hero
+    aria-label="Dashboard hero"
+    title="Dashboard"
+    [subtitle]="`Where you stand right now · ${store.activeName()}`"
+    icon="lucideChartLine"
+  >
+    <span aria-label="Net P&L headline" class="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+      {{ formatSignedDollars(metrics().netTotal) }}
+    </span>
+    <p-tag
+      [value]="formatPercent(metrics().winRate) + '% win rate'"
+      [severity]="isPositive() ? 'success' : 'danger'"
+    />
+    @if (store.isFiltering()) {
+      <p-tag value="Filtered view" severity="secondary" />
+    }
+  </app-page-hero>
 
-  <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" />
+  @if (hasTrades()) {
+    <p-card aria-label="Key metrics">
+      <dl class="grid grid-cols-1 gap-x-8 gap-y-2 text-sm tabular-nums sm:grid-cols-2 lg:grid-cols-3">
+        @for (line of kpiBand(); track line.label) {
+          <div class="flex items-baseline justify-between gap-3">
+            <dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt>
+            <dd class="font-semibold">{{ line.value }}</dd>
+          </div>
+        }
+      </dl>
+    </p-card>
+  }
+
+  @if (guardStatus().show) {
+    <p-card aria-label="Guard status">
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p class="text-sm">{{ guardStatus().text }}</p>
+        <a routerLink="/settings" class="text-sm font-semibold text-primary">Edit Guards in Settings</a>
+      </div>
+    </p-card>
+  }
 
   @if (store.isFiltering()) {
     <p-card aria-label="Filtered view">
@@ -36,29 +52,18 @@
     </p-card>
   }
 
-  <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-    @if (chartData().datasets[0].data.length > 0) {
-      <p-card header="Account balance" subheader="Cumulative Net P&L from starting balance" class="lg:col-span-3">
+  @if (hasTrades()) {
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <p-card header="Account balance" subheader="Cumulative Net P&amp;L from starting balance" class="lg:col-span-3">
         <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="10rem" ariaLabel="Account balance over time" />
-        <p class="mt-2 text-2xl font-semibold">{{ metrics().balanceCurve[metrics().balanceCurve.length - 1]?.balance }}</p>
       </p-card>
-    }
-    <p-card header="Recent trades" subheader="Newest close first" [class.lg:col-span-5]="chartData().datasets[0].data.length === 0" class="lg:col-span-2">
-      @if (metrics().recent.length === 0) {
-        <app-empty-state
-          icon="lucideInbox"
-          title="No recent trades yet."
-          description="Log your first trade to see it here."
-          actionLabel="Log trade"
-          (action)="goToTrades()"
-        />
-      } @else {
+      <p-card header="Recent trades" subheader="Newest close first" class="lg:col-span-2">
         <p-table [value]="metrics().recent">
           <ng-template pTemplate="header">
             <tr>
-              <th>Close date</th>
-              <th>Asset</th>
-              <th class="text-right">Net P&amp;L</th>
+              <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
+              <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
+              <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-trade>
@@ -69,7 +74,15 @@
             </tr>
           </ng-template>
         </p-table>
-      }
-    </p-card>
-  </div>
+      </p-card>
+    </div>
+  } @else {
+    <app-empty-state
+      icon="lucideInbox"
+      title="No Trades yet"
+      description="Log your first Trade to see where you stand."
+      actionLabel="Log your first Trade"
+      (action)="goToTrades()"
+    />
+  }
 </section>

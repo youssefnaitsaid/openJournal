@@ -5,6 +5,95 @@ export interface BalancePoint {
   balance: number;
 }
 
+export interface KpiLine {
+  readonly label: string;
+  readonly value: string;
+}
+
+// Presentation-only formatters: the band shows the same derived numbers the
+// old tile strip showed, without shadow semantic tokens or grouping commas.
+export const formatBandNumber = (value: number): string => `${value}`;
+
+export const formatPercent = (value: number): string => value.toFixed(2);
+
+export const formatSignedDollars = (value: number): string => {
+  const abs = Math.abs(value).toFixed(2);
+  if (value > 0) return `+$${abs}`;
+  if (value < 0) return `-$${abs}`;
+  return `$0.00`;
+};
+
+export const formatProfitFactor = (value: number): string =>
+  Number.isFinite(value) ? value.toFixed(2) : '∞';
+
+export const formatStreaks = (m: DashboardMetrics): string =>
+  `W${m.currentWinStreak} · L${m.currentLossStreak} / Best W${m.longestWinStreak} · L${m.longestLossStreak}`;
+
+export interface GuardStatusInput {
+  dailyLoss: { spent: number; limit: number | null };
+  dailyTrades: { count: number; limit: number | null };
+  dailyStop: string | null;
+  weeklyLoss: { spent: number; limit: number | null };
+  weeklyTrades: { count: number; limit: number | null };
+  breaches: readonly string[];
+}
+
+// Read-only status line text: only configured limits surface, and any breach
+// names trail. Never renders an editor — this is presentation of Guard state.
+export function formatGuardStatus(input: GuardStatusInput): string {
+  const segments: string[] = [];
+  const money = (value: number): string => `$${formatBandNumber(value)}`;
+  if (input.dailyLoss.limit !== null)
+    segments.push(
+      `Daily loss ${money(input.dailyLoss.spent)} / ${money(input.dailyLoss.limit)}`,
+    );
+  if (input.dailyTrades.limit !== null)
+    segments.push(
+      `Daily trades ${input.dailyTrades.count} / ${input.dailyTrades.limit}`,
+    );
+  if (input.dailyStop !== null) segments.push(`Stop ${input.dailyStop}`);
+  if (input.weeklyLoss.limit !== null)
+    segments.push(
+      `Weekly loss ${money(input.weeklyLoss.spent)} / ${money(input.weeklyLoss.limit)}`,
+    );
+  if (input.weeklyTrades.limit !== null)
+    segments.push(
+      `Weekly trades ${input.weeklyTrades.count} / ${input.weeklyTrades.limit}`,
+    );
+  if (input.breaches.length > 0)
+    segments.push(`Breached: ${input.breaches.join(', ')}`);
+  else segments.push('Inside all Guards');
+  return segments.join(' · ');
+}
+
+export function computeKpiBand(
+  m: DashboardMetrics,
+  startingBalance: number,
+): KpiLine[] {
+  return [
+    { label: 'Trade win %', value: formatPercent(m.winRate) },
+    { label: 'Profit factor', value: formatProfitFactor(m.profitFactor) },
+    { label: 'Day win %', value: formatPercent(m.dayWinRate) },
+    {
+      label: 'Avg win / loss',
+      value: `${formatBandNumber(m.avgWin)} / ${formatBandNumber(m.avgLoss)}`,
+    },
+    { label: 'Total trades', value: `${m.totalTrades}` },
+    {
+      label: 'Max drawdown',
+      value: `$${formatBandNumber(m.maxDrawdown)} · ${formatPercent(m.maxDrawdownPct)}%`,
+    },
+    { label: 'Streaks', value: formatStreaks(m) },
+    { label: 'Expectancy / Trade', value: formatSignedDollars(m.expectancy) },
+    {
+      label: 'Current balance',
+      value: `${formatBandNumber(
+        startingBalance + m.netTotal,
+      )}`,
+    },
+  ];
+}
+
 export interface DashboardMetrics {
   totalTrades: number;
   wins: number;
