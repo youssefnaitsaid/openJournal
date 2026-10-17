@@ -145,7 +145,7 @@
             <td>{{ trade.setup }}</td>
             <td>{{ trade.emotionBefore }} → {{ trade.emotionAfter }}</td>
             <td>{{ trade.mistake }}</td>
-            <td>{{ trade.closedAt | date:'medium' }}</td>
+            <td class="whitespace-nowrap">{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="expandedrow" let-trade>
