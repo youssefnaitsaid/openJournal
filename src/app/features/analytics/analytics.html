@@ -1,6 +1,5 @@
 <section class="animate-fade-in-up flex flex-col gap-6">
   <app-page-hero
-    eyebrow="Workspace"
     title="Analytics"
     subtitle="Risk-normalized edge from stored R-Multiples."
     icon="lucideChartLine"
@@ -30,6 +29,9 @@
         description="Log your first trade to see risk-adjusted edge here."
       />
     } @else {
+      @if (breakdownChart().labels.length > 0) {
+        <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="12rem" ariaLabel="Breakdown Net chart" />
+      }
       <p-table [value]="[...breakdowns()]">
         <ng-template pTemplate="header">
           <tr>

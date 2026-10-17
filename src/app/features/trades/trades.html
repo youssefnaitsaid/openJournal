@@ -1,6 +1,5 @@
 <section class="animate-fade-in-up flex flex-col gap-6">
   <app-page-hero
-    eyebrow="Workspace"
     title="Trades"
     subtitle="Log closed Trades once, review the full history."
     icon="lucideArrowDownUp"
@@ -140,7 +139,7 @@
         }
       </label>
       <label class="flex flex-col gap-1 text-sm">Notes
-        <input pInputText formControlName="notes" />
+        <textarea pTextarea formControlName="notes" rows="2"></textarea>
       </label>
       <label class="flex flex-col gap-1 text-sm">Tags (optional, comma-separated)
         <input pInputText formControlName="tags" list="tag-options" placeholder="FOMC, earnings" />
@@ -208,10 +207,14 @@
           (action)="goToForm()"
         />
       } @else {
+        <div class="mb-2 flex justify-end">
+          <p-button type="button" label="Export CSV" icon="pi pi-download" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()" />
+        </div>
         <div class="overflow-x-auto">
-          <p-table [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
+          <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="{}">
             <ng-template pTemplate="header">
               <tr>
+                <th class="w-10"></th>
                 <th pSortableColumn="openedAt">Open date <p-sortIcon field="openedAt" /></th>
                 <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
                 <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
@@ -238,8 +241,11 @@
                 <th>Chart</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-trade>
+            <ng-template pTemplate="body" let-trade let-expanded="expanded">
               <tr>
+                <td>
+                  <p-button type="button" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" [text]="true" [rounded]="true" size="small" [pRowToggler]="trade" ariaLabel="Toggle details" />
+                </td>
                 <td>{{ trade.openedAt | date:'medium' }}</td>
                 <td>{{ trade.closedAt | date:'medium' }}</td>
                 <td class="font-medium">{{ trade.asset }}</td>
@@ -262,23 +268,45 @@
                 <td>{{ trade.mistake }}</td>
                 <td>
                   @if (trade.grade !== '') {
-                    <span class="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ trade.grade }}</span>
+                    <p-tag [value]="trade.grade" severity="secondary" />
                   }
                 </td>
                 <td>
                   @if (trade.compliance !== null) {
-                    <span class="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ formatCompliance(trade.compliance) }}</span>
+                    <p-tag [value]="formatCompliance(trade.compliance)" severity="secondary" />
                   }
                 </td>
                 <td>
-                  @for (tag of trade.tags; track tag) {
-                    <span class="mr-1 inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ tag }}</span>
-                  }
+                  <div class="flex flex-wrap gap-1">
+                    @for (tag of trade.tags; track tag) {
+                      <p-chip [label]="tag" />
+                    }
+                  </div>
                 </td>
                 <td>
                   @if (trade.chartUrl !== '') {
                     <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="underline">chart</a>
                   }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="rowexpansion" let-trade>
+              <tr>
+                <td colspan="26">
+                  <div class="flex flex-col gap-2 text-sm">
+                    @if (trade.notes !== '') {
+                      <p>{{ trade.notes }}</p>
+                    }
+                    @if ((trade.rules ?? []).length > 0) {
+                      <ul class="flex flex-col gap-1">
+                        @for (rule of trade.rules; track rule.text) {
+                          <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
+                        }
+                      </ul>
+                    } @else {
+                      <span>Unscored — checklist untouched.</span>
+                    }
+                  </div>
                 </td>
               </tr>
             </ng-template>

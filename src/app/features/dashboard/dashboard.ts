@@ -1,15 +1,21 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideTrendingDown,
   lucideTrendingUp,
 } from '@ng-icons/lucide';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
+import { DatePickerModule } from 'primeng/datepicker';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
@@ -41,7 +47,7 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 }
 
 @Component({
-  imports: [DatePipe, NgIcon, CardModule, InputTextModule, MessageModule, TableModule, QuickStats, EmptyState],
+  imports: [DatePipe, FormsModule, NgIcon, ButtonModule, CardModule, ChartModule, DatePickerModule, InputNumberModule, InputTextModule, MessageModule, TableModule, TagModule, QuickStats, EmptyState],
   providers: [
     provideIcons({ lucideTrendingDown, lucideTrendingUp }),
   ],
@@ -97,6 +103,60 @@ export class Dashboard {
       this.store.saveActiveGuards(settings);
     }
   }
+
+  onGuardNumber(field: keyof GuardFormInput, value: number | null): void {
+    this.onGuardField(field, {
+      target: { value: value === null ? '' : String(value) },
+    } as unknown as Event);
+  }
+
+  onGuardStopTime(date: Date | null): void {
+    const text =
+      date === null
+        ? ''
+        : `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    this.onGuardField('stopTime', {
+      target: { value: text },
+    } as unknown as Event);
+  }
+
+  readonly guardStopTimeValue = computed(() => {
+    const raw = this.guardInputs().stopTime;
+    if (raw === '') return null;
+    const [h, m] = raw.split(':').map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+    const d = new Date();
+    d.setHours(h ?? 0, m ?? 0, 0, 0);
+    return d;
+  });
+
+  readonly toNumberOrNull = (value: string): number | null =>
+    value === '' ? null : Number(value);
+
+  readonly chartData = computed(() => {
+    const curve = this.metrics().balanceCurve;
+    return {
+      labels: curve.map((p) => p.closedAt.slice(0, 10)),
+      datasets: [
+        {
+          label: 'Balance',
+          data: curve.map((p) => p.balance),
+          fill: true,
+          tension: 0.35,
+        },
+      ],
+    };
+  });
+
+  readonly chartOptions = computed(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { maxTicksLimit: 6 } },
+      y: { ticks: { maxTicksLimit: 5 } },
+    },
+  }));
 
   readonly metrics = computed(() =>
     computeMetrics(this.store.activeTrades(), this.startingBalance()),
@@ -190,6 +250,13 @@ export class Dashboard {
   onBalanceInput(event: Event): void {
     if (this.store.isAll()) return;
     const value = Number((event.target as HTMLInputElement).value);
+    if (Number.isFinite(value) && value >= 0) {
+      this.store.setPortfolioBalance(this.store.activeId(), value);
+    }
+  }
+
+  onBalanceNumber(value: number | null): void {
+    if (this.store.isAll() || value === null) return;
     if (Number.isFinite(value) && value >= 0) {
       this.store.setPortfolioBalance(this.store.activeId(), value);
     }

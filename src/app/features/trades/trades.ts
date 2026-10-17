@@ -19,6 +19,10 @@ import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -65,7 +69,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({ lucideArrowDownUp }),
   ],

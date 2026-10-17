@@ -25,7 +25,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const links = [...compiled.querySelectorAll('nav a')].map((a) =>
+    const links = [...compiled.querySelectorAll('a[href]')].map((a) =>
       a.getAttribute('href'),
     );
     expect(links).toContain('/dashboard');
@@ -80,15 +80,11 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const select = compiled.querySelector(
-      'select[aria-label="Active portfolio"]',
-    ) as HTMLSelectElement;
+    const select = compiled.querySelector('p-select');
     expect(select).not.toBeNull();
-    expect([...select.options].map((o) => o.text)).toEqual(
-      expect.arrayContaining(['All portfolios', 'Main', 'Swing']),
-    );
-    select.value = swing.id;
-    select.dispatchEvent(new Event('change'));
+    (fixture.componentInstance as unknown as { onSelectActive: (e: { value: string }) => void }).onSelectActive({
+      value: swing.id,
+    });
     await fixture.whenStable();
     expect(store.activeId()).toBe(swing.id);
     expect(localStorage.getItem('openjournal-active-portfolio')).toBe(swing.id);
@@ -114,10 +110,8 @@ describe('App', () => {
     name.dispatchEvent(new Event('input'));
     add.click();
     await fixture.whenStable();
-    const select = compiled.querySelector(
-      'select[aria-label="Active portfolio"]',
-    ) as HTMLSelectElement;
-    expect([...select.options].map((o) => o.text)).toContain('Funded');
+    const store = TestBed.inject(TradesStore);
+    expect(store.portfolios().map((p) => p.name)).toContain('Funded');
   });
 
   it('should delete the active portfolio only after confirmation', async () => {

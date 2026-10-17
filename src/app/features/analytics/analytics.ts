@@ -14,11 +14,12 @@ import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 
 @Component({
-  imports: [FormsModule, EmptyState, FilterBar, PageHero, QuickStats, CardModule, SelectModule, TableModule],
+  imports: [FormsModule, EmptyState, FilterBar, PageHero, QuickStats, CardModule, ChartModule, SelectModule, TableModule],
   selector: 'app-analytics',
   styleUrl: './analytics.css',
   templateUrl: './analytics.html',
@@ -91,6 +92,25 @@ export class Analytics {
       },
     ];
   });
+
+  readonly breakdownChart = computed(() => {
+    const rows = this.breakdowns().slice(0, 10);
+    return {
+      labels: rows.map((r) => r.value),
+      datasets: [
+        {
+          label: 'Net P&L',
+          data: rows.map((r) => r.netTotal),
+        },
+      ],
+    };
+  });
+
+  readonly chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
 
   readonly quickStats = computed<readonly QuickStat[]>(() => {
     const m = this.metrics();

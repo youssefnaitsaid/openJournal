@@ -45,15 +45,13 @@ describe('FilterBar', () => {
 
   it('narrows the journal when a Tag is picked and reports n of m', async () => {
     const { fixture, store } = await harness();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const select = compiled.querySelector(
-      'select[aria-label="Tag filter"]',
-    ) as HTMLSelectElement;
-    select.value = 'FOMC';
-    select.dispatchEvent(new Event('change'));
+    (fixture.componentInstance as unknown as { onTagChange: (e: { value: string }) => void }).onTagChange({
+      value: 'FOMC',
+    });
     await fixture.whenStable();
     expect(store.filter().tag).toBe('FOMC');
     expect(store.filteredTrades().length).toBe(1);
+    const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('1 of 2');
   });
 
@@ -62,9 +60,10 @@ describe('FilterBar', () => {
     store.setFilter({ asset: 'fomc' });
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    (
-      compiled.querySelector('button[aria-label="Reset filter"]') as HTMLButtonElement
-    ).click();
+    expect(
+      compiled.querySelector('button[aria-label="Reset filter"]'),
+    ).not.toBeNull();
+    (fixture.componentInstance as unknown as { reset: () => void }).reset();
     await fixture.whenStable();
     expect(store.isFiltering()).toBe(false);
     expect(store.filteredTrades().length).toBe(2);

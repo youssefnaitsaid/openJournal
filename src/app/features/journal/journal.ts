@@ -26,9 +26,13 @@ import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { TableModule } from 'primeng/table';
+import { DataViewModule } from 'primeng/dataview';
 
 @Component({
-  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule],
+  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule, ButtonModule, TagModule, TableModule, DataViewModule],
   providers: [
     provideIcons({
       lucideChevronLeft,

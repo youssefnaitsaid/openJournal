@@ -1,69 +1,83 @@
-<div class="flex min-h-dvh bg-background text-foreground">
-  @if (sidebarOpen()) {
-    <button
-      type="button"
-      aria-label="Close navigation"
-      (click)="closeSidebar()"
-      class="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
-    ></button>
-  }
-  <nav
-    aria-label="Primary"
-    [class.translate-x-0]="sidebarOpen()"
-    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col gap-1 border-r border-border bg-sidebar p-4 text-sidebar-foreground transition-transform md:static md:z-auto md:translate-x-0"
+<div class="flex min-h-dvh bg-surface-0 text-surface-700 dark:text-surface-0">
+  <p-toast />
+  <p-confirmdialog />
+  <p-drawer
+    [(visible)]="sidebarOpen"
+    position="left"
+    header="openJournal"
+    ariaCloseLabel="Close navigation"
+    styleClass="w-72"
   >
-    <a routerLink="/dashboard" (click)="closeSidebar()" class="mb-4 flex items-center gap-3 rounded-2xl border border-sidebar-border bg-gradient-to-br from-sidebar-primary/15 via-sidebar-accent/20 to-transparent px-3 py-3">
-      <span class="flex size-10 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground">
-        <ng-icon name="lucideNotebookPen" class="size-5" />
-      </span>
+    <nav aria-label="Primary mobile">
+      <p-menu [model]="overviewMenu" styleClass="w-full border-none bg-transparent" />
+      <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Portfolios</p>
+      <div class="flex flex-col gap-2 px-3 py-1">
+        <p-select
+          ariaLabel="Active portfolio"
+          inputId="mobile-active-portfolio"
+          [options]="portfolioOptions()"
+          [ngModel]="store.activeId()"
+          (onChange)="onSelectActive($event)"
+          fluid
+        />
+      </div>
+      <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
+      <p-menu [model]="workspaceMenu" styleClass="w-full border-none bg-transparent" />
+    </nav>
+  </p-drawer>
+
+  <aside class="hidden w-72 shrink-0 flex-col gap-1 border-r border-surface-200 p-4 dark:border-surface-700 md:flex">
+    <div class="mb-4 flex items-center gap-3 rounded-xl border border-surface-200 px-3 py-3 dark:border-surface-700">
+      <p-avatar label="oJ" shape="circle" />
       <span class="grid flex-1 text-left leading-tight">
         <span class="truncate text-sm font-semibold tracking-wide">openJournal</span>
-        <span class="truncate text-xs text-sidebar-foreground/70">Trading journal</span>
+        <span class="truncate text-xs opacity-70">Trading journal</span>
       </span>
-    </a>
-    <p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Overview</p>
-    @for (item of overviewItems; track item.url) {
-      <a
-        [routerLink]="item.url"
-        routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
-        (click)="closeSidebar()"
-        class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
-      >
-        <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-        {{ item.label }}
-      </a>
-    }
-    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Portfolios</p>
+    </div>
+    <p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Overview</p>
+    <nav aria-label="Primary">
+      <p-menu [model]="overviewMenu" styleClass="w-full border-none bg-transparent" />
+    </nav>
+    <!-- legacy anchor list keeps route hrefs discoverable for assistive tech -->
+    <div class="sr-only" aria-hidden="false">
+      @for (item of overviewItems; track item.url) {
+        <a [routerLink]="item.url">{{ item.label }}</a>
+      }
+      @for (item of workspaceItems; track item.url) {
+        <a [routerLink]="item.url">{{ item.label }}</a>
+      }
+    </div>
+    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Portfolios</p>
     <div class="flex flex-col gap-2 px-3 py-1">
       <label class="flex items-center gap-2 text-sm">
         <ng-icon name="lucideWallet" class="size-4 shrink-0" />
-        <select
-          aria-label="Active portfolio"
-          (change)="onSelectActive($event)"
-          class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 px-2 py-1.5 text-sm font-medium text-sidebar-foreground"
-        >
-          <option [value]="allId" [selected]="store.activeId() === allId">All portfolios</option>
-          @for (p of store.portfolios(); track p.id) {
-            <option [value]="p.id" [selected]="store.activeId() === p.id">{{ p.name }}</option>
-          }
-        </select>
+        <p-select
+          ariaLabel="Active portfolio"
+          inputId="active-portfolio"
+          [options]="portfolioOptions()"
+          [ngModel]="store.activeId()"
+          (onChange)="onSelectActive($event)"
+          fluid
+        />
       </label>
       <div class="flex gap-1.5">
         <input
+          pInputText
           aria-label="New portfolio name"
           placeholder="New portfolio"
           [value]="newPortfolioName()"
           (input)="onNewName($event)"
-          class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-background px-2 py-1.5 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/50"
+          class="min-w-0 flex-1"
+          fluid
         />
-        <button
+        <p-button
           type="button"
-          aria-label="Add portfolio"
-          (click)="createPortfolio()"
-          class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
-        >
-          <ng-icon name="lucidePlus" class="size-4" />
-        </button>
+          ariaLabel="Add portfolio"
+          icon="pi pi-plus"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="createPortfolio()"
+        />
       </div>
       @if (portfolioError() !== null) {
         <p class="text-xs text-destructive">{{ portfolioError() }}</p>
@@ -71,104 +85,134 @@
       @if (!store.isAll()) {
         <div class="flex gap-1.5">
           <input
+            pInputText
             aria-label="Rename portfolio to"
             [placeholder]="store.activeName()"
             [value]="renameValue()"
             (input)="onRenameValue($event)"
-            class="min-w-0 flex-1 rounded-xl border border-sidebar-border bg-background px-2 py-1.5 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/50"
+            class="min-w-0 flex-1"
+            fluid
           />
-          <button
+          <p-button
             type="button"
-            aria-label="Rename portfolio"
-            (click)="renameActive()"
-            class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
-          >
-            <ng-icon name="lucidePencil" class="size-4" />
-          </button>
+            ariaLabel="Rename portfolio"
+            icon="pi pi-pencil"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="renameActive()"
+          />
           @if (!confirmingDelete()) {
-            <button
+            <p-button
               type="button"
-              aria-label="Delete portfolio"
-              (click)="deleteActive()"
-              class="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <ng-icon name="lucideTrash2" class="size-4" />
-            </button>
+              ariaLabel="Delete portfolio"
+              icon="pi pi-trash"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="deleteActive()"
+            />
           } @else {
-            <button
+            <p-button
               type="button"
-              aria-label="Confirm delete portfolio"
-              (click)="deleteActive()"
-              class="inline-flex h-8 shrink-0 items-center rounded-xl border border-destructive bg-destructive px-2 text-xs font-medium text-destructive-foreground"
-            >
-              Confirm
-            </button>
+              ariaLabel="Confirm delete portfolio"
+              label="Confirm"
+              severity="danger"
+              size="small"
+              (onClick)="deleteActive()"
+            />
           }
         </div>
         @if (renameError() !== null) {
           <p class="text-xs text-destructive">{{ renameError() }}</p>
         }
+        <p-button
+          type="button"
+          label="Manage"
+          severity="secondary"
+          [outlined]="true"
+          size="small"
+          (onClick)="portfolioDialog.set(true)"
+        />
       }
     </div>
-    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">Workspace</p>
-    @for (item of workspaceItems; track item.url) {
-      <a
-        [routerLink]="item.url"
-        routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
-        (click)="closeSidebar()"
-        class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent"
-      >
-        <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-        {{ item.label }}
-      </a>
-    }
-    <button
+    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
+    <p-menu [model]="workspaceMenu" styleClass="w-full border-none bg-transparent" />
+    <p-button
       type="button"
-      aria-label="Close menu"
-      (click)="closeSidebar()"
-      class="mt-auto inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent md:hidden"
-    >
-      <ng-icon name="lucideX" class="size-4" />
-      Close
-    </button>
-  </nav>
+      label="Close"
+      icon="pi pi-times"
+      [text]="true"
+      severity="secondary"
+      styleClass="mt-auto md:hidden"
+      ariaLabel="Close menu"
+      (onClick)="closeSidebar()"
+    />
+  </aside>
+
   <div class="flex min-w-0 flex-1 flex-col">
-    <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-md sm:px-4">
-      <button
-        type="button"
-        aria-label="Toggle navigation"
-        (click)="toggleSidebar()"
-        class="inline-flex size-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
-      >
-        <ng-icon name="lucideMenu" class="size-4" />
-      </button>
-      <span class="truncate text-sm font-semibold tracking-tight md:hidden">openJournal</span>
-      @if (tradeCount() > 0) {
-        <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium shadow-sm">
-          <ng-icon
-            [name]="netTotal() >= 0 ? 'lucideTrendingUp' : 'lucideTrendingDown'"
-            [class]="netTotal() >= 0 ? 'size-4 text-success' : 'size-4 text-destructive'"
+    <header class="sticky top-0 z-30 shrink-0">
+      <p-toolbar>
+        <ng-template pTemplate="start">
+          <p-button
+            type="button"
+            ariaLabel="Toggle navigation"
+            icon="pi pi-bars"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (onClick)="toggleSidebar()"
           />
-          <span [class]="netTotal() >= 0 ? 'text-success' : 'text-destructive'">Net {{ netTotal() }}</span>
-        </span>
-      }
-      <button
-        type="button"
-        aria-label="Toggle dark mode"
-        [attr.aria-pressed]="theme.isDark()"
-        (click)="theme.toggleDarkMode()"
-        class="inline-flex size-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
-        [class.ml-auto]="tradeCount() === 0"
-      >
-        @if (theme.isDark()) {
-          <ng-icon name="lucideSun" class="size-4" />
-        } @else {
-          <ng-icon name="lucideMoon" class="size-4" />
-        }
-      </button>
+          <span class="truncate text-sm font-semibold tracking-tight md:hidden">openJournal</span>
+        </ng-template>
+        <ng-template pTemplate="end">
+          @if (tradeCount() > 0) {
+            <p-tag
+              [value]="'Net ' + netTotal()"
+              [severity]="netTotal() >= 0 ? 'success' : 'danger'"
+              icon="pi pi-chart-line"
+            />
+          }
+          <p-button
+            type="button"
+            ariaLabel="Toggle dark mode"
+            [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (onClick)="theme.toggleDarkMode()"
+          />
+        </ng-template>
+      </p-toolbar>
     </header>
     <main class="flex-1 p-4 sm:p-6 lg:p-8">
       <router-outlet />
     </main>
   </div>
+
+  <p-dialog
+    header="Portfolios"
+    [(visible)]="portfolioDialog"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+  >
+    <div class="flex flex-col gap-3">
+      <p-select
+        ariaLabel="Active portfolio dialog"
+        [options]="portfolioOptions()"
+        [ngModel]="store.activeId()"
+        (onChange)="onSelectActive($event)"
+        fluid
+      />
+      <div class="flex gap-2">
+        <input pInputText aria-label="New portfolio name dialog" placeholder="New portfolio" [value]="newPortfolioName()" (input)="onNewName($event)" class="flex-1" fluid />
+        <p-button type="button" label="Add" ariaLabel="Add portfolio dialog" (onClick)="createPortfolio()" />
+      </div>
+      @if (!store.isAll()) {
+        <div class="flex gap-2">
+          <input pInputText aria-label="Rename portfolio to dialog" [placeholder]="store.activeName()" [value]="renameValue()" (input)="onRenameValue($event)" class="flex-1" fluid />
+          <p-button type="button" label="Rename" ariaLabel="Rename portfolio dialog" severity="secondary" (onClick)="renameActive()" />
+          <p-button type="button" label="Delete" ariaLabel="Delete portfolio dialog" severity="danger" (onClick)="requestDelete($event)" />
+        </div>
+      }
+    </div>
+  </p-dialog>
 </div>
