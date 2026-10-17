@@ -28,7 +28,6 @@ import { PageHero } from '../../ui/page-hero';
 
 interface GuardStatusView {
   readonly show: boolean;
-  readonly isAll: boolean;
   readonly text: string;
 }
 
@@ -77,31 +76,23 @@ export class Dashboard {
     computeKpiBand(this.metrics(), this.startingBalance()),
   );
 
-  readonly currentBalanceText = computed(
-    () =>
-      this.kpiBand().find((line) => line.label === 'Current balance')
-        ?.value ?? '',
-  );
-
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
 
   // Empty Portfolio → onboarding branch: hero + one honest card, and the
   // KPI band / balance chart / recent table are suppressed (not zero-filled).
   readonly hasTrades = computed(() => this.store.activeTrades().length > 0);
 
-  // Read-only status: shown only while the active Portfolio has a Guard set.
-  // Editing lives in Settings; this line never renders an input.
+  // Read-only status: shown only while a specific Portfolio has a Guard set.
+  // Under the All aggregate there is no editable Guard SET, so no status line
+  // renders (ticket #35: appears ONLY when Guards are configured; All is
+  // read-only). Editing lives in Settings; this line never renders an input.
   readonly guardStatus = computed<GuardStatusView>(() => {
     if (this.store.isAll()) {
-      return {
-        show: true,
-        isAll: true,
-        text: 'Guards are set per Portfolio — select one to view its status',
-      };
+      return { show: false, text: '' };
     }
     const guards = this.store.activeGuards();
     if (!hasAnyGuard(guards)) {
-      return { show: false, isAll: false, text: '' };
+      return { show: false, text: '' };
     }
     const today = new Date().toISOString().slice(0, 10);
     const week = weekKeyOfDay(today);
@@ -118,7 +109,6 @@ export class Dashboard {
     ].map((breach) => GUARD_LABELS[breach]);
     return {
       show: true,
-      isAll: false,
       text: formatGuardStatus({
         dailyLoss: { spent: Math.max(0, -dayNet), limit: guards.daily.maxLoss },
         dailyTrades: {

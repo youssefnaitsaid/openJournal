@@ -29,7 +29,6 @@ import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -71,7 +70,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({
       lucideArrowDownUp,
@@ -182,6 +181,24 @@ export class Trades {
   }
 
   readonly rows = computed(() => this.store.activeByCloseDesc());
+
+  // Row-expansion state for the history table. Owned here (not via
+  // pRowToggler) because the zoneless harness never sees PrimeNG's in-place
+  // mutation of expandedRowKeys: a signal write re-binds the input and renders
+  // the expandedrow template (same idiom as Journal, #37).
+  readonly expandedTradeRows = signal<Record<string, boolean>>({});
+
+  toggleTradeRow(id: string): void {
+    this.expandedTradeRows.update((keys) => {
+      const next = { ...keys };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = true;
+      }
+      return next;
+    });
+  }
 
   readonly form = this.fb.nonNullable.group({
     asset: ['', Validators.required],

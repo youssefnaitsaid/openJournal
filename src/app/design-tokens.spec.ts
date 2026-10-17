@@ -83,9 +83,11 @@ const RETIRED_SHADOW_TOKENS = new RegExp(
 
 // The kicker/eyebrow heading idiom: an uppercase, wide-tracked label parked
 // above a heading. Wide tracking starts at 0.2em; the sidebar group labels at
-// 0.18em stay allowed. The `eyebrow()` binding is the retired component API.
+// 0.18em stay allowed. The retired `eyebrow` component API is caught in every
+// binding form: input `[eyebrow]=`, event/two-way `(eyebrow)=`, style `eyebrow:`,
+// plus the `eyebrow()` signal read and `eyebrow=`/`eyebrow(` plain forms.
 const KICKER_HEADING =
-  /tracking-\[(?:0\.[2-9]\d*|[1-9]\d*(?:\.\d+)?)(?:e-?\d+)?em\]|eyebrow\s*[=(]/;
+  /tracking-\[(?:0\.[2-9]\d*|[1-9]\d*(?:\.\d+)?)(?:e-?\d+)?em\]|\[\(?eyebrow\)?\]?\s*=|\(eyebrow\)\s*=|(?<![a-zA-Z-])eyebrow\s*[:(]/;
 
 const RETIRED_MOTION = /animate-fade-in-up|animation:\s*oj-fade-in-up/
 ;
@@ -137,7 +139,7 @@ const RETIRED_FIXTURES: Record<string, string> = {
   'retired shadow semantic tokens':
     '<p class="text-xs text-muted-foreground"><h1 class="text-foreground">T</h1><span class="text-destructive">e</span><span class="text-success">g</span><div class="bg-sidebar-accent"></div><i style="color: var(--muted-foreground)"></i></p>',
   'kicker / eyebrow heading idioms':
-    '<p class="text-xs font-semibold uppercase tracking-[0.24em]">{{ eyebrow() }}</p>',
+    '<app-page-hero [eyebrow]="Overview"></app-page-hero><p class="text-xs font-semibold uppercase tracking-[0.24em]">{{ eyebrow() }}</p>',
   'the retired fade-in-up motion': '<div class="animate-fade-in-up"></div>',
   'bespoke style and styleClass overrides':
     '<p-button styleClass="mt-6" [styleClass]="wide" [style]="w: 1" style="margin: 0"></p-button>',
@@ -168,6 +170,17 @@ describe('design tokens', () => {
   it('has a failing fixture for every guard rule', () => {
     const guarded = Object.keys(RETIRED_FIXTURES).sort();
     expect(guarded).toEqual(RULES.map((rule) => rule.name).sort());
+  });
+
+  it('catches the retired eyebrow input-binding form [eyebrow]="x"', () => {
+    const fixture = { './retired-fixture.html': '<app-page-hero [eyebrow]="x" />' };
+    expect(offendingPaths(KICKER_HEADING, fixture)).toEqual(['./retired-fixture.html']);
+    const twoWayForm = { './retired-fixture.html': '<app-page-hero [(eyebrow)]="x" />' };
+    expect(offendingPaths(KICKER_HEADING, twoWayForm)).toEqual(['./retired-fixture.html']);
+    const eventForm = { './retired-fixture.html': '<app-page-hero (eyebrow)="go()" />' };
+    expect(offendingPaths(KICKER_HEADING, eventForm)).toEqual(['./retired-fixture.html']);
+    const styleForm = { './retired-fixture.html': '.title { eyebrow: 1; }' };
+    expect(offendingPaths(KICKER_HEADING, styleForm)).toEqual(['./retired-fixture.html']);
   });
 
   for (const rule of RULES) {

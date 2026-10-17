@@ -57,7 +57,7 @@ describe('Analytics', () => {
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Analytics');
     expect(compiled.querySelectorAll('app-empty-state').length).toBe(1);
-    expect(content).toContain('No trades yet');
+    expect(content).toContain('No Trades yet');
     expect(content).toContain('Log your first Trade');
     expect(content).not.toContain('No scored trades yet');
     // no zero-filled R-metrics band, no filter bar, no section chrome
@@ -364,7 +364,7 @@ describe('Analytics', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('No Trades match this filter');
-    expect(content).not.toContain('No trades yet');
+    expect(content).not.toContain('No Trades yet');
     expect(content).not.toContain('No scored trades yet');
     expect(content).not.toContain('R-Expectancy');
     // each affected surface carries the filtered-empty message

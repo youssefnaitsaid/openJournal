@@ -186,7 +186,7 @@ describe('Dashboard', () => {
     expect(compiled.querySelector('p-datepicker')).toBeNull();
   });
 
-  it('explains per-Portfolio Guards under the All aggregate', async () => {
+  it('shows no Guard status line under the All aggregate', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -198,8 +198,10 @@ describe('Dashboard', () => {
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const line = compiled.querySelector('[aria-label="Guard status"]');
-    expect(line?.textContent).toContain('per Portfolio');
+    // All is read-only: there is no editable Guard SET, so no status line renders.
+    expect(compiled.querySelector('[aria-label="Guard status"]')).toBeNull();
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).not.toContain('per Portfolio');
   });
 
   it('keeps the hero on full-journal truth with a labeled filtered strip', async () => {

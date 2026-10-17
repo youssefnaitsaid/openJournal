@@ -31,7 +31,7 @@ export class Analytics {
 
   // Honest states: an empty Portfolio shows ONE onboarding card (no band,
   // no filter bar, no sections); a filter that cuts every Trade shows
-  // filtered-empty per surface instead — never "No trades yet" over data.
+  // filtered-empty per surface instead — never "No Trades yet" over data.
   readonly hasPortfolioTrades = computed(
     () => this.store.activeTrades().length > 0,
   );
@@ -144,8 +144,8 @@ export class Analytics {
       { label: 'R-Expectancy (avg R)', value: this.formatR(m.rExpectancy) },
       { label: 'Median R', value: this.formatR(m.medianR) },
       { label: 'R sum', value: this.formatR(m.rSum) },
-      { label: 'Total risked', value: this.formatSignedDollars(m.riskedTotal) },
-      { label: 'Total net', value: this.formatSignedDollars(m.netTotal) },
+      { label: 'Risked Amount', value: this.formatSignedDollars(m.riskedTotal) },
+      { label: 'Net P&L', value: this.formatSignedDollars(m.netTotal) },
       { label: 'Risked coverage', value: `${m.riskedCount} of ${m.totalTrades}` },
     ];
   });

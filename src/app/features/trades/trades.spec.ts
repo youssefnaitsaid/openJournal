@@ -129,7 +129,7 @@ describe('Trades', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('No trades yet');
+    expect(content).toContain('No Trades yet');
     expect(content).toContain('Log your first Trade');
     expect(content).not.toContain('Reset filters');
     const cta = [...compiled.querySelectorAll('button')].find((b) =>
@@ -301,11 +301,45 @@ describe('Trades', () => {
     expect(compiled.querySelector('[aria-label="Today guard status"]')).toBeNull();
   });
 
+  it('renders the expansion row content when a Trade row is expanded', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade(
+      tradeInput({
+        asset: 'AAPL',
+        notes: 'Held to target',
+        rules: [{ text: 'Plan before entry', followed: true }],
+      }),
+    );
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = () => compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    // At rest the evidence is folded: notes and snapshot are not rendered.
+    expect(content()).not.toContain('Held to target');
+    expect(content()).not.toContain('Plan before entry');
+    const toggles = [
+      ...compiled.querySelectorAll<HTMLButtonElement>('[aria-label="Toggle details"]'),
+    ];
+    expect(toggles.length).toBe(1);
+    toggles[0].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(content()).toContain('Held to target');
+    expect(content()).toContain('Plan before entry');
+    expect(content()).toContain('✓ Plan before entry');
+    // Expansion state survives a later change-detection pass: the table keeps
+    // the note rendered instead of silently clearing the expanded row keys.
+    fixture.detectChanges();
+    expect(content()).toContain('Held to target');
+  });
+
   it('renders an empty state before any Trade is logged', async () => {
     const fixture = TestBed.createComponent(Trades);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('No trades yet');
+    expect(compiled.textContent).toContain('No Trades yet');
   });
 
   it('renders the history table without the always-open form at rest', async () => {
