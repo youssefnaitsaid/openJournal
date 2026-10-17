@@ -203,22 +203,26 @@
                     <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
                   </p-button>
                 </td>
-                <td>{{ trade.openedAt | date:'medium' }}</td>
-                <td>{{ trade.closedAt | date:'medium' }}</td>
+                <td class="whitespace-nowrap">{{ trade.openedAt | date:'MMM d, y, h:mm a' }}</td>
+                <td class="whitespace-nowrap">{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</td>
                 <td class="font-medium">{{ trade.asset }}</td>
                 <td>{{ trade.market }}</td>
                 <td>{{ trade.side }}</td>
-                <td>{{ trade.quantity }}</td>
-                <td>{{ trade.multiplier }}</td>
-                <td>{{ trade.entryPrice }}</td>
-                <td>{{ trade.exitPrice }}</td>
-                <td>{{ trade.gross }}</td>
-                <td>{{ trade.fees }}</td>
-                <td><p-tag [value]="'' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
-                <td>{{ trade.stopPrice }}</td>
-                <td>{{ trade.takePrice }}</td>
-                <td>{{ trade.risked }}</td>
-                <td>{{ trade.rMultiple }}</td>
+                <td class="tabular-nums">{{ trade.quantity }}</td>
+                <td class="tabular-nums">{{ trade.multiplier }}</td>
+                <td class="tabular-nums">{{ formatPrice(trade.entryPrice) }}</td>
+                <td class="tabular-nums">{{ formatPrice(trade.exitPrice) }}</td>
+                <td class="whitespace-nowrap tabular-nums">{{ formatMoney(trade.gross) }}</td>
+                <td class="whitespace-nowrap tabular-nums">{{ formatMoney(trade.fees) }}</td>
+                <td
+                  ><p-tag
+                    [value]="formatSignedDollars(trade.net)"
+                    [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'"
+                  /></td>
+                <td class="tabular-nums">{{ formatPrice(trade.stopPrice) }}</td>
+                <td class="tabular-nums">{{ formatPrice(trade.takePrice) }}</td>
+                <td class="whitespace-nowrap tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</td>
+                <td class="tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
                 <td>{{ trade.setup }}</td>
                 <td>{{ trade.emotionBefore }}</td>
                 <td>{{ trade.emotionAfter }}</td>
@@ -234,7 +238,7 @@
                   }
                 </td>
                 <td>
-                  <div class="flex flex-wrap gap-1">
+                  <div class="flex flex-nowrap gap-1">
                     @for (tag of trade.tags; track tag) {
                       <p-chip [label]="tag" />
                     }
@@ -249,7 +253,7 @@
             </ng-template>
             <ng-template pTemplate="expandedrow" let-trade>
               <tr>
-                <td colspan="26">
+                <td colspan="25">
                   <div class="flex flex-col gap-2 text-sm">
                     @if (trade.notes !== '') {
                       <p>{{ trade.notes }}</p>
