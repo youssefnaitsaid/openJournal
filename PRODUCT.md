@@ -20,11 +20,19 @@ Trader-owned local-first journal versus cloud journals (TradeZella, Edgewonk, Tr
 
 ## Operating Context
 
-Nightly logging ritual (entry/exit, Quantity, multiplier, Fees, stop, Setup/Playbook checklist, Emotion before/after, Mistake, Grade, Tags) plus weekly edge review (Dashboard KPIs, Analytics breakdowns, Journal month review). Workflows live in four routes: /dashboard, /trades, /journal, /analytics. Materials on device: `openjournal-trades` SignalDB collection (localStorage), Portfolios (`openjournal-portfolios`, active id in `openjournal-active-portfolio`, All aggregate read-only), taxonomy (`openjournal-taxonomy`: Setup/Emotion/Mistake seeds plus user values, Tags, Playbooks), Guards (`openjournal-guards`, daily/weekly, warn-only). Dates stored UTC ISO, displayed local; calendar and time buckets key off UTC close date.
+Nightly logging ritual (entry/exit, Quantity, multiplier, Fees, stop, Setup/Playbook checklist, Emotion before/after, Mistake, Grade, Tags) plus weekly edge review (Dashboard KPIs, Analytics breakdowns, Journal month review). Materials on device: `openjournal-trades` SignalDB collection (localStorage), Portfolios (`openjournal-portfolios`, active id in `openjournal-active-portfolio`, All aggregate read-only), taxonomy (`openjournal-taxonomy`: Setup/Emotion/Mistake seeds plus user values, Tags, Playbooks), Guards (`openjournal-guards`, daily/weekly, warn-only). Dates stored UTC ISO, displayed local; calendar and time buckets key off UTC close date.
 
 ## Capabilities and Constraints
 
-Confirmed functionality: four routes with unknown paths redirecting to /dashboard; Dashboard KPIs plus balance curve plus recent Trades (newest close first, capped at 10); Trades log form plus full table plus ephemeral global filter (resets on reload and Portfolio switch, cuts Trades table plus Analytics plus a labeled Dashboard strip while hero, curve, streaks, drawdown, month-Net, and Journal stay full-Portfolio); Journal month calendar plus day detail plus month summary (never filtered); Analytics R-metrics plus breakdowns (Setup default, Tag included) plus time patterns (weekday Monday-first, 24 fixed hour buckets, Hold Duration Intraday/1-3d/Swing) plus Compliance-vs-outcome buckets; Guards as optional daily/weekly brakes on loss, count, stop time that never block logging.
+Confirmed functionality: five routes, each pinned to one page goal, with unknown paths redirecting to /dashboard:
+
+- /dashboard answers "Where do I stand right now?" — headline Net P&L, one KPI band, read-only Guard status, balance curve, recent Trades.
+- /trades answers "Capture a closed Trade once, then find and inspect any Trade fast." — history table owns the viewport; the log form is revealed from the hero.
+- /journal answers "Review my process, one month at a time." — UTC close-date calendar, one day detail table, month summary and report card.
+- /analytics answers "Where does Net P&L come from?" — R-metrics, breakdowns, time patterns, Compliance-vs-outcome.
+- /settings answers "How do I configure the journal?" — the only Configure surface: Portfolios CRUD, Guards + starting balance, Vocabulary, Playbooks (ADR-0007).
+
+Dashboard shows one KPI band plus a read-only Guard status line (shown only when a Guard is configured, linking to /settings) plus balance curve plus recent Trades (newest close first, capped at 10, sortable); Trades opens on the history table with the log form hidden behind a hero "Log Trade" button that reveals and focuses it and collapses it after a successful save, an ephemeral global filter (close-date range, Asset substring, Setup/Side/Tag, Win/Loss/Breakeven, Grade, Needs review; resets on reload and Portfolio switch, cuts the Trades table plus Analytics plus a labeled Dashboard strip while hero, curve, streaks, drawdown, month-Net, and Journal stay full-Portfolio) and CSV export; Journal month calendar plus one day detail table plus month summary (never filtered); Analytics R-metrics as a band in the breakdown header plus breakdowns (Setup default, Tag included) with the bar chart labeled "Top 10 by |Net|" while the table keeps every row, plus time patterns (weekday Monday-first, 24 fixed hour buckets, Hold Duration Intraday/1-3d/Swing) plus Compliance-vs-outcome buckets; Settings stacking Portfolios CRUD, Guards + per-active-Portfolio starting balance (both locked with an explanation while All is selected), Vocabulary and Playbooks; empty states distinguish an unpopulated Portfolio (onboarding "Log your first Trade") from filtered-to-zero ("No Trades match this filter" plus Reset); Guards as optional daily/weekly brakes on loss, count, stop time that never block logging.
 
 Domain truth preserved: Trade is one closed round-trip with entry and exit; Net P&L (Gross minus Fees) is the single source of truth; R-Multiple is Net over Risked Amount, 0 when nothing risked; Win is Net > 0, Loss Net < 0, Breakeven Net = 0, only Wins and Losses count toward win-rate; terms per GLOSSARY.md and derivations per openJournal/.facts.
 
@@ -36,7 +44,7 @@ Name openJournal. Standing visual preference (direction round, user-taken canon)
 
 ## Evidence on Hand
 
-Real product truth in repo: `GLOSSARY.md` (domain language), `openJournal/.facts` (atomic behavioral spec), `docs/adr/0001-portfolio-design-language.md` (incumbent visual world, now anti-reference for redesign), `docs/adr/0002-playbook-snapshot.md`, `docs/adr/0003-guards-heatmap.md`, `docs/adr/0004-portfolios-all-aggregate.md`, routes in `openJournal/src/app/app.routes.ts`, incumbent implementation in `openJournal/src/app/features/` (dashboard, trades, journal, analytics). No testimonials, customers, benchmarks, pricing, or demo dataset committed — future work must not fabricate them.
+Real product truth in repo: `GLOSSARY.md` (domain language), `openJournal/.facts` (atomic behavioral spec), `docs/adr/0001-portfolio-design-language.md` (incumbent visual world, now anti-reference for redesign), `docs/adr/0002-playbook-snapshot.md`, `docs/adr/0003-guards-heatmap.md`, `docs/adr/0004-portfolios-all-aggregate.md`, `docs/adr/0007-configure-operate-separation.md` (Configure/Operate split), routes in `openJournal/src/app/app.routes.ts`, incumbent implementation in `openJournal/src/app/features/` (dashboard, trades, journal, analytics, settings). No testimonials, customers, benchmarks, pricing, or demo dataset committed — future work must not fabricate them.
 
 ## Product Principles
 
@@ -44,3 +52,4 @@ Real product truth in repo: `GLOSSARY.md` (domain language), `openJournal/.facts
 2. Data utility first: density, sortability, and filterability outrank decoration on every Operate surface.
 3. Local-first ownership: never block logging, never require network, never send data off device.
 4. Process separate from outcome: Compliance, Mistake, and Grade are process signals independent of Net P&L.
+5. One question per surface: each route answers its pinned page goal, and configuration lives only on /settings (ADR-0007).

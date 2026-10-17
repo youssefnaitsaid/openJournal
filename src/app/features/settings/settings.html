@@ -10,7 +10,7 @@
 
   <p-card aria-label="Portfolios">
     <h2 class="text-lg font-semibold tracking-tight">Portfolios</h2>
-    <p class="mt-1 text-sm text-muted-foreground">Create, rename, and delete Portfolios, each with its own starting balance. Trades are logged into the active Portfolio; All stays read-only.</p>
+    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Create, rename, and delete Portfolios, each with its own starting balance. Trades are logged into the active Portfolio; All stays read-only.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-2">
@@ -26,14 +26,15 @@
           type="button"
           ariaLabel="Add portfolio"
           label="Add"
-          icon="pi pi-plus"
           severity="secondary"
           [outlined]="true"
           (onClick)="createPortfolio()"
-        />
+        >
+          <ng-template pTemplate="icon"><ng-icon name="lucidePlus" class="size-4" /></ng-template>
+        </p-button>
       </div>
       @if (portfolioError()) {
-        <p class="text-sm text-destructive">{{ portfolioError() }}</p>
+        <p-message severity="error">{{ portfolioError() }}</p-message>
       }
 
       <ul class="flex flex-col gap-3">
@@ -66,7 +67,7 @@
                 />
               </div>
               @if (renameError()) {
-                <p class="text-sm text-destructive">{{ renameError() }}</p>
+                <p-message severity="error">{{ renameError() }}</p-message>
               }
             } @else {
               <div class="flex items-center justify-between gap-2">
@@ -75,21 +76,23 @@
                   <p-button
                     type="button"
                     [attr.aria-label]="'Rename ' + portfolio.name"
-                    icon="pi pi-pencil"
                     severity="secondary"
                     [outlined]="true"
                     size="small"
                     (onClick)="startRename(portfolio.id)"
-                  />
+                  >
+                    <ng-template pTemplate="icon"><ng-icon name="lucidePencil" class="size-3.5" /></ng-template>
+                  </p-button>
                   <p-button
                     type="button"
                     [attr.aria-label]="'Delete ' + portfolio.name"
-                    icon="pi pi-trash"
                     severity="secondary"
                     [outlined]="true"
                     size="small"
                     (onClick)="requestDelete(portfolio.id)"
-                  />
+                  >
+                    <ng-template pTemplate="icon"><ng-icon name="lucideTrash2" class="size-3.5" /></ng-template>
+                  </p-button>
                 </div>
               </div>
             }
@@ -112,7 +115,7 @@
 
   <p-card aria-label="Guards">
     <h2 class="text-lg font-semibold tracking-tight">Guards</h2>
-    <p class="mt-1 text-sm text-muted-foreground">Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.</p>
+    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <label class="flex w-full max-w-xs flex-col gap-1 text-sm">
@@ -192,7 +195,7 @@
 
   <p-card aria-label="Vocabulary">
     <h2 class="text-lg font-semibold tracking-tight">Vocabulary</h2>
-    <p class="mt-1 text-sm text-muted-foreground">Grow your Setup, Emotion, Mistake, and Tag vocabulary. User-added values merge after the seeds and survive reloads.</p>
+    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Grow your Setup, Emotion, Mistake, and Tag vocabulary. User-added values merge after the seeds and survive reloads.</p>
 
     <div class="mt-4 flex flex-col gap-5">
       <div class="flex flex-col gap-2">
@@ -251,7 +254,7 @@
 
   <p-card aria-label="Playbooks">
     <h2 class="text-lg font-semibold tracking-tight">Playbooks</h2>
-    <p class="mt-1 text-sm text-muted-foreground">Each Playbook is a Setup plus its Rule list and archived state. The log form checklist snapshots these Rules when a Trade is logged.</p>
+    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Each Playbook is a Setup plus its Rule list and archived state. The log form checklist snapshots these Rules when a Trade is logged.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <ul class="flex flex-col gap-4">
@@ -271,7 +274,7 @@
             </div>
 
             @if (playbook.rules.length === 0) {
-              <p class="text-xs text-muted-foreground">No Rules yet — add the first below.</p>
+              <p class="text-xs text-surface-600 dark:text-surface-300">No Rules yet — add the first below.</p>
             } @else {
               <ul class="flex flex-col gap-1.5">
                 @for (rule of playbook.rules; track rule; let i = $index) {
@@ -280,12 +283,13 @@
                     <p-button
                       type="button"
                       [attr.aria-label]="'Remove rule ' + rule + ' from ' + playbook.name"
-                      icon="pi pi-times"
                       severity="secondary"
                       [text]="true"
                       size="small"
                       (onClick)="removePlaybookRule(playbook.name, i)"
-                    />
+                    >
+                      <ng-template pTemplate="icon"><ng-icon name="lucideX" class="size-3.5" /></ng-template>
+                    </p-button>
                   </li>
                 }
               </ul>
@@ -303,12 +307,13 @@
                 type="button"
                 [attr.aria-label]="'Add rule to ' + playbook.name"
                 label="Add rule"
-                icon="pi pi-plus"
                 severity="secondary"
                 [outlined]="true"
                 size="small"
                 (onClick)="addPlaybookRule(playbook.name, newRule.value); newRule.value = ''"
-              />
+              >
+                <ng-template pTemplate="icon"><ng-icon name="lucidePlus" class="size-3.5" /></ng-template>
+              </p-button>
             </div>
           </li>
         }
@@ -317,7 +322,7 @@
       @if (archivedPlaybooks().length > 0) {
         <div class="flex flex-col gap-2">
           <span class="text-sm font-semibold">Archived Playbooks</span>
-          <p class="text-xs text-muted-foreground">Archived Playbooks stay in logged Trades but leave the Setup picker.</p>
+          <p class="text-xs text-surface-600 dark:text-surface-300">Archived Playbooks stay in logged Trades but leave the Setup picker.</p>
           <ul class="flex flex-col gap-1.5">
             @for (playbook of archivedPlaybooks(); track playbook.name) {
               <li class="flex items-center gap-2">

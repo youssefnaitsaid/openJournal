@@ -92,13 +92,14 @@
       <p-button
         type="button"
         ariaLabel="Reset filter"
-        icon="pi pi-refresh"
         label="Reset"
         severity="secondary"
         size="small"
         [outlined]="true"
         (onClick)="reset()"
-      />
+      >
+        <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
+      </p-button>
     }
     <p-tag [value]="countText() + ' Trades'" severity="secondary" />
 </div>

@@ -11,8 +11,13 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { provideIcons } from '@ng-icons/core';
-import { lucideArrowDownUp } from '@ng-icons/lucide';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowDownUp,
+  lucideChevronDown,
+  lucideChevronRight,
+  lucideDownload,
+} from '@ng-icons/lucide';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -66,9 +71,14 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
-    provideIcons({ lucideArrowDownUp }),
+    provideIcons({
+      lucideArrowDownUp,
+      lucideChevronDown,
+      lucideChevronRight,
+      lucideDownload,
+    }),
   ],
   selector: 'app-trades',
   styleUrl: './trades.css',

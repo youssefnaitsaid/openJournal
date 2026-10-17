@@ -1,7 +1,13 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { provideIcons } from '@ng-icons/core';
-import { lucideSlidersHorizontal } from '@ng-icons/lucide';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucidePencil,
+  lucidePlus,
+  lucideSlidersHorizontal,
+  lucideTrash2,
+  lucideX,
+} from '@ng-icons/lucide';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -37,6 +43,7 @@ import { PageHero } from '../../ui/page-hero';
 @Component({
   imports: [
     FormsModule,
+    NgIcon,
     ButtonModule,
     CardModule,
     ConfirmDialogModule,
@@ -48,7 +55,13 @@ import { PageHero } from '../../ui/page-hero';
     PageHero,
   ],
   providers: [
-    provideIcons({ lucideSlidersHorizontal }),
+    provideIcons({
+      lucidePencil,
+      lucidePlus,
+      lucideSlidersHorizontal,
+      lucideTrash2,
+      lucideX,
+    }),
     ConfirmationService,
     MessageService,
   ],
@@ -272,7 +285,6 @@ export class Settings {
     this.confirmation.confirm({
       target: undefined,
       message: `Delete "${name}" plus its Trades?`,
-      icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Delete',
       rejectLabel: 'Keep',
       accept: () => this.deletePortfolio(id),

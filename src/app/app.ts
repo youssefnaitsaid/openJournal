@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowDownUp,
@@ -10,6 +10,7 @@ import {
   lucideMenu,
   lucideMoon,
   lucideNotebookPen,
+  lucideSettings,
   lucideSun,
   lucideTrendingDown,
   lucideTrendingUp,
@@ -18,11 +19,9 @@ import {
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
-import { MenuModule } from 'primeng/menu';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToolbarModule } from 'primeng/toolbar';
-import type { MenuItem } from 'primeng/api';
 import { ALL_PORTFOLIOS_ID } from './portfolios';
 import { TradesStore } from './features/trades/trades-store';
 import { ThemeService } from './theme';
@@ -37,12 +36,12 @@ interface NavItem {
   imports: [
     RouterOutlet,
     RouterLink,
+    RouterLinkActive,
     FormsModule,
     NgIcon,
     AvatarModule,
     ButtonModule,
     DrawerModule,
-    MenuModule,
     SelectModule,
     TagModule,
     ToolbarModule,
@@ -56,6 +55,7 @@ interface NavItem {
       lucideMenu,
       lucideMoon,
       lucideNotebookPen,
+      lucideSettings,
       lucideSun,
       lucideTrendingDown,
       lucideTrendingUp,
@@ -85,21 +85,7 @@ export class App {
   ];
 
   protected readonly settingsItems: readonly NavItem[] = [
-    { label: 'Settings', url: '/settings', icon: 'pi pi-cog' },
-  ];
-
-  protected readonly overviewMenu: MenuItem[] = [
-    { label: 'Dashboard', icon: 'pi pi-th-large', routerLink: '/dashboard', command: () => this.closeSidebar() },
-  ];
-
-  protected readonly workspaceMenu: MenuItem[] = [
-    { label: 'Trades', icon: 'pi pi-arrow-right-arrow-left', routerLink: '/trades', command: () => this.closeSidebar() },
-    { label: 'Journal', icon: 'pi pi-book', routerLink: '/journal', command: () => this.closeSidebar() },
-    { label: 'Analytics', icon: 'pi pi-chart-line', routerLink: '/analytics', command: () => this.closeSidebar() },
-  ];
-
-  protected readonly settingsMenu: MenuItem[] = [
-    { label: 'Settings', icon: 'pi pi-cog', routerLink: '/settings', command: () => this.closeSidebar() },
+    { label: 'Settings', url: '/settings', icon: 'lucideSettings' },
   ];
 
   protected readonly portfolioOptions = computed(() => [

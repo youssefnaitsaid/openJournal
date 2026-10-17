@@ -161,7 +161,9 @@
         />
       } @else {
         <div class="mb-2 flex justify-end">
-          <p-button type="button" label="Export CSV" icon="pi pi-download" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()" />
+          <p-button type="button" label="Export CSV" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()">
+            <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
+          </p-button>
         </div>
         <div class="overflow-x-auto">
           <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="{}">
@@ -197,7 +199,9 @@
             <ng-template pTemplate="body" let-trade let-expanded="expanded">
               <tr>
                 <td>
-                  <p-button type="button" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" [text]="true" [rounded]="true" size="small" [pRowToggler]="trade" ariaLabel="Toggle details" />
+                  <p-button type="button" [text]="true" [rounded]="true" size="small" [pRowToggler]="trade" ariaLabel="Toggle details">
+                    <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
+                  </p-button>
                 </td>
                 <td>{{ trade.openedAt | date:'medium' }}</td>
                 <td>{{ trade.closedAt | date:'medium' }}</td>
@@ -210,7 +214,7 @@
                 <td>{{ trade.exitPrice }}</td>
                 <td>{{ trade.gross }}</td>
                 <td>{{ trade.fees }}</td>
-                <td [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
+                <td><p-tag [value]="'' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
                 <td>{{ trade.stopPrice }}</td>
                 <td>{{ trade.takePrice }}</td>
                 <td>{{ trade.risked }}</td>
