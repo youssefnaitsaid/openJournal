@@ -182,7 +182,10 @@ export class Trades {
   private readonly priceFormat = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 4,
   });
+  // en-US currency style already places a loss as "-$100.00", never "$-100.00".
   private readonly moneyFormat = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -193,7 +196,7 @@ export class Trades {
 
   // Money columns read as dollars: grouping plus fixed cents.
   readonly formatMoney = (value: number): string =>
-    `$${this.moneyFormat.format(value)}`;
+    this.moneyFormat.format(value);
 
   readonly formatSignedDollars = formatSignedDollars;
 
