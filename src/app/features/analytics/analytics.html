@@ -46,7 +46,7 @@
         </div>
         @if (breakdownChart().labels.length > 0) {
           <p class="mb-1 text-xs font-medium text-surface-600 dark:text-surface-300">Top 10 by |Net|</p>
-          <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="12rem" ariaLabel="Top 10 by |Net| breakdown chart" />
+          <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="16rem" ariaLabel="Top 10 by |Net| breakdown chart" />
         }
         <!-- The table keeps every breakdown row and stays sortable. -->
         <p-table [value]="[...breakdowns()]">
