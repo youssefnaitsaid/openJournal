@@ -56,11 +56,13 @@ export class Dashboard {
   }
 
   private chartFill(stroke: string): string {
-    // 12% alpha wash under the curve; hex-only guard keeps jsdom defaults safe.
+    // 8% alpha wash under the curve — enough to anchor the line, light
+    // enough not to gray out the chart field; hex-only guard keeps jsdom
+    // defaults safe.
     const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(stroke);
-    if (!m) return 'rgba(113, 113, 122, 0.12)';
+    if (!m) return 'rgba(113, 113, 122, 0.08)';
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(stroke.slice(i, i + 2), 16));
-    return `rgba(${r}, ${g}, ${b}, 0.12)`;
+    return `rgba(${r}, ${g}, ${b}, 0.08)`;
   }
 
   readonly chartData = computed(() => {
