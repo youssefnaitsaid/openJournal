@@ -1,134 +1,159 @@
-<section class="animate-fade-in-up flex flex-col gap-6">
+<section class="flex flex-col gap-6">
   <app-page-hero
     title="Analytics"
-    subtitle="Risk-normalized edge from stored R-Multiples."
+    subtitle="Where does Net P&amp;L come from? Risk read from stored R-Multiples."
     icon="lucideChartLine"
   />
 
-  <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3" />
-
-  <p-card>
+  @if (!hasPortfolioTrades()) {
+    <!-- Empty Portfolio: ONE onboarding state, never three repeated messages. -->
+    <app-empty-state
+      icon="lucideInbox"
+      title="No Trades yet"
+      description="Log your first Trade to see where Net P&L comes from."
+      actionLabel="Log your first Trade"
+      (action)="goToTrades()"
+    />
+  } @else {
     <app-filter-bar />
-  </p-card>
 
-  <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per value">
-    <div class="mb-3 flex justify-end">
-      <p-select
-        aria-label="Breakdown dimension"
-        [options]="[...dimensions]"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="dimension()"
-        (onChange)="dimension.set($event.value)"
-      />
-    </div>
-    @if (breakdowns().length === 0) {
-      <app-empty-state
-        icon="lucideInbox"
-        title="No trades yet"
-        description="Log your first trade to see risk-adjusted edge here."
-      />
-    } @else {
-      @if (breakdownChart().labels.length > 0) {
-        <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="12rem" ariaLabel="Breakdown Net chart" />
+    <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per value">
+      @if (filteredEmpty()) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No Trades match this filter"
+          description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
+        />
+      } @else {
+        <!-- R-metrics KPI band in the section header (replaces the tile strip). -->
+        <dl class="mb-4 grid grid-cols-1 gap-x-8 gap-y-2 border-b border-surface-200 pb-3 text-sm tabular-nums sm:grid-cols-2 lg:grid-cols-3 dark:border-surface-700" aria-label="R-metrics summary">
+          @for (line of kpiBand(); track line.label) {
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt>
+              <dd class="font-semibold">{{ line.value }}</dd>
+            </div>
+          }
+        </dl>
+        <div class="mb-3 flex justify-end">
+          <p-select
+            aria-label="Breakdown dimension"
+            [options]="[...dimensions]"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="dimension()"
+            (onChange)="dimension.set($event.value)"
+          />
+        </div>
+        @if (breakdownChart().labels.length > 0) {
+          <p class="mb-1 text-xs font-medium text-surface-600 dark:text-surface-300">Top 10 by |Net|</p>
+          <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="12rem" ariaLabel="Top 10 by |Net| breakdown chart" />
+        }
+        <!-- The table keeps every breakdown row and stays sortable. -->
+        <p-table [value]="[...breakdowns()]">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="value">{{ dimensionLabel() }} <p-sortIcon field="value" /></th>
+              <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
+              <th pSortableColumn="netTotal" class="text-right">Net P&amp;L <p-sortIcon field="netTotal" /></th>
+              <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
+              <th pSortableColumn="avgR" class="text-right">Avg R-Multiple <p-sortIcon field="avgR" /></th>
+              <th pSortableColumn="avgCompliance" class="text-right">Avg Compliance <p-sortIcon field="avgCompliance" /></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="font-medium">{{ row.value }}</td>
+              <td class="text-right tabular-nums">{{ row.trades }}</td>
+              <td class="text-right"><p-tag [value]="formatSignedDollars(row.netTotal)" [severity]="row.netTotal > 0 ? 'success' : row.netTotal < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right tabular-nums">{{ formatPercent(row.winRate) }}</td>
+              <td class="text-right"><p-tag [value]="formatR(row.avgR)" [severity]="row.avgR > 0 ? 'success' : row.avgR < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right tabular-nums">{{ formatCompliance(row.avgCompliance) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
       }
-      <p-table [value]="[...breakdowns()]">
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="value">{{ dimensionLabel() }} <p-sortIcon field="value" /></th>
-            <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
-            <th pSortableColumn="netTotal" class="text-right">Net P&amp;L <p-sortIcon field="netTotal" /></th>
-            <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
-            <th pSortableColumn="avgR" class="text-right">Avg R-Multiple <p-sortIcon field="avgR" /></th>
-            <th pSortableColumn="avgCompliance" class="text-right">Avg Compliance <p-sortIcon field="avgCompliance" /></th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="font-medium">{{ row.value }}</td>
-            <td class="text-right">{{ row.trades }}</td>
-            <td class="text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
-            <td class="text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
-            <td class="text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
-            <td class="text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    }
-  </p-card>
+    </p-card>
 
-  <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per time bucket">
-    <div class="mb-3 flex justify-end">
-      <p-select
-        aria-label="Time-pattern dimension"
-        [options]="[...timeDimensions]"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="timeDimension()"
-        (onChange)="timeDimension.set($event.value)"
-      />
-    </div>
-    @if (timePatterns().length === 0) {
-      <app-empty-state
-        icon="lucideInbox"
-        title="No trades yet"
-        description="Log your first trade to see time-patterned edge here."
-      />
-    } @else {
-      <p-table [value]="[...timePatterns()]">
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="value">{{ timeDimensionLabel() }} <p-sortIcon field="value" /></th>
-            <th pSortableColumn="trades" class="text-right">Trades <p-sortIcon field="trades" /></th>
-            <th pSortableColumn="netTotal" class="text-right">Net P&amp;L <p-sortIcon field="netTotal" /></th>
-            <th pSortableColumn="winRate" class="text-right">Win-rate <p-sortIcon field="winRate" /></th>
-            <th pSortableColumn="avgR" class="text-right">Avg R-Multiple <p-sortIcon field="avgR" /></th>
-            <th pSortableColumn="avgCompliance" class="text-right">Avg Compliance <p-sortIcon field="avgCompliance" /></th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="font-medium">{{ row.value }}</td>
-            <td class="text-right">{{ row.trades }}</td>
-            <td class="text-right" [class]="row.netTotal > 0 ? 'text-success' : row.netTotal < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.netTotal) }}</td>
-            <td class="text-right text-foreground">{{ formatPercent(row.winRate) }}</td>
-            <td class="text-right" [class]="row.avgR > 0 ? 'text-success' : row.avgR < 0 ? 'text-destructive' : 'text-foreground'">{{ formatR(row.avgR) }}</td>
-            <td class="text-right text-foreground">{{ formatCompliance(row.avgCompliance) }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    }
-  </p-card>
-
-  <p-card header="Compliance vs outcome" subheader="100% followed vs partial checklists, unscored excluded">
-    @if (compliance().scored === 0) {
-      <app-empty-state
-        icon="lucideInbox"
-        title="No scored trades yet"
-        description="Touch a playbook checklist when logging to score compliance."
-      />
-    } @else {
-      <p-table [value]="complianceRows()">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Bucket</th>
-            <th class="text-right">Trades</th>
-            <th class="text-right">Net P&amp;L</th>
-            <th class="text-right">Win-rate</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="font-medium">{{ row.bucket }}</td>
-            <td class="text-right">{{ row.bucketTrades }}</td>
-            <td class="text-right" [class]="row.bucketNet > 0 ? 'text-success' : row.bucketNet < 0 ? 'text-destructive' : 'text-foreground'">{{ formatSignedDollars(row.bucketNet) }}</td>
-            <td class="text-right text-foreground">{{ formatPercent(row.bucketWinRate) }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (compliance().unscored > 0) {
-        <p class="mt-2 text-xs text-muted-foreground">{{ compliance().unscored }} unscored {{ compliance().unscored === 1 ? 'trade' : 'trades' }} excluded.</p>
+    <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per time bucket">
+      @if (filteredEmpty()) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No Trades match this filter"
+          description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
+        />
+      } @else {
+        <div class="mb-3 flex justify-end">
+          <p-select
+            aria-label="Time-pattern dimension"
+            [options]="[...timeDimensions]"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="timeDimension()"
+            (onChange)="timeDimension.set($event.value)"
+          />
+        </div>
+        <!-- Fixed chronological rows (Monday→Sunday, 00→23, Intraday→Swing) — never re-sorted by value. -->
+        <p-table [value]="[...timePatterns()]">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>{{ timeDimensionLabel() }}</th>
+              <th class="text-right">Trades</th>
+              <th class="text-right">Net P&amp;L</th>
+              <th class="text-right">Win-rate</th>
+              <th class="text-right">Avg R-Multiple</th>
+              <th class="text-right">Avg Compliance</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="font-medium">{{ row.value }}</td>
+              <td class="text-right tabular-nums">{{ row.trades }}</td>
+              <td class="text-right"><p-tag [value]="formatSignedDollars(row.netTotal)" [severity]="row.netTotal > 0 ? 'success' : row.netTotal < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right tabular-nums">{{ formatPercent(row.winRate) }}</td>
+              <td class="text-right"><p-tag [value]="formatR(row.avgR)" [severity]="row.avgR > 0 ? 'success' : row.avgR < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right tabular-nums">{{ formatCompliance(row.avgCompliance) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
       }
-    }
-  </p-card>
+    </p-card>
+
+    <p-card header="Compliance vs outcome" subheader="100% followed vs partial checklists, unscored excluded">
+      @if (filteredEmpty()) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No Trades match this filter"
+          description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
+        />
+      } @else if (compliance().scored === 0) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No scored trades yet"
+          description="Touch a playbook checklist when logging to score compliance."
+        />
+      } @else {
+        <p-table [value]="complianceRows()">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Bucket</th>
+              <th class="text-right">Trades</th>
+              <th class="text-right">Net P&amp;L</th>
+              <th class="text-right">Win-rate</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="font-medium">{{ row.bucket }}</td>
+              <td class="text-right tabular-nums">{{ row.bucketTrades }}</td>
+              <td class="text-right"><p-tag [value]="formatSignedDollars(row.bucketNet)" [severity]="row.bucketNet > 0 ? 'success' : row.bucketNet < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right tabular-nums">{{ formatPercent(row.bucketWinRate) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+        @if (compliance().unscored > 0) {
+          <p class="mt-2 text-xs text-surface-600 dark:text-surface-300">{{ compliance().unscored }} unscored {{ compliance().unscored === 1 ? 'trade' : 'trades' }} excluded.</p>
+        }
+      }
+    </p-card>
+  }
 </section>

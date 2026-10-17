@@ -1,22 +1,35 @@
-<section class="animate-fade-in-up flex flex-col gap-6">
+<section class="flex flex-col gap-6">
   <app-page-hero
+    aria-label="Trades hero"
     title="Trades"
-    subtitle="Log closed Trades once, review the full history."
+    subtitle="Capture a closed Trade once, then find and inspect any Trade fast."
     icon="lucideArrowDownUp"
   >
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm">
-      {{ store.activeName() }} · {{ rows().length }} {{ rows().length === 1 ? 'Trade' : 'Trades' }}
-    </span>
+    @if (store.isFiltering()) {
+      <span class="text-sm font-medium tabular-nums text-surface-600 dark:text-surface-300">
+        {{ rows().length }} of {{ historyTotal() }} {{ historyTotal() === 1 ? 'Trade' : 'Trades' }}
+      </span>
+    } @else {
+      <span class="text-sm font-medium tabular-nums text-surface-600 dark:text-surface-300">
+        {{ historyTotal() }} {{ historyTotal() === 1 ? 'Trade' : 'Trades' }}
+      </span>
+    }
+    <p-button
+      type="button"
+      [label]="logFormOpen() ? 'Close' : 'Log Trade'"
+      (onClick)="toggleLogForm()"
+    />
   </app-page-hero>
 
   @if (todayGuardLabels().length > 0) {
     <p-message severity="warn" aria-label="Today guard status">Today breached Guard: {{ todayGuardLabels().join(', ') }}</p-message>
   }
 
+  @if (logFormOpen()) {
   <p-card header="Log trade" subheader="One closed round-trip with an entry and an exit">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 md:grid-cols-2">
       <label class="flex flex-col gap-1 text-sm">Asset
-        <input pInputText formControlName="asset" />
+        <input pInputText formControlName="asset" #assetInput />
         @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
           <p-message severity="error">Asset is required.</p-message>
         }
@@ -75,41 +88,8 @@
       <label class="flex flex-col gap-1 text-sm">Setup
         <p-select formControlName="setup" [options]="setupOptions()" />
       </label>
-      <div class="flex flex-col gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
-        <span class="font-medium">Playbook rules for {{ playbook().setup }}</span>
-        @if (playbook().rules.length === 0) {
-          <span class="text-xs text-muted-foreground">No rules yet — add the first below. Trades logged without rules stay unscored.</span>
-        } @else {
-          <ul class="flex flex-col gap-1">
-            @for (rule of playbook().rules; track rule; let i = $index) {
-              <li class="flex items-center gap-2">
-                <span class="flex-1">{{ rule }}</span>
-                <p-button type="button" size="small" severity="secondary" label="Remove" [ariaLabel]="'Remove rule ' + rule" (onClick)="removeRule(i)" />
-              </li>
-            }
-          </ul>
-        }
-        <div class="flex gap-2">
-          <input pInputText #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 text-sm" />
-          <p-button type="button" severity="secondary" label="Add rule" (onClick)="addRule(newRule.value); newRule.value = ''" />
-        </div>
-        <p-button type="button" severity="secondary" [label]="playbook().archived ? 'Unarchive setup' : 'Archive setup'" (onClick)="togglePlaybookArchived()" />
-        @if (archivedPlaybooks().length > 0) {
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-foreground">Archived setups stay in history:</span>
-            <ul class="flex flex-col gap-1">
-              @for (name of archivedPlaybooks(); track name) {
-                <li class="flex items-center gap-2">
-                  <span class="flex-1 text-xs">{{ name }}</span>
-                  <p-button type="button" size="small" severity="secondary" label="Unarchive" [ariaLabel]="'Unarchive ' + name" (onClick)="unarchivePlaybook(name)" />
-                </li>
-              }
-            </ul>
-          </div>
-        }
-      </div>
       @if (checks().length > 0) {
-        <fieldset class="flex flex-col gap-1 rounded-xl border border-border bg-background px-3 py-2 text-sm">
+        <fieldset class="flex flex-col gap-1 rounded-xl border border-surface-200 bg-surface-0 px-3 py-2 text-sm dark:border-surface-700 dark:bg-surface-900">
           <legend class="px-1 text-sm">Playbook checklist (optional)</legend>
           @for (check of checks(); track check.text; let i = $index) {
             <div class="inline-flex items-center gap-2 text-sm">
@@ -117,7 +97,8 @@
               {{ check.text }}
             </div>
           }
-          <span class="text-xs text-muted-foreground">Untouched checklist logs the Trade unscored, like a blank Grade.</span>
+          <span class="text-xs text-surface-600 dark:text-surface-300">Untouched checklist logs the Trade unscored, like a blank Grade. Rules are snapshotted onto the Trade at capture (ADR-0002).</span>
+          <a routerLink="/settings" class="mt-1 text-xs font-medium text-primary">Manage playbooks</a>
         </fieldset>
       }
       <label class="flex flex-col gap-1 text-sm">Emotion before
@@ -143,75 +124,49 @@
       </label>
       <label class="flex flex-col gap-1 text-sm">Tags (optional, comma-separated)
         <input pInputText formControlName="tags" list="tag-options" placeholder="FOMC, earnings" />
-        <span class="text-xs text-muted-foreground">Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
+        <span class="text-xs text-surface-600 dark:text-surface-300">Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
         <datalist id="tag-options">
           @for (t of tagOptions(); track t) { <option [value]="t"></option> }
         </datalist>
       </label>
-      <div class="sm:col-span-2">
+      <div class="flex items-center gap-2 md:col-span-2">
         <p-button type="submit" label="Log trade" [disabled]="!store.canLog()" />
+        <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="closeLogForm()" />
         @if (!store.canLog()) {
-          <p class="text-sm text-muted-foreground">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
+          <p class="text-sm text-surface-600 dark:text-surface-300">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
         }
       </div>
     </form>
   </p-card>
-
-  <p-card header="Custom tags" subheader="Grow your Setup, Emotion, Mistake, and Tag vocabulary">
-    <form class="flex flex-col gap-2" aria-label="Custom tags">
-      <div class="flex gap-2">
-        <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add setup" (onClick)="addCustomSetup(newSetup.value); newSetup.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add emotion" (onClick)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add mistake" (onClick)="addCustomMistake(newMistake.value); newMistake.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add tag" (onClick)="addCustomTag(newTag.value); newTag.value = ''" />
-      </div>
-    </form>
-  </p-card>
+  }
 
   <p-card header="Trade history" subheader="Newest close first">
     <div>
       <app-filter-bar />
-      <div class="mb-3 mt-3 flex flex-wrap items-center gap-2" aria-label="Trade filters">
-        <label class="inline-flex items-center gap-2 text-sm text-muted-foreground">Grade
-          <p-select
-            aria-label="Grade filter"
-            [options]="gradeFilterOptions"
-            [ngModel]="gradeFilter()"
-            (onChange)="gradeFilter.set($event.value)"
-          />
-        </label>
-        <p-button
-          type="button"
-          label="Needs review"
-          [attr.aria-pressed]="needsReview()"
-          [severity]="needsReview() ? undefined : 'secondary'"
-          (onClick)="toggleReview()"
-        />
-      </div>
-      @if (rows().length === 0) {
+      @if (rows().length === 0 && store.isFiltering()) {
         <app-empty-state
           icon="lucideInbox"
-          title="No trades yet"
-          description="Log your first trade above."
-          actionLabel="Log trade"
-          (action)="goToForm()"
+          title="No Trades match this filter"
+          description="Every Trade in this Portfolio is cut by the active filter."
+          actionLabel="Reset filters"
+          (action)="resetFilters()"
+        />
+      } @else if (rows().length === 0) {
+        <app-empty-state
+          icon="lucideInbox"
+          title="No Trades yet"
+          description="Log your first Trade to start the history."
+          actionLabel="Log your first Trade"
+          (action)="openLogForm()"
         />
       } @else {
         <div class="mb-2 flex justify-end">
-          <p-button type="button" label="Export CSV" icon="pi pi-download" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()" />
+          <p-button type="button" label="Export CSV" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()">
+            <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
+          </p-button>
         </div>
         <div class="overflow-x-auto">
-          <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="{}">
+          <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
             <ng-template pTemplate="header">
               <tr>
                 <th class="w-10"></th>
@@ -244,7 +199,9 @@
             <ng-template pTemplate="body" let-trade let-expanded="expanded">
               <tr>
                 <td>
-                  <p-button type="button" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" [text]="true" [rounded]="true" size="small" [pRowToggler]="trade" ariaLabel="Toggle details" />
+                  <p-button type="button" [text]="true" [rounded]="true" size="small" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
+                    <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
+                  </p-button>
                 </td>
                 <td>{{ trade.openedAt | date:'medium' }}</td>
                 <td>{{ trade.closedAt | date:'medium' }}</td>
@@ -257,7 +214,7 @@
                 <td>{{ trade.exitPrice }}</td>
                 <td>{{ trade.gross }}</td>
                 <td>{{ trade.fees }}</td>
-                <td [class]="trade.net >= 0 ? 'text-success' : 'text-destructive'">{{ trade.net }}</td>
+                <td><p-tag [value]="'' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
                 <td>{{ trade.stopPrice }}</td>
                 <td>{{ trade.takePrice }}</td>
                 <td>{{ trade.risked }}</td>
@@ -290,7 +247,7 @@
                 </td>
               </tr>
             </ng-template>
-            <ng-template pTemplate="rowexpansion" let-trade>
+            <ng-template pTemplate="expandedrow" let-trade>
               <tr>
                 <td colspan="26">
                   <div class="flex flex-col gap-2 text-sm">

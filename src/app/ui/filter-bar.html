@@ -1,5 +1,4 @@
-<p-card aria-label="Global filter">
-  <div class="flex flex-wrap items-center gap-2">
+<div class="flex flex-wrap items-center gap-2">
     <span class="inline-flex items-center gap-1.5 text-sm font-medium">
       <ng-icon name="lucideListFilter" class="size-4" />
       Filter
@@ -73,18 +72,34 @@
         size="small"
       />
     </label>
+    <label class="inline-flex items-center gap-1.5 text-sm">Grade
+      <p-select
+        ariaLabel="Grade filter"
+        [options]="gradeSelectOptions"
+        [ngModel]="store.filter().grade"
+        (onChange)="onGradeChange($event)"
+        size="small"
+      />
+    </label>
+    <p-toggleButton
+      ariaLabel="Needs review filter"
+      onLabel="Needs review"
+      offLabel="Needs review"
+      [(ngModel)]="needsReviewModel"
+      size="small"
+    />
     @if (store.isFiltering()) {
       <p-button
         type="button"
         ariaLabel="Reset filter"
-        icon="pi pi-refresh"
         label="Reset"
         severity="secondary"
         size="small"
         [outlined]="true"
         (onClick)="reset()"
-      />
+      >
+        <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
+      </p-button>
     }
     <p-tag [value]="countText() + ' Trades'" severity="secondary" />
-  </div>
-</p-card>
+</div>

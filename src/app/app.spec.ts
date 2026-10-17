@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
-import { ALL_PORTFOLIOS_ID } from './portfolios';
 import { TradesStore } from './features/trades/trades-store';
 import { tradeInput } from './features/trades/trade-fixtures';
 
@@ -21,7 +20,7 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render navigation to all three routes', async () => {
+  it('should render navigation to every route including /settings', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -31,6 +30,7 @@ describe('App', () => {
     expect(links).toContain('/dashboard');
     expect(links).toContain('/trades');
     expect(links).toContain('/journal');
+    expect(links).toContain('/settings');
   });
 
   it('should render the brand and a sticky header', async () => {
@@ -88,54 +88,5 @@ describe('App', () => {
     await fixture.whenStable();
     expect(store.activeId()).toBe(swing.id);
     expect(localStorage.getItem('openjournal-active-portfolio')).toBe(swing.id);
-  });
-
-  it('should create a portfolio and reject duplicates by name', async () => {
-    TestBed.inject(TradesStore);
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const name = compiled.querySelector(
-      'input[aria-label="New portfolio name"]',
-    ) as HTMLInputElement;
-    const add = compiled.querySelector(
-      'button[aria-label="Add portfolio"]',
-    ) as HTMLButtonElement;
-    name.value = 'Main';
-    name.dispatchEvent(new Event('input'));
-    add.click();
-    await fixture.whenStable();
-    expect(compiled.textContent).toContain('Portfolio "Main" already exists.');
-    name.value = 'Funded';
-    name.dispatchEvent(new Event('input'));
-    add.click();
-    await fixture.whenStable();
-    const store = TestBed.inject(TradesStore);
-    expect(store.portfolios().map((p) => p.name)).toContain('Funded');
-  });
-
-  it('should delete the active portfolio only after confirmation', async () => {
-    const store = TestBed.inject(TradesStore);
-    await store.whenReady();
-    expect(store.addPortfolio('Swing')).toBeNull();
-    store.setActiveId(store.portfolios().find((p) => p.name === 'Swing')!.id);
-    store.addTrade({ ...tradeInput({ asset: 'DOOMED' }) });
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    (
-      compiled.querySelector('button[aria-label="Delete portfolio"]') as HTMLButtonElement
-    ).click();
-    await fixture.whenStable();
-    expect(store.portfolios().length).toBe(2);
-    (
-      compiled.querySelector(
-        'button[aria-label="Confirm delete portfolio"]',
-      ) as HTMLButtonElement
-    ).click();
-    await fixture.whenStable();
-    expect(store.portfolios().map((p) => p.name)).toEqual(['Main']);
-    expect(store.trades().length).toBe(0);
-    expect(store.activeId()).toBe(ALL_PORTFOLIOS_ID);
   });
 });

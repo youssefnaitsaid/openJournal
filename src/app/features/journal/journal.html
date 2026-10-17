@@ -1,30 +1,36 @@
-<section class="animate-fade-in-up flex flex-col gap-6">
+<section class="flex flex-col gap-6">
   <app-page-hero
     title="Journal"
-    subtitle="Calendar day view of closed Trades plus month summary."
+    subtitle="Review your process, one month at a time."
     icon="lucideCalendarDays"
   >
     <p-button
       type="button"
       ariaLabel="Previous month"
-      icon="pi pi-chevron-left"
       label="Prev"
       severity="secondary"
       size="small"
       [outlined]="true"
       (onClick)="prev()"
-    />
+    >
+      <ng-template pTemplate="icon">
+        <ng-icon name="lucideChevronLeft" />
+      </ng-template>
+    </p-button>
     <p-button
       type="button"
       ariaLabel="Next month"
-      icon="pi pi-chevron-right"
-      iconPos="right"
       label="Next"
+      iconPos="right"
       severity="secondary"
       size="small"
       [outlined]="true"
       (onClick)="next()"
-    />
+    >
+      <ng-template pTemplate="icon">
+        <ng-icon name="lucideChevronRight" />
+      </ng-template>
+    </p-button>
     <p-button
       type="button"
       ariaLabel="This month"
@@ -36,66 +42,17 @@
     />
   </app-page-hero>
 
-  <div class="grid gap-3 sm:grid-cols-2">
-    <p-card>
-      <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Month Net</p>
-      <p class="mt-1 text-lg font-bold" [class]="summary().monthNet >= 0 ? 'text-success' : 'text-destructive'">
-        {{ summary().monthNet > 0 ? '+' + summary().monthNet : summary().monthNet }}
-      </p>
-    </p-card>
-    <p-card>
-      <p class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Balance at month end</p>
-      <p class="mt-1 text-lg font-bold text-foreground">{{ summary().balanceEnd }}</p>
-    </p-card>
-  </div>
-
-  <p-card header="Month report card" subheader="Auto-generated from this month's closed Trades." aria-label="Month report card">
-    <div class="mb-3 flex justify-end">
-      <p-button
-        type="button"
-        ariaLabel="Copy month report card"
-        [icon]="copied() ? 'pi pi-check' : 'pi pi-copy'"
-        [label]="copied() ? 'Copied' : 'Copy'"
-        severity="secondary"
-        size="small"
-        [outlined]="true"
-        (onClick)="copyReport()"
-      />
-    </div>
-    <div>
-      <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-        <dt class="text-muted-foreground">Total Trades</dt>
-        <dd class="text-foreground">Trades: {{ reportCard().totalTrades }}</dd>
-        <dt class="text-muted-foreground">Net P&L</dt>
-        <dd class="font-medium" [class]="reportCard().netTotal < 0 ? 'text-destructive' : 'text-success'">{{ signedDollars(reportCard().netTotal) }}</dd>
-        <dt class="text-muted-foreground">Win-rate</dt>
-        <dd class="text-foreground">{{ formatPercent(reportCard().winRate) }}%</dd>
-        <dt class="text-muted-foreground">Profit Factor</dt>
-        <dd class="text-foreground">{{ profitFactorText(reportCard().profitFactor) }}</dd>
-        <dt class="text-muted-foreground">Best Setup</dt>
-        <dd class="text-foreground">{{ setupText(reportCard().bestSetup) }}</dd>
-        <dt class="text-muted-foreground">Worst Setup</dt>
-        <dd class="text-foreground">{{ setupText(reportCard().worstSetup) }}</dd>
-        <dt class="text-muted-foreground">Top Mistake</dt>
-        <dd class="text-foreground">{{ mistakeText(reportCard().topMistake) }}</dd>
-        <dt class="text-muted-foreground">Compliance</dt>
-        <dd class="text-foreground">{{ complianceText() }}</dd>
-      </dl>
-      <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>
-    </div>
-  </p-card>
-
   <p-card>
     <ng-template pTemplate="header">
       <div class="flex flex-col gap-1">
-        <h2 aria-label="Current month" class="text-lg font-semibold tracking-tight text-foreground">{{ monthLabel() }}</h2>
-        <p class="text-sm text-muted-foreground">Net per day by close date</p>
+        <h2 aria-label="Current month" class="text-lg font-semibold tracking-tight">{{ monthLabel() }}</h2>
+        <p class="text-sm text-surface-600 dark:text-surface-300">Net per day by close date</p>
       </div>
     </ng-template>
     <div>
       <div class="grid grid-cols-7 gap-1" role="grid" aria-label="Month calendar">
         @for (label of dayLabels; track label) {
-          <div class="py-1 text-center text-xs font-medium text-muted-foreground">{{ label }}</div>
+          <div class="py-1 text-center text-xs font-medium text-surface-600 dark:text-surface-300">{{ label }}</div>
         }
         @for (week of weeks(); track $index) {
           @for (cell of week; track cell?.date ?? $index) {
@@ -106,22 +63,25 @@
                 type="button"
                 (click)="selectedDay.set(cell.date)"
                 [attr.aria-pressed]="selectedDay() === cell.date"
-                [class.bg-sidebar-accent]="selectedDay() === cell.date"
-                class="flex min-h-16 flex-col items-start rounded-xl border border-border p-1.5 text-left text-sm hover:bg-sidebar-accent"
+                [class.bg-highlight]="selectedDay() === cell.date"
+                class="flex min-h-16 flex-col items-start rounded-xl border border-surface-200 p-1.5 text-left text-sm hover:bg-surface-50 dark:border-surface-700 dark:hover:bg-surface-800"
               >
-                <span class="text-xs text-muted-foreground">{{ cell.date.slice(8, 10) }}</span>
+                <span class="text-xs text-surface-600 dark:text-surface-300">{{ cell.date.slice(8, 10) }}</span>
                 @if (cell.trades.length > 0) {
-                  <span class="font-medium" [class]="cell.dayNet < 0 ? 'text-destructive' : cell.dayNet > 0 ? 'text-success' : 'text-muted-foreground'">{{ cell.dayNet > 0 ? '+' + cell.dayNet : cell.dayNet }}</span>
+                  <p-tag
+                    [value]="cell.dayNet > 0 ? '+' + cell.dayNet : '' + cell.dayNet"
+                    [severity]="cell.dayNet < 0 ? 'danger' : cell.dayNet > 0 ? 'success' : 'secondary'"
+                  />
                   @if (hasGuards() && dayBreaches(cell.date).length > 0) {
-                    <span class="inline-flex items-center gap-1 font-medium text-warning">
-                      <ng-icon name="lucideShieldAlert" class="size-4" />
+                    <p-tag severity="warn">
+                      <ng-template pTemplate="icon"><ng-icon name="lucideShieldAlert" class="size-3.5" /></ng-template>
                       Guard breached
-                    </span>
+                    </p-tag>
                   } @else if (hasGuards()) {
-                    <span class="inline-flex items-center gap-1 text-success">
-                      <ng-icon name="lucideShieldCheck" class="size-4" />
+                    <p-tag severity="success">
+                      <ng-template pTemplate="icon"><ng-icon name="lucideShieldCheck" class="size-3.5" /></ng-template>
                       Inside Guards
-                    </span>
+                    </p-tag>
                   }
                 }
               </button>
@@ -132,8 +92,8 @@
     </div>
   </p-card>
 
-  <section class="flex flex-col gap-3">
-    <h2 class="text-lg font-semibold tracking-tight text-foreground">Day detail</h2>
+  <section class="flex flex-col gap-3" aria-label="Day detail">
+    <h2 class="text-lg font-semibold tracking-tight">Day detail</h2>
     @if (selectedBreachLabels().length > 0) {
       <p-message severity="warn" role="status">Guard breached: {{ selectedBreachLabels().join(', ') }}</p-message>
     }
@@ -144,9 +104,10 @@
         description="Select a day with closed Trades to review them here."
       />
     } @else {
-      <p-table [value]="selectedTrades()" dataKey="id">
+      <p-table [value]="selectedTrades()" dataKey="id" [expandedRowKeys]="expandedDayRows()">
         <ng-template pTemplate="header">
           <tr>
+            <th class="w-10"></th>
             <th>Asset</th>
             <th>Side</th>
             <th class="text-right">Net</th>
@@ -156,8 +117,15 @@
             <th>Close</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-trade>
+        <ng-template pTemplate="body" let-trade let-expanded="expanded">
           <tr>
+            <td>
+              <p-button type="button" [text]="true" [rounded]="true" size="small" ariaLabel="Toggle details" (onClick)="toggleDayRow(trade.id)">
+                <ng-template pTemplate="icon">
+                  <ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" />
+                </ng-template>
+              </p-button>
+            </td>
             <td class="font-medium">{{ trade.asset }}</td>
             <td>{{ trade.side }}</td>
             <td class="text-right"><p-tag [value]="'Net ' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
@@ -167,25 +135,98 @@
             <td>{{ trade.closedAt | date:'medium' }}</td>
           </tr>
         </ng-template>
+        <ng-template pTemplate="expandedrow" let-trade>
+          <tr>
+            <td colspan="8">
+              <div class="flex flex-col gap-2 text-sm">
+                <p class="text-xs text-surface-600 dark:text-surface-300">{{ trade.openedAt | date:'medium' }} → {{ trade.closedAt | date:'medium' }}</p>
+                <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <dt class="text-surface-600 dark:text-surface-300">Setup</dt>
+                  <dd>{{ trade.setup }}</dd>
+                  <dt class="text-surface-600 dark:text-surface-300">Emotion before</dt>
+                  <dd>{{ trade.emotionBefore }}</dd>
+                  <dt class="text-surface-600 dark:text-surface-300">Emotion after</dt>
+                  <dd>{{ trade.emotionAfter }}</dd>
+                  <dt class="text-surface-600 dark:text-surface-300">Mistake</dt>
+                  <dd>{{ trade.mistake }}</dd>
+                </dl>
+                @if (trade.notes !== '') {
+                  <p>{{ trade.notes }}</p>
+                }
+                <div class="flex flex-col gap-1">
+                  <span class="text-xs text-surface-600 dark:text-surface-300">Playbook snapshot</span>
+                  @if ((trade.rules ?? []).length > 0) {
+                    <ul class="flex flex-col gap-1">
+                      @for (rule of trade.rules; track rule.text) {
+                        <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
+                      }
+                    </ul>
+                  } @else {
+                    <span>Unscored — checklist untouched.</span>
+                  }
+                </div>
+                @if (trade.chartUrl !== '') {
+                  <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="inline-block underline">chart</a>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
       </p-table>
-      @for (trade of selectedTrades(); track trade.id) {
-        <p-card>
-          <h3 class="font-semibold text-foreground">{{ trade.asset }} · {{ trade.side }} · Net {{ trade.net }}</h3>
-          <p class="mt-0.5 text-xs text-muted-foreground">{{ trade.openedAt | date:'medium' }} → {{ trade.closedAt | date:'medium' }}</p>
-          <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <dt class="text-muted-foreground">Setup</dt><dd class="text-foreground">{{ trade.setup }}</dd>
-            <dt class="text-muted-foreground">Emotion before</dt><dd class="text-foreground">{{ trade.emotionBefore }}</dd>
-            <dt class="text-muted-foreground">Emotion after</dt><dd class="text-foreground">{{ trade.emotionAfter }}</dd>
-            <dt class="text-muted-foreground">Mistake</dt><dd class="text-foreground">{{ trade.mistake }}</dd>
-          </dl>
-          @if (trade.chartUrl !== '') {
-            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="mt-2 inline-block text-sm underline">chart</a>
-          }
-          @if (trade.notes !== '') {
-            <p class="mt-1 text-sm text-muted-foreground">{{ trade.notes }}</p>
-          }
-        </p-card>
-      }
     }
   </section>
+
+  @if (monthHasCloses()) {
+    <div class="grid gap-3 sm:grid-cols-2" aria-label="Month summary">
+      <p-card>
+        <p class="text-xs font-medium uppercase text-surface-600 dark:text-surface-300">Month Net</p>
+        <p class="mt-1 text-lg font-bold tabular-nums">
+          {{ summary().monthNet > 0 ? '+' + summary().monthNet : summary().monthNet }}
+        </p>
+      </p-card>
+      <p-card>
+        <p class="text-xs font-medium uppercase text-surface-600 dark:text-surface-300">Balance at month end</p>
+        <p class="mt-1 text-lg font-bold tabular-nums">{{ summary().balanceEnd }}</p>
+      </p-card>
+    </div>
+
+    <p-card header="Month report card" subheader="Auto-generated from this month's closed Trades." aria-label="Month report card">
+      <div class="mb-3 flex justify-end">
+        <p-button
+          type="button"
+          ariaLabel="Copy month report card"
+          [label]="copied() ? 'Copied' : 'Copy'"
+          severity="secondary"
+          size="small"
+          [outlined]="true"
+          (onClick)="copyReport()"
+        >
+          <ng-template pTemplate="icon">
+            <ng-icon [name]="copied() ? 'lucideClipboardCheck' : 'lucideClipboardCopy'" />
+          </ng-template>
+        </p-button>
+      </div>
+      <div>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm tabular-nums">
+          <dt class="text-surface-600 dark:text-surface-300">Total Trades</dt>
+          <dd>Trades: {{ reportCard().totalTrades }}</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Net P&amp;L</dt>
+          <dd><p-tag [value]="signedDollars(reportCard().netTotal)" [severity]="reportCard().netTotal < 0 ? 'danger' : 'success'" /></dd>
+          <dt class="text-surface-600 dark:text-surface-300">Win-rate</dt>
+          <dd>{{ formatPercent(reportCard().winRate) }}%</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Profit Factor</dt>
+          <dd>{{ profitFactorText(reportCard().profitFactor) }}</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Best Setup</dt>
+          <dd>{{ setupText(reportCard().bestSetup) }}</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Worst Setup</dt>
+          <dd>{{ setupText(reportCard().worstSetup) }}</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Top Mistake</dt>
+          <dd>{{ mistakeText(reportCard().topMistake) }}</dd>
+          <dt class="text-surface-600 dark:text-surface-300">Compliance</dt>
+          <dd>{{ complianceText() }}</dd>
+        </dl>
+        <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>
+      </div>
+    </p-card>
+  }
 </section>

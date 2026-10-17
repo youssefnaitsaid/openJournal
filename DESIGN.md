@@ -1,24 +1,33 @@
 # DESIGN.md — PrimeNG Aura Noir/Slate trading desk
 
-Components render at PrimeNG Aura preset defaults customized once as `NoirSlate` (`src/app/app.config.ts` via `definePreset(Aura, …)`): primary maps to the zinc scale (noir monochrome variant), light + dark surfaces map to slate, `darkModeSelector: '.dark'` shared with the existing dark toggle. No per-component visual overrides, no custom palette, no custom motion on components. Source: v21 Noir + Surface theming docs and PrimeNG MCP `chart`/`datepicker`/`drawer`/`toolbar`/`menu`/`select`/`button` APIs.
+Components render at PrimeNG Aura preset defaults customized once as `NoirSlate` (`src/app/app.config.ts` via `definePreset(Aura, …)`): primary maps to the zinc scale (noir monochrome variant), light + dark surfaces map to slate, `darkModeSelector: '.dark'` shared with the existing dark toggle. No per-component visual overrides, no custom palette, no custom motion on components. Source: v21 Noir + Surface theming docs and PrimeNG MCP `chart`/`datepicker`/`drawer`/`toolbar`/`select`/`button` APIs.
 
-Shell and surfaces use Tailwind layout utilities plus PrimeNG structure:
+Five routes, one page goal each (statements pinned in `PRODUCT.md`), one shell. Configuration lives only on /settings, exiled from the Operate pages by ADR-0007. Shell and surfaces use Tailwind layout utilities plus PrimeNG structure:
 
-- shell: `p-drawer` (mobile) + static `aside` with `p-menu` Overview/Workspace, `p-toolbar` header with `p-avatar` brand, `p-tag` Net P&L pill, icon `p-button` nav/dark toggles; Portfolio switcher as `p-select`, inputs as `pInputText`, `p-dialog` manager + `p-confirmdialog` delete + `p-toast` feedback; `@ng-icons/lucide` for icons.
-- data: sortable `p-table` everywhere (Trades history with paginator + CSV export + row expansion for notes and `{rule text, followed}` snapshot; Dashboard recent; Journal day detail; Analytics breakdowns/time-patterns/compliance), `p-chart` line for the balance curve and bar for breakdown Net (runtime `chart.js`), `p-datepicker` for filter range + Guard stop time (`timeOnly`), `p-inputnumber` for balance/Guard/count/price/quantity editors, `p-select` for every categorical axis (Market/Side/Setup/Emotion/Mistake/Grade/dimensions/filters), `p-checkbox` Playbook checklist, `p-textarea` notes, `p-chip` Tags, `p-tag` Net/Grade/Compliance/Guard/count states, `p-message` validation + Guard warnings.
+- shell: `p-drawer` (mobile) + static `aside` (`w-80`, the Aura drawer width) with plain `routerLink` anchors grouped Overview / Workspace / Configuration, active route on `bg-highlight`, `p-select` Portfolio switcher at the foot; `p-toolbar` header with `p-avatar` brand, `p-tag` Net P&L pill, icon `p-button` nav + dark toggles; `p-dialog`/`p-confirmdialog`/`p-toast` only inside /settings; page identity from `app-page-hero` (title + subtitle + one lucide icon + projected headline chips) on every route.
+- data: sortable `p-table` everywhere (Trades history with paginator + CSV export + row expansion for notes and `{rule text, followed}` snapshot; Dashboard recent; Journal day detail; Analytics breakdowns/time-patterns/compliance), `p-chart` line for the balance curve and bar for the "Top 10 by |Net|" breakdown (runtime `chart.js`), `p-datepicker` for filter range + Guard stop time (`timeOnly`), `p-inputnumber` for balance/Guard/count/price/quantity editors, `p-select` for every categorical axis (Market/Side/Setup/Emotion/Mistake/Grade/dimensions/filters), `p-checkbox` Playbook checklist, `p-textarea` notes, `p-chip` Tags, `p-tag` Net/Grade/Compliance/Guard/count states, `p-message` validation + Guard warnings, definition-list KPI bands (tabular numerals) in place of tile strips.
 - domain exceptions with PrimeNG around them: the Journal month calendar stays a custom UTC close-date grid (close-date bucketing, Guard tints, gain `+` prefix, flat `0` neutral, day selection have no PrimeNG equivalent); the log-form timestamps stay `pInputText` datetime-local (reactive form models UTC ISO strings).
 
-The retired idioms never return: kickers/eyebrows, gradient hero/header washes, `rounded-[28px]` hero/card, stat-strip repetition as decoration, `hover-lift`, `animate-count-up`, `stagger-*` delays, colored `border-left` callouts, glass decoration. No hex colors, `rgb()`, `oklch()`, hard-coded Tailwind palette shades (`bg-red-500`, …), arbitrary color values (`bg-[#…]`), or inline `style=` attributes in any `*.html` template. Enforced by `src/app/design-tokens.spec.ts` (248 tests green).
+## Token contract
 
-## Semantic tokens
+The only color sources in templates are the PrimeNG Aura scales that `tailwindcss-primeui` exposes as Tailwind utilities, plus component tokens:
 
-- `success`: gains, positive Net, winning days and cells, 100%-followed rules.
-- `warning`: Guard warnings and breached-but-open states.
-- `destructive`/`danger`: losses, negative Net, errors, destructive actions.
-- `dark`: class-based dark mode on `documentElement`, shared by Tailwind and the PrimeNG Aura preset (`darkModeSelector`).
+- surface scale: `bg-surface-0`, `text-surface-700`, `text-surface-600 dark:text-surface-300` for secondary copy, `border-surface-200 dark:border-surface-700`, `hover:bg-surface-100 dark:hover:bg-surface-800`; `src/styles.css` applies the same pair to `body`.
+- primary scale: `text-primary` / `bg-primary` from the NoirSlate primary (zinc) mapping.
+- selection and tinting: `bg-highlight` (Aura `--p-highlight-background`/`-color`) for the active nav item and the selected calendar day — never a bespoke tint.
+- semantic state: component `severity` — `p-tag` `success`/`danger`/`warn`/`secondary` for gains, losses, Guard status and counts, `p-message severity="error"` for inline validation. No `text-success`/`text-warning`/`text-destructive` classes.
+- dark mode: class-based on `documentElement`, shared by PrimeNG (`darkModeSelector: '.dark'`) and Tailwind via `@custom-variant dark (&:where(.dark, .dark *))` in `src/styles.css`, so `dark:` utilities follow the toggle and not the OS preference.
+
+The shadow semantic-token layer inherited from the retired design language (`--background`, `--foreground`, `--muted-foreground`, `--card`, `--popover`, `--accent`, `--destructive`, `--success`, `--warning`, `--border`, `--input`, `--ring`, `--sidebar-*`, its `@theme inline` `--color-*` mappings and its hand-written `.text-success`/`.text-warning`/`.animate-fade-in-up` utilities) is deleted from `src/styles.css`. No template may name it.
+
+The retired idioms never return: kickers/eyebrows, gradient hero/header washes, `rounded-[28px]` hero/card, stat-strip repetition as decoration, `hover-lift`, `animate-count-up`, `stagger-*` delays, colored `border-left` callouts, glass decoration. No hex colors, `rgb()`, `oklch()`, hard-coded Tailwind palette shades (`bg-red-500`, …), arbitrary color values (`bg-[#…]`), `style=` / `styleClass=` / `[style]` / `[class]` overrides in any `*.html` template.
+
+Icons: every app-authored icon is `@ng-icons/lucide` (`ng-icon`, registered per component through `provideIcons`), including inside PrimeNG buttons via the `icon` template slot. PrimeIcons appear only where PrimeNG renders inside its own components (`p-sortIcon`, the `p-datepicker` trigger).
+
+`src/app/design-tokens.spec.ts` polices the prose above with eight patterns — hard-coded palette, retired shadow tokens, kicker/eyebrow idioms, `animate-fade-in-up`, bespoke `style`/`styleClass`/`[class]` overrides, the deleted `app-quick-stats` tiles, app-authored PrimeIcons, and the retired SaaS template idioms. Each pattern is proven three ways: it fails on a retired-idiom fixture, it accepts the Aura replacement-idiom fixture, and it finds nothing in any template scanned through `import.meta.glob('./**/*.html')` (25 tests green).
 
 ## Notes kept while building
 
-- Tabular numerals in tables; chronological time-pattern rows (Monday→Sunday, 00→23, Intraday→Swing) with all fixed rows present even when empty.
+- Tabular numerals in tables and KPI bands; chronological time-pattern rows (Monday→Sunday, 00→23, Intraday→Swing) with all fixed rows present even when empty.
 - Derivations own the numbers (`.facts` + `GLOSSARY.md` untouched): Net P&L is the single source of truth; filtered views never create a second truth; Compliance/Mistake/Grade stay process signals independent of outcome.
 - Production budget is 1MB warn / 1.5MB error (`angular.json`) for the PrimeNG + `chart.js` runtime.

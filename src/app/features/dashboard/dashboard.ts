@@ -1,56 +1,38 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideTrendingDown,
-  lucideTrendingUp,
-} from '@ng-icons/lucide';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TradesStore } from '../trades/trades-store';
-import { computeMetrics } from './dashboard-metrics';
-import type { BalancePoint } from './dashboard-metrics';
+import {
+  computeKpiBand,
+  computeMetrics,
+  formatGuardStatus,
+  formatPercent,
+  formatProfitFactor,
+  formatSignedDollars,
+} from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
 import {
   GUARD_LABELS,
-  evaluateGuards,
+  evaluateDayGuards,
+  evaluateWeekGuards,
   hasAnyGuard,
-  toGuardFormInput,
-  validateGuardInput,
   weekKeyOfDay,
 } from '../../guards';
-import type { GuardFormInput } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
-import { QuickStats, type QuickStat } from '../../ui/quick-stats';
+import { PageHero } from '../../ui/page-hero';
 
-function toChartPoints(curve: readonly BalancePoint[]): string {
-  if (curve.length === 0) return '';
-  const values = curve.map((p) => p.balance);
-  const min = Math.min(...values);
-  const span = Math.max(...values) - min || 1;
-  return curve
-    .map((p, i) => {
-      const x = curve.length === 1 ? 50 : (i / (curve.length - 1)) * 100;
-      const y = 36 - ((p.balance - min) / span) * 32;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
+interface GuardStatusView {
+  readonly show: boolean;
+  readonly text: string;
 }
 
 @Component({
-  imports: [DatePipe, FormsModule, NgIcon, ButtonModule, CardModule, ChartModule, DatePickerModule, InputNumberModule, InputTextModule, MessageModule, TableModule, TagModule, QuickStats, EmptyState],
-  providers: [
-    provideIcons({ lucideTrendingDown, lucideTrendingUp }),
-  ],
+  imports: [DatePipe, RouterLink, ButtonModule, CardModule, ChartModule, TableModule, TagModule, PageHero, EmptyState],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',
   templateUrl: './dashboard.html',
@@ -60,78 +42,6 @@ export class Dashboard {
   private readonly router = inject(Router);
 
   readonly startingBalance = computed(() => this.store.activeBalance());
-
-  readonly guards = computed(() => this.store.activeGuards());
-  readonly guardInputs = signal<GuardFormInput>(
-    toGuardFormInput(this.store.activeGuards()),
-  );
-  readonly guardErrors = signal<readonly string[]>([]);
-
-  constructor() {
-    effect(() => {
-      this.guardInputs.set(toGuardFormInput(this.guards()));
-      this.guardErrors.set([]);
-    });
-  }
-
-  readonly weekGuardBreaches = computed(() => {
-    const guards = this.guards();
-    if (!hasAnyGuard(guards)) return [];
-    const today = new Date().toISOString().slice(0, 10);
-    const week = weekKeyOfDay(today);
-    return evaluateGuards(this.store.activeTrades(), guards).weeks.get(week)?.breached ?? [];
-  });
-
-  readonly weekStatusText = computed(() => {
-    if (this.store.isAll())
-      return 'All portfolios: Guards are set per Portfolio — select one to manage them';
-    if (!hasAnyGuard(this.guards())) return 'No Guards set';
-    const breached = this.weekGuardBreaches();
-    if (breached.length === 0) return 'This week: inside all Guards';
-    return `This week breached: ${breached.map((breach) => GUARD_LABELS[breach]).join(', ')}`;
-  });
-
-  onGuardField(field: keyof GuardFormInput, event: Event): void {
-    const next = {
-      ...this.guardInputs(),
-      [field]: (event.target as HTMLInputElement).value,
-    };
-    this.guardInputs.set(next);
-    const { settings, errors } = validateGuardInput(next);
-    this.guardErrors.set(errors);
-    if (errors.length === 0) {
-      this.store.saveActiveGuards(settings);
-    }
-  }
-
-  onGuardNumber(field: keyof GuardFormInput, value: number | null): void {
-    this.onGuardField(field, {
-      target: { value: value === null ? '' : String(value) },
-    } as unknown as Event);
-  }
-
-  onGuardStopTime(date: Date | null): void {
-    const text =
-      date === null
-        ? ''
-        : `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    this.onGuardField('stopTime', {
-      target: { value: text },
-    } as unknown as Event);
-  }
-
-  readonly guardStopTimeValue = computed(() => {
-    const raw = this.guardInputs().stopTime;
-    if (raw === '') return null;
-    const [h, m] = raw.split(':').map(Number);
-    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-    const d = new Date();
-    d.setHours(h ?? 0, m ?? 0, 0, 0);
-    return d;
-  });
-
-  readonly toNumberOrNull = (value: string): number | null =>
-    value === '' ? null : Number(value);
 
   readonly chartData = computed(() => {
     const curve = this.metrics().balanceCurve;
@@ -162,16 +72,59 @@ export class Dashboard {
     computeMetrics(this.store.activeTrades(), this.startingBalance()),
   );
 
-  readonly profitFactorText = computed(() => {
-    const pf = this.metrics().profitFactor;
-    return Number.isFinite(pf) ? pf.toFixed(2) : '∞';
-  });
-
-  readonly chartPoints = computed(() =>
-    toChartPoints(this.metrics().balanceCurve),
+  readonly kpiBand = computed(() =>
+    computeKpiBand(this.metrics(), this.startingBalance()),
   );
 
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
+
+  // Empty Portfolio → onboarding branch: hero + one honest card, and the
+  // KPI band / balance chart / recent table are suppressed (not zero-filled).
+  readonly hasTrades = computed(() => this.store.activeTrades().length > 0);
+
+  // Read-only status: shown only while a specific Portfolio has a Guard set.
+  // Under the All aggregate there is no editable Guard SET, so no status line
+  // renders (ticket #35: appears ONLY when Guards are configured; All is
+  // read-only). Editing lives in Settings; this line never renders an input.
+  readonly guardStatus = computed<GuardStatusView>(() => {
+    if (this.store.isAll()) {
+      return { show: false, text: '' };
+    }
+    const guards = this.store.activeGuards();
+    if (!hasAnyGuard(guards)) {
+      return { show: false, text: '' };
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const week = weekKeyOfDay(today);
+    const active = this.store.activeTrades();
+    const todayTrades = active.filter((t) => t.closedAt.slice(0, 10) === today);
+    const weekTrades = active.filter(
+      (t) => weekKeyOfDay(t.closedAt.slice(0, 10)) === week,
+    );
+    const dayNet = todayTrades.reduce((sum, t) => sum + t.net, 0);
+    const weekNet = weekTrades.reduce((sum, t) => sum + t.net, 0);
+    const breaches = [
+      ...evaluateDayGuards(todayTrades, guards).breached,
+      ...evaluateWeekGuards(weekTrades, guards).breached,
+    ].map((breach) => GUARD_LABELS[breach]);
+    return {
+      show: true,
+      text: formatGuardStatus({
+        dailyLoss: { spent: Math.max(0, -dayNet), limit: guards.daily.maxLoss },
+        dailyTrades: {
+          count: todayTrades.length,
+          limit: guards.daily.maxTrades,
+        },
+        dailyStop: guards.daily.stopTime,
+        weeklyLoss: { spent: Math.max(0, -weekNet), limit: guards.weekly.maxLoss },
+        weeklyTrades: {
+          count: weekTrades.length,
+          limit: guards.weekly.maxTrades,
+        },
+        breaches,
+      }),
+    };
+  });
 
   readonly filteredStrip = computed(() => {
     const filtered = this.store.activeFilteredTrades();
@@ -186,52 +139,9 @@ export class Dashboard {
     };
   });
 
-  readonly quickStats = computed<readonly QuickStat[]>(() => {
-    const m = this.metrics();
-    return [
-      {
-        icon: 'lucidePercent',
-        label: 'Trade win %',
-        value: this.formatPercent(m.winRate),
-      },
-      { icon: 'lucideChartLine', label: 'Profit factor', value: this.profitFactorText() },
-      {
-        icon: 'lucideCalendarDays',
-        label: 'Day win %',
-        value: this.formatPercent(m.dayWinRate),
-      },
-      {
-        icon: 'lucideArrowDownUp',
-        label: 'Avg win / loss',
-        value: `${m.avgWin} / ${m.avgLoss}`,
-      },
-      { icon: 'lucideHash', label: 'Total trades', value: `${m.totalTrades}` },
-      {
-        icon: 'lucideTrendingDown',
-        label: 'Max drawdown',
-        value: `$${m.maxDrawdown} · ${this.formatPercent(m.maxDrawdownPct)}%`,
-        valueClass: m.maxDrawdown > 0 ? 'text-destructive' : 'text-foreground',
-      },
-      {
-        icon: 'lucideFlame',
-        label: 'Streaks',
-        value: `W${m.currentWinStreak} · L${m.currentLossStreak} / Best W${m.longestWinStreak} · L${m.longestLossStreak}`,
-      },
-      {
-        icon: 'lucideTarget',
-        label: 'Expectancy / Trade',
-        value: this.formatSignedDollars(m.expectancy),
-        valueClass:
-          m.expectancy > 0
-            ? 'text-success'
-            : m.expectancy < 0
-              ? 'text-destructive'
-              : 'text-foreground',
-      },
-    ];
-  });
-
-  readonly formatPercent = (value: number): string => value.toFixed(2);
+  readonly formatPercent = formatPercent;
+  readonly formatSignedDollars = formatSignedDollars;
+  readonly formatProfitFactor = formatProfitFactor;
 
   readonly formatR = (value: number): string => {
     const abs = Math.abs(value).toFixed(2);
@@ -239,28 +149,6 @@ export class Dashboard {
     if (value < 0) return `-${abs}R`;
     return `0.00R`;
   };
-
-  readonly formatSignedDollars = (value: number): string => {
-    const abs = Math.abs(value).toFixed(2);
-    if (value > 0) return `+$${abs}`;
-    if (value < 0) return `-$${abs}`;
-    return `$0.00`;
-  };
-
-  onBalanceInput(event: Event): void {
-    if (this.store.isAll()) return;
-    const value = Number((event.target as HTMLInputElement).value);
-    if (Number.isFinite(value) && value >= 0) {
-      this.store.setPortfolioBalance(this.store.activeId(), value);
-    }
-  }
-
-  onBalanceNumber(value: number | null): void {
-    if (this.store.isAll() || value === null) return;
-    if (Number.isFinite(value) && value >= 0) {
-      this.store.setPortfolioBalance(this.store.activeId(), value);
-    }
-  }
 
   goToTrades(): void {
     void this.router.navigate(['/trades']);

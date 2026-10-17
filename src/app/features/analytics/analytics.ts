@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TradesStore } from '../trades/trades-store';
 import {
   computeBreakdowns,
@@ -12,20 +13,34 @@ import {
 import { EmptyState } from '../../ui/empty-state';
 import { FilterBar } from '../../ui/filter-bar';
 import { PageHero } from '../../ui/page-hero';
-import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 
 @Component({
-  imports: [FormsModule, EmptyState, FilterBar, PageHero, QuickStats, CardModule, ChartModule, SelectModule, TableModule],
+  imports: [FormsModule, EmptyState, FilterBar, PageHero, CardModule, ChartModule, SelectModule, TableModule, TagModule],
   selector: 'app-analytics',
   styleUrl: './analytics.css',
   templateUrl: './analytics.html',
 })
 export class Analytics {
   readonly store = inject(TradesStore);
+  private readonly router = inject(Router);
+
+  // Honest states: an empty Portfolio shows ONE onboarding card (no band,
+  // no filter bar, no sections); a filter that cuts every Trade shows
+  // filtered-empty per surface instead — never "No Trades yet" over data.
+  readonly hasPortfolioTrades = computed(
+    () => this.store.activeTrades().length > 0,
+  );
+
+  readonly filteredEmpty = computed(
+    () =>
+      this.hasPortfolioTrades() &&
+      this.store.activeFilteredTrades().length === 0,
+  );
 
   readonly metrics = computed(() =>
     computeRMetrics(this.store.activeFilteredTrades()),
@@ -93,8 +108,17 @@ export class Analytics {
     ];
   });
 
+  // Chart-only presentation selection: the ten rows with the largest |Net|,
+  // descending (alphabetical tiebreak). The table below always keeps every
+  // row; computeBreakdowns' derivation and default order are untouched.
   readonly breakdownChart = computed(() => {
-    const rows = this.breakdowns().slice(0, 10);
+    const rows = [...this.breakdowns()]
+      .sort(
+        (a, b) =>
+          Math.abs(b.netTotal) - Math.abs(a.netTotal) ||
+          a.value.localeCompare(b.value),
+      )
+      .slice(0, 10);
     return {
       labels: rows.map((r) => r.value),
       datasets: [
@@ -112,48 +136,17 @@ export class Analytics {
     plugins: { legend: { display: false } },
   };
 
-  readonly quickStats = computed<readonly QuickStat[]>(() => {
+  // Compact R-metrics band in the Breakdown section header — the tile strip
+  // is gone; same metrics, same formatters, label:value definition-list style.
+  readonly kpiBand = computed(() => {
     const m = this.metrics();
     return [
-      {
-        icon: 'lucideTarget',
-        label: 'R-Expectancy (avg R)',
-        value: this.formatR(m.rExpectancy),
-        valueClass: this.rClass(m.rExpectancy),
-      },
-      {
-        icon: 'lucideChartLine',
-        label: 'Median R',
-        value: this.formatR(m.medianR),
-        valueClass: this.rClass(m.medianR),
-      },
-      {
-        icon: 'lucideHash',
-        label: 'R sum',
-        value: this.formatR(m.rSum),
-        valueClass: this.rClass(m.rSum),
-      },
-      {
-        icon: 'lucideFlame',
-        label: 'Total risked',
-        value: this.formatSignedDollars(m.riskedTotal),
-      },
-      {
-        icon: 'lucideArrowDownUp',
-        label: 'Total net',
-        value: this.formatSignedDollars(m.netTotal),
-        valueClass:
-          m.netTotal > 0
-            ? 'text-success'
-            : m.netTotal < 0
-              ? 'text-destructive'
-              : 'text-foreground',
-      },
-      {
-        icon: 'lucidePercent',
-        label: 'Risked coverage',
-        value: `${m.riskedCount} of ${m.totalTrades}`,
-      },
+      { label: 'R-Expectancy (avg R)', value: this.formatR(m.rExpectancy) },
+      { label: 'Median R', value: this.formatR(m.medianR) },
+      { label: 'R sum', value: this.formatR(m.rSum) },
+      { label: 'Risked Amount', value: this.formatSignedDollars(m.riskedTotal) },
+      { label: 'Net P&L', value: this.formatSignedDollars(m.netTotal) },
+      { label: 'Risked coverage', value: `${m.riskedCount} of ${m.totalTrades}` },
     ];
   });
 
@@ -176,6 +169,7 @@ export class Analytics {
   readonly formatCompliance = (value: number | null): string =>
     value === null ? '—' : `${value.toFixed(2)}%`;
 
-  private readonly rClass = (value: number): string =>
-    value > 0 ? 'text-success' : value < 0 ? 'text-destructive' : 'text-foreground';
+  goToTrades(): void {
+    void this.router.navigate(['/trades']);
+  }
 }

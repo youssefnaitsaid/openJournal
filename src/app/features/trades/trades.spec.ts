@@ -1,9 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Trades } from './trades';
+import { routes } from '../../app.routes';
 import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from './trades-store';
 import { tradeInput } from './trade-fixtures';
+import { addTaxonomyValue, setPlaybookArchived, setPlaybookRules } from '../journal/taxonomy';
 import type { Emotion, Grade, Market, Mistake, Setup, Side } from './trade';
 
 function validValues() {
@@ -35,7 +38,201 @@ function validValues() {
 describe('Trades', () => {
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
+  });
+
+  it('opens on history with the log form hidden behind the hero button', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'AAPL' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('form')).toBeNull();
+    const heroButtons = [
+      ...compiled.querySelectorAll('[aria-label="Trades hero"] button'),
+    ];
+    expect(
+      heroButtons.some((b) => b.textContent?.includes('Log Trade')),
+    ).toBe(true);
+    expect(compiled.querySelector('tbody tr')?.textContent).toContain('AAPL');
+  });
+
+  it('reveals the form from the hero button and focuses the first field', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'AAPL' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const heroButton = [
+      ...compiled.querySelectorAll<HTMLButtonElement>('[aria-label="Trades hero"] button'),
+    ].find((b) => b.textContent?.includes('Log Trade'))!;
+    heroButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(compiled.querySelector('form')).not.toBeNull();
+    const assetInput = compiled.querySelector('form input') as HTMLInputElement;
+    expect(assetInput.closest('label')?.textContent).toContain('Asset');
+    expect(document.activeElement).toBe(assetInput);
+  });
+
+  it('collapses the form after a successful save and the new Trade appears in history', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    await fixture.whenStable();
+    fixture.componentInstance.openLogForm();
+    fixture.detectChanges();
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('form')).toBeNull();
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(1);
+    expect(rows[0]).toContain('AAPL');
+  });
+
+  it('shows "No Trades match this filter" with a working Reset when the filter cuts every row', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'KEEP', tags: ['FOMC'] }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    store.setFilter({ tag: 'NO-SUCH-TAG' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('No Trades match this filter');
+    expect(content).not.toContain('Log your first Trade');
+    const reset = [...compiled.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Reset filters'),
+    )!;
+    reset.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(store.isFiltering()).toBe(false);
+    expect(compiled.querySelector('tbody tr')?.textContent).toContain('KEEP');
+  });
+
+  it('offers an onboarding CTA in a truly empty Portfolio and the CTA opens the form', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('No Trades yet');
+    expect(content).toContain('Log your first Trade');
+    expect(content).not.toContain('Reset filters');
+    const cta = [...compiled.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Log your first Trade'),
+    )!;
+    cta.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(compiled.querySelector('form')).not.toBeNull();
+  });
+
+  it('presents honest "n of m" history counts in the hero while filtering', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'FOMC-A', tags: ['FOMC'] }));
+    store.addTrade(tradeInput({ asset: 'PLAIN-B', closedAt: '2026-10-02T14:30:00.000Z' }));
+    store.addTrade(tradeInput({ asset: 'PLAIN-C', closedAt: '2026-10-03T14:30:00.000Z' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const heroText = () =>
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('[aria-label="Trades hero"]')
+        ?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(heroText()).toContain('3 Trades');
+    store.setFilter({ tag: 'FOMC' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(heroText()).toContain('1 of 3 Trades');
+  });
+
+  it('carries a "Manage playbooks" link to Settings and no Playbook CRUD on the page', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    setPlaybookRules('Breakout', ['risk ≤ 1%']);
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    fixture.componentInstance.openLogForm();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('a[href="/settings"]')?.textContent).toContain(
+      'Manage playbooks',
+    );
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).not.toContain('Playbook rules for');
+    expect(content).not.toContain('Add rule');
+    expect(content).not.toContain('Archive');
+  });
+
+  it('snapshots the touched checklist when saving through the revealed form', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await fixture.whenStable();
+    component.openLogForm();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    component.form.setValue(validValues());
+    const compiled = fixture.nativeElement as HTMLElement;
+    const ruleCheck = compiled.querySelector(
+      'form p-checkbox input[type="checkbox"]',
+    ) as HTMLElement;
+    expect(ruleCheck).not.toBeNull();
+    ruleCheck.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades()[0]!.rules).toEqual([
+      { text: 'risk ≤ 1%', followed: true },
+      { text: 'entry on retest', followed: false },
+    ]);
+    expect(store.trades()[0]!.compliance).toBeCloseTo(50, 10);
+    expect((fixture.nativeElement as HTMLElement).querySelector('form')).toBeNull();
+  });
+
+  it('keeps the filter bar flat inside the history card with no nested card chrome', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'AAPL' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('p-card[aria-label="Global filter"]')).toBeNull();
+    expect(compiled.querySelector('app-filter-bar p-card')).toBeNull();
+  });
+
+  it('lays the log form out as a single column below the md breakpoint', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    fixture.componentInstance.openLogForm();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const classes = compiled.querySelector('form')?.className.split(/\s+/) ?? [];
+    expect(classes).toContain('grid-cols-1');
+    expect(classes.some((c) => /^(sm|lg):grid-cols-2$/.test(c))).toBe(false);
+    expect(classes).toContain('md:grid-cols-2');
   });
 
   it('shows a logged Trade in the table with its Net P&L', async () => {
@@ -59,6 +256,8 @@ describe('Trades', () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
+    component.openLogForm();
+    fixture.detectChanges();
     component.form.setValue({ ...validValues(), chartUrl: 'not-a-url' });
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
@@ -102,30 +301,65 @@ describe('Trades', () => {
     expect(compiled.querySelector('[aria-label="Today guard status"]')).toBeNull();
   });
 
+  it('renders the expansion row content when a Trade row is expanded', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade(
+      tradeInput({
+        asset: 'AAPL',
+        notes: 'Held to target',
+        rules: [{ text: 'Plan before entry', followed: true }],
+      }),
+    );
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = () => compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    // At rest the evidence is folded: notes and snapshot are not rendered.
+    expect(content()).not.toContain('Held to target');
+    expect(content()).not.toContain('Plan before entry');
+    const toggles = [
+      ...compiled.querySelectorAll<HTMLButtonElement>('[aria-label="Toggle details"]'),
+    ];
+    expect(toggles.length).toBe(1);
+    toggles[0].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(content()).toContain('Held to target');
+    expect(content()).toContain('Plan before entry');
+    expect(content()).toContain('✓ Plan before entry');
+    // Expansion state survives a later change-detection pass: the table keeps
+    // the note rendered instead of silently clearing the expanded row keys.
+    fixture.detectChanges();
+    expect(content()).toContain('Held to target');
+  });
+
   it('renders an empty state before any Trade is logged', async () => {
     const fixture = TestBed.createComponent(Trades);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('No trades yet');
+    expect(compiled.textContent).toContain('No Trades yet');
   });
 
-  it('offers a call to action in the empty state', async () => {
+  it('renders the history table without the always-open form at rest', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    component.store.addTrade(tradeInput({ asset: 'AAPL' }));
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const actions = [...compiled.querySelectorAll('button')].filter((b) =>
-      b.textContent?.includes('Log trade'),
-    );
-    expect(actions.length).toBe(2);
-    actions[1].click();
+    expect(compiled.querySelector('form')).toBeNull();
+    expect(compiled.querySelector('tbody tr')).not.toBeNull();
   });
 
   it('explains what is missing when submitted empty', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
+    component.openLogForm();
+    fixture.detectChanges();
     component.form.controls.quantity.setValue(0);
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
@@ -140,12 +374,13 @@ describe('Trades', () => {
     expect(content).toContain('Closed at is required');
   });
 
-  it('offers a user-added setup without code changes', async () => {    const fixture = TestBed.createComponent(Trades);
+  it('offers a user-added setup in the picker without code changes', async () => {
+    addTaxonomyValue('setup', 'Opening-drive');
+    const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
-    component.addCustomSetup('Opening-drive');
+    await component.store.whenReady();
     await fixture.whenStable();
     expect(component.setupOptions()).toContain('Opening-drive');
-    expect(component.form.controls.setup.value).toBe('Opening-drive');
     expect(
       JSON.parse(
         localStorage.getItem('openjournal-taxonomy') ?? '{}',
@@ -284,7 +519,7 @@ describe('Trades', () => {
     expect(store.trades()[0]!.grade).toBe('B');
   });
 
-  it('filters by Grade and reviews C and D worst-first, restoring defaults off', async () => {
+  it('filters rows by the global Grade and Needs review axes, newest close first', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
@@ -308,26 +543,23 @@ describe('Trades', () => {
       'A-OLD',
     ]);
 
-    component.gradeFilter.set('C');
+    store.setFilter({ grade: 'C' });
     expect(component.rows().map((t) => t.asset)).toEqual(['C-MID']);
 
-    component.gradeFilter.set('');
-    component.toggleReview();
+    store.setFilter({ grade: '', needsReview: true });
     expect(component.rows().map((t) => t.asset)).toEqual([
       'D-NEW',
-      'D-OLD',
       'C-MID',
+      'D-OLD',
     ]);
 
-    component.gradeFilter.set('D');
+    store.setFilter({ grade: 'D' });
     expect(component.rows().map((t) => t.asset)).toEqual(['D-NEW', 'D-OLD']);
 
-    component.gradeFilter.set('A');
+    store.setFilter({ grade: 'A' });
     expect(component.rows()).toEqual([]);
 
-    component.gradeFilter.set('');
-    component.toggleReview();
-    expect(component.gradeFilter()).toBe('');
+    store.resetFilter();
     expect(component.rows().map((t) => t.asset)).toEqual([
       'D-NEW',
       'C-MID',
@@ -368,18 +600,17 @@ describe('Trades', () => {
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A', 'PLAIN-B']);
     store.setFilter({ tag: 'FOMC' });
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
-    component.gradeFilter.set('B');
+    store.setFilter({ grade: 'B' });
     expect(component.rows()).toEqual([]);
-    component.gradeFilter.set('A');
+    store.setFilter({ grade: 'A' });
     expect(component.rows().map((t) => t.asset)).toEqual(['FOMC-A']);
   });
 
   it('logs unscored when the playbook checklist is untouched', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
-    component.addRule('entry on retest');
     expect(component.checks()).toHaveLength(2);
     component.form.setValue(validValues());
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -391,11 +622,10 @@ describe('Trades', () => {
   });
 
   it('freezes a touched checklist as the Trade snapshot with compliance', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
-    component.addRule('entry on retest');
     component.form.setValue(validValues());
     component.toggleCheck(0);
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -418,31 +648,29 @@ describe('Trades', () => {
   });
 
   it('keeps the snapshot frozen when playbook rules change later', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
     component.form.setValue(validValues());
     component.toggleCheck(0);
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
-    component.addRule('entry on retest');
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const store = TestBed.inject(TradesStore);
     expect(store.trades()[0]!.rules).toEqual([{ text: 'risk ≤ 1%', followed: true }]);
     expect(store.trades()[0]!.compliance).toBe(100);
   });
 
-  it('hides archived setups from the picker while keeping history', async () => {
+  it('hides archived Playbooks from the Setup picker while keeping history', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
     expect(component.setupOptions()).toContain('Breakout');
-    component.togglePlaybookArchived();
+    setPlaybookArchived('Breakout', true);
     expect(component.setupOptions()).not.toContain('Breakout');
-    expect(component.archivedPlaybooks()).toContain('Breakout');
-    component.unarchivePlaybook('Breakout');
+    setPlaybookArchived('Breakout', false);
     expect(component.setupOptions()).toContain('Breakout');
-    expect(component.archivedPlaybooks()).not.toContain('Breakout');
   });
 
   it('scopes table rows to the active portfolio', async () => {
@@ -469,6 +697,9 @@ describe('Trades', () => {
     store.addTrade({ ...tradeInput({ asset: 'MES' }) });
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
+    await fixture.whenStable();
+    component.openLogForm();
+    fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(

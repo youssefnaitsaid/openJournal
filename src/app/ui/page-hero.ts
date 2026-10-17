@@ -19,5 +19,4 @@ export class PageHero {
   readonly title = input.required<string>();
   readonly subtitle = input('');
   readonly icon = input('');
-  readonly eyebrow = input('');
 }
