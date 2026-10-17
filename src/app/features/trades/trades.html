@@ -240,7 +240,7 @@
                 <td>
                   <div class="flex flex-nowrap gap-1">
                     @for (tag of trade.tags; track tag) {
-                      <p-chip [label]="tag" />
+                      <span class="inline-flex items-center rounded-full bg-surface-100 px-2.5 py-0.5 text-xs font-medium text-surface-700 dark:bg-surface-800 dark:text-surface-200">{{ tag }}</span>
                     }
                   </div>
                 </td>
