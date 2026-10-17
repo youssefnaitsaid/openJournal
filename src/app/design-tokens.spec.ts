@@ -104,6 +104,21 @@ const DELETED_STAT_STRIP = /app-quick-stats|appQuickStats/;
 // PrimeNG's own internals (sort icons, datepicker trigger), never in a template.
 const APP_AUTHORED_PRIMEICONS = /\bpi pi-[a-z0-9-]+/;
 
+// The highlight pairing (DESIGN.md → Token contract): the light-theme Aura
+// highlight background is near-black, so every `bg-highlight` surface must
+// carry `text-highlight` from the same token pair. Checked per element tag:
+// a `bg-highlight` with no `text-highlight` before the closing `>` is
+// unpaired, whether static, in `routerLinkActive`, or beside a
+// `[class.bg-highlight]` binding.
+function unpairedHighlightPaths(sources: Record<string, string>): string[] {
+  return Object.entries(sources)
+    .filter(([, source]) =>
+      /<[^>]*bg-highlight[^>]*>/.test(source) &&
+      [...source.matchAll(/<[^>]*bg-highlight[^>]*>/g)].some((m) => !m[0].includes('text-highlight')),
+    )
+    .map(([path]) => path);
+}
+
 const BANNED_SLOP =
   /bg-gradient-hero|bg-gradient-header|rounded-\[28px\]|rounded-\[24px\]|hover-lift|animate-count-up|stagger-[1-6]/;
 
@@ -156,13 +171,13 @@ const ACCEPTED_FIXTURE = `
 <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Trades</h1>
 <td><p-tag [value]="'' + trade.net" [severity]="trade.net >= 0 ? 'success' : 'danger'" /></td>
 <p-message severity="error">{{ portfolioError() }}</p-message>
-<td [class.bg-highlight]="selectedDay() === cell.date">
+<td [class.bg-highlight]="selectedDay() === cell.date" [class.text-highlight]="selectedDay() === cell.date">
   <p-button type="button" ariaLabel="Export CSV" severity="secondary">
     <ng-template pTemplate="icon"><ng-icon name="lucideDownload" /></ng-template>
   </p-button>
 </td>
-<p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Overview</p>
-<a routerLink="/dashboard" routerLinkActive="bg-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">Dashboard</a>
+<p class="px-3 pb-1 text-xs font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Overview</p>
+<a routerLink="/dashboard" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-800">Dashboard</a>
 <p-drawer [(visible)]="sidebarOpen" position="left" header="openJournal"><aside class="w-80"></aside></p-drawer>
 `;
 
@@ -181,6 +196,19 @@ describe('design tokens', () => {
     expect(offendingPaths(KICKER_HEADING, eventForm)).toEqual(['./retired-fixture.html']);
     const styleForm = { './retired-fixture.html': '.title { eyebrow: 1; }' };
     expect(offendingPaths(KICKER_HEADING, styleForm)).toEqual(['./retired-fixture.html']);
+  });
+
+  it('fails on a bg-highlight surface with no text-highlight pair', () => {
+    expect(unpairedHighlightPaths({ './x.html': '<a routerLinkActive="bg-highlight">' })).toEqual(['./x.html']);
+    expect(unpairedHighlightPaths({ './x.html': '<td [class.bg-highlight]="sel()">' })).toEqual(['./x.html']);
+    expect(unpairedHighlightPaths({ './x.html': '<span class="bg-highlight font-semibold">' })).toEqual(['./x.html']);
+    expect(unpairedHighlightPaths({ './x.html': '<a routerLinkActive="bg-highlight text-highlight">' })).toEqual([]);
+    expect(unpairedHighlightPaths({ './x.html': '<td [class.bg-highlight]="sel()" [class.text-highlight]="sel()">' })).toEqual([]);
+    expect(unpairedHighlightPaths({ './x.html': '<span class="bg-highlight text-highlight">' })).toEqual([]);
+  });
+
+  it('pairs every bg-highlight with text-highlight in any template', () => {
+    expect(unpairedHighlightPaths(templates)).toEqual([]);
   });
 
   for (const rule of RULES) {

@@ -175,17 +175,17 @@
                 <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
                 <th pSortableColumn="market">Market <p-sortIcon field="market" /></th>
                 <th pSortableColumn="side">Side <p-sortIcon field="side" /></th>
-                <th pSortableColumn="quantity">Quantity <p-sortIcon field="quantity" /></th>
-                <th pSortableColumn="multiplier">Multiplier <p-sortIcon field="multiplier" /></th>
-                <th pSortableColumn="entryPrice">Entry <p-sortIcon field="entryPrice" /></th>
-                <th pSortableColumn="exitPrice">Exit <p-sortIcon field="exitPrice" /></th>
-                <th pSortableColumn="gross">Gross <p-sortIcon field="gross" /></th>
-                <th pSortableColumn="fees">Fees <p-sortIcon field="fees" /></th>
-                <th pSortableColumn="net">Net P&amp;L <p-sortIcon field="net" /></th>
-                <th pSortableColumn="stopPrice">Stop <p-sortIcon field="stopPrice" /></th>
-                <th pSortableColumn="takePrice">Take <p-sortIcon field="takePrice" /></th>
-                <th pSortableColumn="risked">Risked <p-sortIcon field="risked" /></th>
-                <th pSortableColumn="rMultiple">R-Multiple <p-sortIcon field="rMultiple" /></th>
+                <th pSortableColumn="quantity" class="text-right">Quantity <p-sortIcon field="quantity" /></th>
+                <th pSortableColumn="multiplier" class="text-right">Multiplier <p-sortIcon field="multiplier" /></th>
+                <th pSortableColumn="entryPrice" class="text-right">Entry <p-sortIcon field="entryPrice" /></th>
+                <th pSortableColumn="exitPrice" class="text-right">Exit <p-sortIcon field="exitPrice" /></th>
+                <th pSortableColumn="gross" class="text-right">Gross <p-sortIcon field="gross" /></th>
+                <th pSortableColumn="fees" class="text-right">Fees <p-sortIcon field="fees" /></th>
+                <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
+                <th pSortableColumn="stopPrice" class="text-right">Stop <p-sortIcon field="stopPrice" /></th>
+                <th pSortableColumn="takePrice" class="text-right">Take <p-sortIcon field="takePrice" /></th>
+                <th pSortableColumn="risked" class="text-right">Risked <p-sortIcon field="risked" /></th>
+                <th pSortableColumn="rMultiple" class="text-right">R-Multiple <p-sortIcon field="rMultiple" /></th>
                 <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
                 <th pSortableColumn="emotionBefore">Emotion before <p-sortIcon field="emotionBefore" /></th>
                 <th pSortableColumn="emotionAfter">Emotion after <p-sortIcon field="emotionAfter" /></th>
@@ -208,21 +208,21 @@
                 <td class="font-medium">{{ trade.asset }}</td>
                 <td>{{ trade.market }}</td>
                 <td>{{ trade.side }}</td>
-                <td class="tabular-nums">{{ trade.quantity }}</td>
-                <td class="tabular-nums">{{ trade.multiplier }}</td>
-                <td class="tabular-nums">{{ formatPrice(trade.entryPrice) }}</td>
-                <td class="tabular-nums">{{ formatPrice(trade.exitPrice) }}</td>
-                <td class="whitespace-nowrap tabular-nums">{{ formatMoney(trade.gross) }}</td>
-                <td class="whitespace-nowrap tabular-nums">{{ formatMoney(trade.fees) }}</td>
-                <td
+                <td class="text-right tabular-nums">{{ trade.quantity }}</td>
+                <td class="text-right tabular-nums">{{ trade.multiplier }}</td>
+                <td class="text-right tabular-nums">{{ formatPrice(trade.entryPrice) }}</td>
+                <td class="text-right tabular-nums">{{ formatPrice(trade.exitPrice) }}</td>
+                <td class="whitespace-nowrap text-right tabular-nums">{{ formatMoney(trade.gross) }}</td>
+                <td class="whitespace-nowrap text-right tabular-nums">{{ formatMoney(trade.fees) }}</td>
+                <td class="text-right"
                   ><p-tag
                     [value]="formatSignedDollars(trade.net)"
                     [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'"
                   /></td>
-                <td class="tabular-nums">{{ formatPrice(trade.stopPrice) }}</td>
-                <td class="tabular-nums">{{ formatPrice(trade.takePrice) }}</td>
-                <td class="whitespace-nowrap tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</td>
-                <td class="tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
+                <td class="text-right tabular-nums">{{ formatPrice(trade.stopPrice) }}</td>
+                <td class="text-right tabular-nums">{{ formatPrice(trade.takePrice) }}</td>
+                <td class="whitespace-nowrap text-right tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</td>
+                <td class="text-right tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
                 <td>{{ trade.setup }}</td>
                 <td>{{ trade.emotionBefore }}</td>
                 <td>{{ trade.emotionAfter }}</td>

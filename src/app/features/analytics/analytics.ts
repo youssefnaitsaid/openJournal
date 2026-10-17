@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ThemeService } from '../../theme';
 import { TradesStore } from '../trades/trades-store';
 import { formatSignedDollars } from '../dashboard/dashboard-metrics';
 import {
@@ -28,6 +29,7 @@ import { TagModule } from 'primeng/tag';
 })
 export class Analytics {
   readonly store = inject(TradesStore);
+  readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
   // Honest states: an empty Portfolio shows ONE onboarding card (no band,
@@ -112,6 +114,15 @@ export class Analytics {
   // Chart-only presentation selection: the ten rows with the largest |Net|,
   // descending (alphabetical tiebreak). The table below always keeps every
   // row; computeBreakdowns' derivation and default order are untouched.
+  private chartToken(name: string, fallback: string): string {
+    if (typeof document === 'undefined') return fallback;
+    // Read the live preset variable (and depend on the theme signal) so the
+    // chart repaints with the same values the surfaces just switched to.
+    this.theme.isDark();
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+  }
+
   readonly breakdownChart = computed(() => {
     const rows = [...this.breakdowns()]
       .sort(
@@ -120,12 +131,20 @@ export class Analytics {
           a.value.localeCompare(b.value),
       )
       .slice(0, 10);
+    // Bars carry the desk's sign semantics from the preset, not Chart.js
+    // defaults: green gains, red losses, zinc for flat.
+    const gain = this.chartToken('--p-green-500', '#22c55e');
+    const loss = this.chartToken('--p-red-500', '#ef4444');
+    const flat = this.chartToken('--p-zinc-500', '#71717a');
     return {
       labels: rows.map((r) => r.value),
       datasets: [
         {
           label: 'Net P&L',
           data: rows.map((r) => r.netTotal),
+          backgroundColor: rows.map((r) => (r.netTotal > 0 ? gain : r.netTotal < 0 ? loss : flat)),
+          borderWidth: 0,
+          borderRadius: 2,
         },
       ],
     };

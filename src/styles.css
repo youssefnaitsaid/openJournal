@@ -36,3 +36,12 @@
     @apply bg-surface-0 text-surface-700 dark:bg-surface-950 dark:text-surface-0;
   }
 }
+
+/* Aura sets text-align on table cells with selectors that outrank a bare
+   `.text-right` utility, so money columns silently stayed left-aligned.
+   Re-assert the utility at the library's own specificity — templates keep
+   using plain `text-right` on th/td. */
+.p-datatable-table .p-datatable-thead > tr > th.text-right,
+.p-datatable-table .p-datatable-tbody > tr > td.text-right {
+  text-align: right;
+}

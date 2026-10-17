@@ -7,6 +7,7 @@ import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TradesStore } from '../trades/trades-store';
+import { ThemeService } from '../../theme';
 import {
   computeKpiBand,
   computeMetrics,
@@ -40,11 +41,31 @@ interface GuardStatusView {
 export class Dashboard {
   readonly store = inject(TradesStore);
   private readonly router = inject(Router);
+  readonly theme = inject(ThemeService);
 
   readonly startingBalance = computed(() => this.store.activeBalance());
 
+  // Chart colors are canvas paints, not CSS: they read the live NoirSlate
+  // preset variables and re-evaluate with the theme toggle so the curve
+  // stays legible in both schemes (DESIGN.md: preset-level color only).
+  private chartToken(name: string, fallback: string): string {
+    if (typeof document === 'undefined') return fallback;
+    this.theme.isDark();
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+  }
+
+  private chartFill(stroke: string): string {
+    // 12% alpha wash under the curve; hex-only guard keeps jsdom defaults safe.
+    const m = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(stroke);
+    if (!m) return 'rgba(113, 113, 122, 0.12)';
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(stroke.slice(i, i + 2), 16));
+    return `rgba(${r}, ${g}, ${b}, 0.12)`;
+  }
+
   readonly chartData = computed(() => {
     const curve = this.metrics().balanceCurve;
+    const stroke = this.chartToken('--p-primary-color', '#71717a');
     return {
       labels: curve.map((p) => p.closedAt.slice(0, 10)),
       datasets: [
@@ -53,6 +74,11 @@ export class Dashboard {
           data: curve.map((p) => p.balance),
           fill: true,
           tension: 0.35,
+          borderColor: stroke,
+          backgroundColor: this.chartFill(stroke),
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 3,
         },
       ],
     };

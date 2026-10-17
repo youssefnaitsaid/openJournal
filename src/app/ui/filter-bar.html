@@ -6,6 +6,7 @@
     <label class="inline-flex items-center gap-1.5 text-sm">From
       <p-datepicker
         ariaLabel="From date"
+        placeholder="YYYY-MM-DD"
         [ngModel]="dateFromValue()"
         (onSelect)="onDateChange('dateFrom', $event)"
         (onClear)="onDateChange('dateFrom', null)"
@@ -17,6 +18,7 @@
     <label class="inline-flex items-center gap-1.5 text-sm">To
       <p-datepicker
         ariaLabel="To date"
+        placeholder="YYYY-MM-DD"
         [ngModel]="dateToValue()"
         (onSelect)="onDateChange('dateTo', $event)"
         (onClear)="onDateChange('dateTo', null)"
@@ -101,5 +103,5 @@
         <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
       </p-button>
     }
-    <p-tag [value]="countText() + ' Trades'" severity="secondary" />
+    <p-tag [value]="countText() + ' Trades'" severity="secondary" class="ml-auto" />
 </div>

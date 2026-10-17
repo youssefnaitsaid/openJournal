@@ -55,7 +55,7 @@
   @if (hasTrades()) {
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
       <p-card header="Account balance" subheader="Cumulative Net P&amp;L from starting balance" class="lg:col-span-3">
-        <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="10rem" ariaLabel="Account balance over time" />
+        <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="18rem" ariaLabel="Account balance over time" />
       </p-card>
       <p-card header="Recent trades" subheader="Newest close first" class="lg:col-span-2">
         <p-table [value]="metrics().recent">
@@ -68,7 +68,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-trade>
             <tr>
-              <td>{{ trade.closedAt | date:'medium' }}</td>
+              <td>{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</td>
               <td class="font-medium">{{ trade.asset }}</td>
               <td class="text-right"><p-tag [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
             </tr>

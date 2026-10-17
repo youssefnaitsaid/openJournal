@@ -1,6 +1,6 @@
 # DESIGN.md — PrimeNG Aura Noir/Slate trading desk
 
-Components render at PrimeNG Aura preset defaults customized once as `NoirSlate` (`src/app/app.config.ts` via `definePreset(Aura, …)`): primary maps to the zinc scale (noir monochrome variant), light + dark surfaces map to slate, `darkModeSelector: '.dark'` shared with the existing dark toggle. No per-component visual overrides, no custom palette, no custom motion on components. Source: v21 Noir + Surface theming docs and PrimeNG MCP `chart`/`datepicker`/`drawer`/`toolbar`/`select`/`button` APIs.
+Components render at PrimeNG Aura preset defaults customized once as `NoirSlate` (`src/app/app.config.ts` via `definePreset(Aura, …)`): primary maps to the zinc scale (noir monochrome variant), light + dark surfaces map to slate, `darkModeSelector: '.dark'` shared with the existing dark toggle. No per-component color, palette, or motion overrides; the one sanctioned exception is geometry — table cell density (`padding-block`/`padding-inline` in `features/trades/trades.css`) and layout utilities PrimeNG's own selectors would otherwise outrank (the `.text-right` re-assert in `src/styles.css`) may be tuned so the money rail fits the first screen. Source: v21 Noir + Surface theming docs and PrimeNG MCP `chart`/`datepicker`/`drawer`/`toolbar`/`select`/`button` APIs.
 
 Five routes, one page goal each (statements pinned in `PRODUCT.md`), one shell. Configuration lives only on /settings, exiled from the Operate pages by ADR-0007. Shell and surfaces use Tailwind layout utilities plus PrimeNG structure:
 
@@ -14,7 +14,7 @@ The only color sources in templates are the PrimeNG Aura scales that `tailwindcs
 
 - surface scale: `bg-surface-0`, `text-surface-700`, `text-surface-600 dark:text-surface-300` for secondary copy, `border-surface-200 dark:border-surface-700`, `hover:bg-surface-100 dark:hover:bg-surface-800`; `src/styles.css` applies the same pair to `body`.
 - primary scale: `text-primary` / `bg-primary` from the NoirSlate primary (zinc) mapping.
-- selection and tinting: `bg-highlight` (Aura `--p-highlight-background`/`-color`) for the active nav item and the selected calendar day — never a bespoke tint.
+- selection and tinting: `bg-highlight` (Aura `--p-highlight-background`/`-color`) for the active nav item and the selected calendar day — never a bespoke tint. Every `bg-highlight` surface carries its token foreground `text-highlight` (static class, `routerLinkActive`, or `[class.text-highlight]` beside the `[class.bg-highlight]` binding): the light-theme highlight background is near-black, so `bg-highlight` alone renders an unreadable black pill. Enforced by `design-tokens.spec.ts`.
 - semantic state: component `severity` — `p-tag` `success`/`danger`/`warn`/`secondary` for gains, losses, Guard status and counts, `p-message severity="error"` for inline validation. No `text-success`/`text-warning`/`text-destructive` classes.
 - dark mode: class-based on `documentElement`, shared by PrimeNG (`darkModeSelector: '.dark'`) and Tailwind via `@custom-variant dark (&:where(.dark, .dark *))` in `src/styles.css`, so `dark:` utilities follow the toggle and not the OS preference.
 

@@ -3,6 +3,10 @@
 :host ::ng-deep .p-datatable-table .p-datatable-thead > tr > th,
 :host ::ng-deep .p-datatable-table .p-datatable-tbody > tr > td {
   padding-block: 0.5rem;
+  /* Aura's 1rem inline padding × 25 columns pushed Net P&L off-viewport at
+     1600px; 0.4375rem keeps a visible gutter and puts the whole money rail —
+     Net P&L tag included — inside the first screen. */
+  padding-inline: 0.4375rem;
   white-space: nowrap;
 }
 
