@@ -18,79 +18,7 @@
           }
         </div>
       </div>
-      <label class="flex w-full max-w-xs flex-col gap-1 text-sm">Starting balance (USD)
-        <p-inputnumber
-          ariaLabel="Starting balance"
-          [ngModel]="startingBalance()"
-          (ngModelChange)="onBalanceNumber($event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
     </div>
-  </p-card>
-
-  <p-card header="Guards" subheader="Optional daily and weekly brakes. Warnings only, logging is never blocked." aria-label="Guards">
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <label class="flex flex-col gap-1 text-sm">Daily loss Guard (USD)
-        <p-inputnumber
-          ariaLabel="Daily loss Guard"
-          [ngModel]="toNumberOrNull(guardInputs().dailyMaxLoss)"
-          (ngModelChange)="onGuardNumber('dailyMaxLoss', $event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
-      <label class="flex flex-col gap-1 text-sm">Daily trade count Guard
-        <p-inputnumber
-          ariaLabel="Daily trade count Guard"
-          [ngModel]="toNumberOrNull(guardInputs().dailyMaxTrades)"
-          (ngModelChange)="onGuardNumber('dailyMaxTrades', $event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
-      <label class="flex flex-col gap-1 text-sm">Daily stop time Guard
-        <p-datepicker
-          ariaLabel="Daily stop time Guard"
-          [ngModel]="guardStopTimeValue()"
-          (onSelect)="onGuardStopTime($event)"
-          [timeOnly]="true"
-          hourFormat="24"
-          [showClear]="true"
-          (onClear)="onGuardStopTime(null)"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
-      <label class="flex flex-col gap-1 text-sm">Weekly loss Guard (USD)
-        <p-inputnumber
-          ariaLabel="Weekly loss Guard"
-          [ngModel]="toNumberOrNull(guardInputs().weeklyMaxLoss)"
-          (ngModelChange)="onGuardNumber('weeklyMaxLoss', $event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
-      <label class="flex flex-col gap-1 text-sm">Weekly trade count Guard
-        <p-inputnumber
-          ariaLabel="Weekly trade count Guard"
-          [ngModel]="toNumberOrNull(guardInputs().weeklyMaxTrades)"
-          (ngModelChange)="onGuardNumber('weeklyMaxTrades', $event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
-    </div>
-    @for (error of guardErrors(); track error) {
-      <p-message severity="error">{{ error }}</p-message>
-    }
-    <p class="mt-2 text-sm">{{ weekStatusText() }}</p>
   </p-card>
 
   <app-quick-stats [stats]="quickStats()" gridClass="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" />

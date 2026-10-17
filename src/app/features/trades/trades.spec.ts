@@ -4,6 +4,7 @@ import { Trades } from './trades';
 import { DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from './trades-store';
 import { tradeInput } from './trade-fixtures';
+import { addTaxonomyValue, setPlaybookArchived, setPlaybookRules } from '../journal/taxonomy';
 import type { Emotion, Grade, Market, Mistake, Setup, Side } from './trade';
 
 function validValues() {
@@ -140,12 +141,13 @@ describe('Trades', () => {
     expect(content).toContain('Closed at is required');
   });
 
-  it('offers a user-added setup without code changes', async () => {    const fixture = TestBed.createComponent(Trades);
+  it('offers a user-added setup in the picker without code changes', async () => {
+    addTaxonomyValue('setup', 'Opening-drive');
+    const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
-    component.addCustomSetup('Opening-drive');
+    await component.store.whenReady();
     await fixture.whenStable();
     expect(component.setupOptions()).toContain('Opening-drive');
-    expect(component.form.controls.setup.value).toBe('Opening-drive');
     expect(
       JSON.parse(
         localStorage.getItem('openjournal-taxonomy') ?? '{}',
@@ -375,11 +377,10 @@ describe('Trades', () => {
   });
 
   it('logs unscored when the playbook checklist is untouched', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
-    component.addRule('entry on retest');
     expect(component.checks()).toHaveLength(2);
     component.form.setValue(validValues());
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -391,11 +392,10 @@ describe('Trades', () => {
   });
 
   it('freezes a touched checklist as the Trade snapshot with compliance', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
-    component.addRule('entry on retest');
     component.form.setValue(validValues());
     component.toggleCheck(0);
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -418,31 +418,29 @@ describe('Trades', () => {
   });
 
   it('keeps the snapshot frozen when playbook rules change later', async () => {
+    setPlaybookRules('Breakout', ['risk ≤ 1%']);
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    component.addRule('risk ≤ 1%');
     component.form.setValue(validValues());
     component.toggleCheck(0);
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
-    component.addRule('entry on retest');
+    setPlaybookRules('Breakout', ['risk ≤ 1%', 'entry on retest']);
     const store = TestBed.inject(TradesStore);
     expect(store.trades()[0]!.rules).toEqual([{ text: 'risk ≤ 1%', followed: true }]);
     expect(store.trades()[0]!.compliance).toBe(100);
   });
 
-  it('hides archived setups from the picker while keeping history', async () => {
+  it('hides archived Playbooks from the Setup picker while keeping history', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
     expect(component.setupOptions()).toContain('Breakout');
-    component.togglePlaybookArchived();
+    setPlaybookArchived('Breakout', true);
     expect(component.setupOptions()).not.toContain('Breakout');
-    expect(component.archivedPlaybooks()).toContain('Breakout');
-    component.unarchivePlaybook('Breakout');
+    setPlaybookArchived('Breakout', false);
     expect(component.setupOptions()).toContain('Breakout');
-    expect(component.archivedPlaybooks()).not.toContain('Breakout');
   });
 
   it('scopes table rows to the active portfolio', async () => {

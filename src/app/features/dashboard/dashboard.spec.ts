@@ -4,7 +4,6 @@ import { Dashboard } from './dashboard';
 import { ALL_PORTFOLIOS_ID, DEFAULT_PORTFOLIO_ID } from '../../portfolios';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
-import { GUARDS_STORAGE_KEY } from '../../guards';
 
 describe('Dashboard', () => {
   beforeEach(() => {
@@ -42,49 +41,6 @@ describe('Dashboard', () => {
     expect(content).toContain('-105');
   });
 
-  it('edits Guards beside starting balance and persists them', async () => {
-    await seed();
-    const store = TestBed.inject(TradesStore);
-    store.setActiveId(DEFAULT_PORTFOLIO_ID);
-    const fixture = TestBed.createComponent(Dashboard);
-    await fixture.whenStable();
-    (fixture.componentInstance as unknown as { onGuardNumber: (f: string, v: number | null) => void }).onGuardNumber(
-      'dailyMaxLoss',
-      200,
-    );
-    await fixture.whenStable();
-    expect(localStorage.getItem(GUARDS_STORAGE_KEY)).toContain('200');
-  });
-
-  it('rejects an invalid Guard naming it', async () => {
-    await seed();
-    const fixture = TestBed.createComponent(Dashboard);
-    await fixture.whenStable();
-    (fixture.componentInstance as unknown as { onGuardNumber: (f: string, v: number | null) => void }).onGuardNumber(
-      'dailyMaxLoss',
-      -50,
-    );
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Daily loss Guard must be a positive amount');
-  });
-
-  it('reports this-week Guard status on full-journal truth', async () => {
-    const store = TestBed.inject(TradesStore);
-    await store.whenReady();
-    const now = new Date().toISOString();
-    store.addTrade({ ...tradeInput({ asset: 'WEEK-LOSS', exitPrice: 90, fees: 5, closedAt: now }) });
-    store.setActiveId(DEFAULT_PORTFOLIO_ID);
-    store.saveActiveGuards({
-      daily: { maxLoss: null, maxTrades: null, stopTime: null },
-      weekly: { maxLoss: 100, maxTrades: null },
-    });
-    const fixture = TestBed.createComponent(Dashboard);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Weekly loss Guard');
-  });
-
   it('lists Recent Trades newest-first', async () => {
     await seed();
     const fixture = TestBed.createComponent(Dashboard);
@@ -98,7 +54,7 @@ describe('Dashboard', () => {
     expect(rows[1]).toContain('AAPL');
   });
 
-  it('steps the balance curve from the starting balance and persists changes', async () => {
+  it('steps the balance curve from the Portfolio starting balance', async () => {
     await seed();
     const store = TestBed.inject(TradesStore);
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -106,7 +62,8 @@ describe('Dashboard', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('9994');
-    (fixture.componentInstance as unknown as { onBalanceNumber: (v: number | null) => void }).onBalanceNumber(20000);
+    store.setPortfolioBalance(DEFAULT_PORTFOLIO_ID, 20000);
+    fixture.detectChanges();
     await fixture.whenStable();
     expect(compiled.textContent).toContain('19994');
     expect(localStorage.getItem('openjournal-portfolios')).toContain('20000');
@@ -229,16 +186,5 @@ describe('Dashboard', () => {
     expect(content()).toContain('-6');
     expect(content()).toContain('All');
     expect(content()).toContain('29994');
-  });
-
-  it('locks balance and Guard editing while All is active', async () => {
-    await seed();
-    const fixture = TestBed.createComponent(Dashboard);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const store = TestBed.inject(TradesStore);
-    expect(store.isAll()).toBe(true);
-    expect(compiled.querySelector('p-inputnumber')).not.toBeNull();
-    expect(compiled.textContent).toContain('per Portfolio');
   });
 });

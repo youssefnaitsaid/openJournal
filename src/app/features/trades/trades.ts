@@ -9,7 +9,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import { lucideArrowDownUp } from '@ng-icons/lucide';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -53,14 +53,10 @@ import {
   activeSetupOptions,
   addTaxonomyValue,
   getPlaybook,
-  playbookOptions,
-  setPlaybookArchived,
-  setPlaybookRules,
   tagOptionsWithTrades,
   taxonomyOptions,
   taxonomyVersion,
 } from '../journal/taxonomy';
-import type { TaxonomyKind } from '../journal/taxonomy';
 
 function chartUrlValidator(
   control: AbstractControl<string | null>,
@@ -69,7 +65,7 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, ChipModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({ lucideArrowDownUp }),
   ],
@@ -114,18 +110,6 @@ export class Trades {
     taxonomyVersion();
     return activeSetupOptions(SETUPS);
   });
-  readonly archivedPlaybooks = computed(() => {
-    taxonomyVersion();
-    return playbookOptions(SETUPS)
-      .filter((p) => p.archived)
-      .map((p) => p.name);
-  });
-  readonly playbook = computed(() => {
-    taxonomyVersion();
-    // Track the select so rule edits + setup switches refresh the checklist.
-    const setup = this.form?.controls.setup.value ?? 'Breakout';
-    return { setup, ...getPlaybook(setup) };
-  });
   readonly checks = signal<RuleCheck[]>([]);
   readonly checklistTouched = signal(false);
   readonly emotionOptions = computed(() => {
@@ -140,28 +124,6 @@ export class Trades {
     tagOptionsWithTrades(this.store.trades()),
   );
 
-  addCustom(kind: TaxonomyKind, value: string): void {
-    addTaxonomyValue(kind, value);
-  }
-
-  addCustomSetup(value: string): void {
-    const trimmed = value.trim();
-    this.addCustom('setup', trimmed);
-    if (trimmed !== '') this.form.controls.setup.setValue(trimmed);
-  }
-
-  addCustomMistake(value: string): void {
-    const trimmed = value.trim();
-    this.addCustom('mistake', trimmed);
-    if (trimmed !== '') this.form.controls.mistake.setValue(trimmed);
-  }
-
-  addCustomTag(value: string): void {
-    const tags = normalizeTags(value.split(','));
-    for (const tag of tags) this.addCustom('tag', tag);
-    if (tags.length > 0) this.form.controls.tags.setValue(tags.join(', '));
-  }
-
   private syncChecklist(setup: string): void {
     this.checks.set(getPlaybook(setup).rules.map((text) => ({ text, followed: false })));
     this.checklistTouched.set(false);
@@ -174,45 +136,6 @@ export class Trades {
       ),
     );
     this.checklistTouched.set(true);
-  }
-
-  addRule(value: string): void {
-    const setup = this.form.controls.setup.value;
-    const previous = getPlaybook(setup);
-    const trimmed = value.trim();
-    if (trimmed === '') return;
-    setPlaybookRules(setup, [...previous.rules, trimmed]);
-    const next = getPlaybook(setup).rules;
-    const kept = new Map(this.checks().map((c) => [c.text, c.followed]));
-    this.checks.set(next.map((text) => ({ text, followed: kept.get(text) ?? false })));
-  }
-
-  removeRule(index: number): void {
-    const setup = this.form.controls.setup.value;
-    const previous = getPlaybook(setup);
-    setPlaybookRules(
-      setup,
-      previous.rules.filter((_, i) => i !== index),
-    );
-    const removed = previous.rules[index];
-    if (removed !== undefined) {
-      this.checks.set(this.checks().filter((c) => c.text !== removed));
-    }
-  }
-
-  togglePlaybookArchived(): void {
-    const setup = this.form.controls.setup.value;
-    const previous = getPlaybook(setup);
-    setPlaybookArchived(setup, !previous.archived);
-    if (!previous.archived) {
-      const fallback = activeSetupOptions(SETUPS)[0] ?? 'Breakout';
-      this.form.controls.setup.setValue(fallback);
-    }
-  }
-
-  unarchivePlaybook(name: string): void {
-    setPlaybookArchived(name, false);
-    this.form.controls.setup.setValue(name);
   }
 
   readonly formatCompliance = (value: number | null): string =>

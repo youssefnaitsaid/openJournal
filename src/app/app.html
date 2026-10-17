@@ -1,6 +1,4 @@
 <div class="flex min-h-dvh bg-surface-0 text-surface-700 dark:text-surface-0">
-  <p-toast />
-  <p-confirmdialog />
   <p-drawer
     [(visible)]="sidebarOpen"
     position="left"
@@ -23,6 +21,8 @@
       </div>
       <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
       <p-menu [model]="workspaceMenu" styleClass="w-full border-none bg-transparent" />
+      <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Configuration</p>
+      <p-menu [model]="settingsMenu" styleClass="w-full border-none bg-transparent" />
     </nav>
   </p-drawer>
 
@@ -46,6 +46,9 @@
       @for (item of workspaceItems; track item.url) {
         <a [routerLink]="item.url">{{ item.label }}</a>
       }
+      @for (item of settingsItems; track item.url) {
+        <a [routerLink]="item.url">{{ item.label }}</a>
+      }
     </div>
     <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Portfolios</p>
     <div class="flex flex-col gap-2 px-3 py-1">
@@ -60,82 +63,11 @@
           fluid
         />
       </label>
-      <div class="flex gap-1.5">
-        <input
-          pInputText
-          aria-label="New portfolio name"
-          placeholder="New portfolio"
-          [value]="newPortfolioName()"
-          (input)="onNewName($event)"
-          class="min-w-0 flex-1"
-          fluid
-        />
-        <p-button
-          type="button"
-          ariaLabel="Add portfolio"
-          icon="pi pi-plus"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="createPortfolio()"
-        />
-      </div>
-      @if (portfolioError() !== null) {
-        <p class="text-xs text-destructive">{{ portfolioError() }}</p>
-      }
-      @if (!store.isAll()) {
-        <div class="flex gap-1.5">
-          <input
-            pInputText
-            aria-label="Rename portfolio to"
-            [placeholder]="store.activeName()"
-            [value]="renameValue()"
-            (input)="onRenameValue($event)"
-            class="min-w-0 flex-1"
-            fluid
-          />
-          <p-button
-            type="button"
-            ariaLabel="Rename portfolio"
-            icon="pi pi-pencil"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="renameActive()"
-          />
-          @if (!confirmingDelete()) {
-            <p-button
-              type="button"
-              ariaLabel="Delete portfolio"
-              icon="pi pi-trash"
-              severity="secondary"
-              [outlined]="true"
-              (onClick)="deleteActive()"
-            />
-          } @else {
-            <p-button
-              type="button"
-              ariaLabel="Confirm delete portfolio"
-              label="Confirm"
-              severity="danger"
-              size="small"
-              (onClick)="deleteActive()"
-            />
-          }
-        </div>
-        @if (renameError() !== null) {
-          <p class="text-xs text-destructive">{{ renameError() }}</p>
-        }
-        <p-button
-          type="button"
-          label="Manage"
-          severity="secondary"
-          [outlined]="true"
-          size="small"
-          (onClick)="portfolioDialog.set(true)"
-        />
-      }
     </div>
     <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Workspace</p>
     <p-menu [model]="workspaceMenu" styleClass="w-full border-none bg-transparent" />
+    <p class="px-3 pb-1 pt-4 text-xs font-medium uppercase tracking-[0.18em] opacity-60">Configuration</p>
+    <p-menu [model]="settingsMenu" styleClass="w-full border-none bg-transparent" />
     <p-button
       type="button"
       label="Close"
@@ -187,32 +119,4 @@
       <router-outlet />
     </main>
   </div>
-
-  <p-dialog
-    header="Portfolios"
-    [(visible)]="portfolioDialog"
-    [modal]="true"
-    [style]="{ width: '28rem' }"
-  >
-    <div class="flex flex-col gap-3">
-      <p-select
-        ariaLabel="Active portfolio dialog"
-        [options]="portfolioOptions()"
-        [ngModel]="store.activeId()"
-        (onChange)="onSelectActive($event)"
-        fluid
-      />
-      <div class="flex gap-2">
-        <input pInputText aria-label="New portfolio name dialog" placeholder="New portfolio" [value]="newPortfolioName()" (input)="onNewName($event)" class="flex-1" fluid />
-        <p-button type="button" label="Add" ariaLabel="Add portfolio dialog" (onClick)="createPortfolio()" />
-      </div>
-      @if (!store.isAll()) {
-        <div class="flex gap-2">
-          <input pInputText aria-label="Rename portfolio to dialog" [placeholder]="store.activeName()" [value]="renameValue()" (input)="onRenameValue($event)" class="flex-1" fluid />
-          <p-button type="button" label="Rename" ariaLabel="Rename portfolio dialog" severity="secondary" (onClick)="renameActive()" />
-          <p-button type="button" label="Delete" ariaLabel="Delete portfolio dialog" severity="danger" (onClick)="requestDelete($event)" />
-        </div>
-      }
-    </div>
-  </p-dialog>
 </div>

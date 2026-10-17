@@ -1,8 +1,7 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import {
   lucideTrendingDown,
   lucideTrendingUp,
@@ -10,25 +9,13 @@ import {
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
-import { DatePickerModule } from 'primeng/datepicker';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TradesStore } from '../trades/trades-store';
 import { computeMetrics } from './dashboard-metrics';
 import type { BalancePoint } from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
-import {
-  GUARD_LABELS,
-  evaluateGuards,
-  hasAnyGuard,
-  toGuardFormInput,
-  validateGuardInput,
-  weekKeyOfDay,
-} from '../../guards';
-import type { GuardFormInput } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
 import { QuickStats, type QuickStat } from '../../ui/quick-stats';
 
@@ -47,7 +34,7 @@ function toChartPoints(curve: readonly BalancePoint[]): string {
 }
 
 @Component({
-  imports: [DatePipe, FormsModule, NgIcon, ButtonModule, CardModule, ChartModule, DatePickerModule, InputNumberModule, InputTextModule, MessageModule, TableModule, TagModule, QuickStats, EmptyState],
+  imports: [DatePipe, ButtonModule, CardModule, ChartModule, InputTextModule, TableModule, TagModule, QuickStats, EmptyState],
   providers: [
     provideIcons({ lucideTrendingDown, lucideTrendingUp }),
   ],
@@ -60,78 +47,6 @@ export class Dashboard {
   private readonly router = inject(Router);
 
   readonly startingBalance = computed(() => this.store.activeBalance());
-
-  readonly guards = computed(() => this.store.activeGuards());
-  readonly guardInputs = signal<GuardFormInput>(
-    toGuardFormInput(this.store.activeGuards()),
-  );
-  readonly guardErrors = signal<readonly string[]>([]);
-
-  constructor() {
-    effect(() => {
-      this.guardInputs.set(toGuardFormInput(this.guards()));
-      this.guardErrors.set([]);
-    });
-  }
-
-  readonly weekGuardBreaches = computed(() => {
-    const guards = this.guards();
-    if (!hasAnyGuard(guards)) return [];
-    const today = new Date().toISOString().slice(0, 10);
-    const week = weekKeyOfDay(today);
-    return evaluateGuards(this.store.activeTrades(), guards).weeks.get(week)?.breached ?? [];
-  });
-
-  readonly weekStatusText = computed(() => {
-    if (this.store.isAll())
-      return 'All portfolios: Guards are set per Portfolio — select one to manage them';
-    if (!hasAnyGuard(this.guards())) return 'No Guards set';
-    const breached = this.weekGuardBreaches();
-    if (breached.length === 0) return 'This week: inside all Guards';
-    return `This week breached: ${breached.map((breach) => GUARD_LABELS[breach]).join(', ')}`;
-  });
-
-  onGuardField(field: keyof GuardFormInput, event: Event): void {
-    const next = {
-      ...this.guardInputs(),
-      [field]: (event.target as HTMLInputElement).value,
-    };
-    this.guardInputs.set(next);
-    const { settings, errors } = validateGuardInput(next);
-    this.guardErrors.set(errors);
-    if (errors.length === 0) {
-      this.store.saveActiveGuards(settings);
-    }
-  }
-
-  onGuardNumber(field: keyof GuardFormInput, value: number | null): void {
-    this.onGuardField(field, {
-      target: { value: value === null ? '' : String(value) },
-    } as unknown as Event);
-  }
-
-  onGuardStopTime(date: Date | null): void {
-    const text =
-      date === null
-        ? ''
-        : `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    this.onGuardField('stopTime', {
-      target: { value: text },
-    } as unknown as Event);
-  }
-
-  readonly guardStopTimeValue = computed(() => {
-    const raw = this.guardInputs().stopTime;
-    if (raw === '') return null;
-    const [h, m] = raw.split(':').map(Number);
-    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-    const d = new Date();
-    d.setHours(h ?? 0, m ?? 0, 0, 0);
-    return d;
-  });
-
-  readonly toNumberOrNull = (value: string): number | null =>
-    value === '' ? null : Number(value);
 
   readonly chartData = computed(() => {
     const curve = this.metrics().balanceCurve;
@@ -246,21 +161,6 @@ export class Dashboard {
     if (value < 0) return `-$${abs}`;
     return `$0.00`;
   };
-
-  onBalanceInput(event: Event): void {
-    if (this.store.isAll()) return;
-    const value = Number((event.target as HTMLInputElement).value);
-    if (Number.isFinite(value) && value >= 0) {
-      this.store.setPortfolioBalance(this.store.activeId(), value);
-    }
-  }
-
-  onBalanceNumber(value: number | null): void {
-    if (this.store.isAll() || value === null) return;
-    if (Number.isFinite(value) && value >= 0) {
-      this.store.setPortfolioBalance(this.store.activeId(), value);
-    }
-  }
 
   goToTrades(): void {
     void this.router.navigate(['/trades']);

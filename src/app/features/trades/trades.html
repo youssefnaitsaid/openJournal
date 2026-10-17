@@ -75,39 +75,6 @@
       <label class="flex flex-col gap-1 text-sm">Setup
         <p-select formControlName="setup" [options]="setupOptions()" />
       </label>
-      <div class="flex flex-col gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
-        <span class="font-medium">Playbook rules for {{ playbook().setup }}</span>
-        @if (playbook().rules.length === 0) {
-          <span class="text-xs text-muted-foreground">No rules yet — add the first below. Trades logged without rules stay unscored.</span>
-        } @else {
-          <ul class="flex flex-col gap-1">
-            @for (rule of playbook().rules; track rule; let i = $index) {
-              <li class="flex items-center gap-2">
-                <span class="flex-1">{{ rule }}</span>
-                <p-button type="button" size="small" severity="secondary" label="Remove" [ariaLabel]="'Remove rule ' + rule" (onClick)="removeRule(i)" />
-              </li>
-            }
-          </ul>
-        }
-        <div class="flex gap-2">
-          <input pInputText #newRule aria-label="New playbook rule" placeholder="New rule, e.g. risk ≤ 1%…" class="flex-1 text-sm" />
-          <p-button type="button" severity="secondary" label="Add rule" (onClick)="addRule(newRule.value); newRule.value = ''" />
-        </div>
-        <p-button type="button" severity="secondary" [label]="playbook().archived ? 'Unarchive setup' : 'Archive setup'" (onClick)="togglePlaybookArchived()" />
-        @if (archivedPlaybooks().length > 0) {
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-foreground">Archived setups stay in history:</span>
-            <ul class="flex flex-col gap-1">
-              @for (name of archivedPlaybooks(); track name) {
-                <li class="flex items-center gap-2">
-                  <span class="flex-1 text-xs">{{ name }}</span>
-                  <p-button type="button" size="small" severity="secondary" label="Unarchive" [ariaLabel]="'Unarchive ' + name" (onClick)="unarchivePlaybook(name)" />
-                </li>
-              }
-            </ul>
-          </div>
-        }
-      </div>
       @if (checks().length > 0) {
         <fieldset class="flex flex-col gap-1 rounded-xl border border-border bg-background px-3 py-2 text-sm">
           <legend class="px-1 text-sm">Playbook checklist (optional)</legend>
@@ -153,27 +120,6 @@
         @if (!store.canLog()) {
           <p class="text-sm text-muted-foreground">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
         }
-      </div>
-    </form>
-  </p-card>
-
-  <p-card header="Custom tags" subheader="Grow your Setup, Emotion, Mistake, and Tag vocabulary">
-    <form class="flex flex-col gap-2" aria-label="Custom tags">
-      <div class="flex gap-2">
-        <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add setup" (onClick)="addCustomSetup(newSetup.value); newSetup.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add emotion" (onClick)="addCustom('emotion', newEmotion.value); newEmotion.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add mistake" (onClick)="addCustomMistake(newMistake.value); newMistake.value = ''" />
-      </div>
-      <div class="flex gap-2">
-        <input pInputText #newTag aria-label="New tag" placeholder="New tag…" class="flex-1 text-sm" />
-        <p-button type="button" severity="secondary" label="Add tag" (onClick)="addCustomTag(newTag.value); newTag.value = ''" />
       </div>
     </form>
   </p-card>
