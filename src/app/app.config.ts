@@ -62,6 +62,14 @@ const NoirSlate = definePreset(Aura, {
           color: 'rgba(255,255,255,.87)',
           focusColor: 'rgba(255,255,255,.87)',
         },
+        // Desk legibility pass: Aura's dark secondary/muted text sits on the
+        // slate-500 step, which drops below AA on the slate-950 desk surface.
+        // Lift the muted text token two steps (hover one further); every
+        // muted-text consumer reads from here.
+        text: {
+          mutedColor: '{surface.300}',
+          hoverMutedColor: '{surface.200}',
+        },
         surface: {
           0: '#ffffff',
           50: '{slate.50}',
