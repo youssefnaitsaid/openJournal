@@ -12,7 +12,6 @@
         (onClear)="onDateChange('dateFrom', null)"
         [showClear]="true"
         dateFormat="yy-mm-dd"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">To
@@ -24,7 +23,6 @@
         (onClear)="onDateChange('dateTo', null)"
         [showClear]="true"
         dateFormat="yy-mm-dd"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Asset
@@ -35,7 +33,6 @@
         [value]="store.filter().asset"
         (input)="onTextChange('asset', $event)"
         class="w-28"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Setup
@@ -44,7 +41,6 @@
         [options]="setupSelectOptions()"
         [ngModel]="store.filter().setup"
         (onChange)="onSetupChange($event)"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Side
@@ -53,7 +49,6 @@
         [options]="sideSelectOptions()"
         [ngModel]="store.filter().side"
         (onChange)="onSideChange($event)"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Tag
@@ -62,7 +57,6 @@
         [options]="tagSelectOptions()"
         [ngModel]="store.filter().tag"
         (onChange)="onTagChange($event)"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Outcome
@@ -71,7 +65,6 @@
         [options]="outcomeSelectOptions"
         [ngModel]="store.filter().outcome"
         (onChange)="onOutcomeChange($event)"
-        size="small"
       />
     </label>
     <label class="inline-flex items-center gap-1.5 text-sm">Grade
@@ -80,7 +73,6 @@
         [options]="gradeSelectOptions"
         [ngModel]="store.filter().grade"
         (onChange)="onGradeChange($event)"
-        size="small"
       />
     </label>
     <p-toggleButton
@@ -88,7 +80,6 @@
       onLabel="Needs review"
       offLabel="Needs review"
       [(ngModel)]="needsReviewModel"
-      size="small"
     />
     @if (store.isFiltering()) {
       <p-button
@@ -96,12 +87,11 @@
         ariaLabel="Reset filter"
         label="Reset"
         severity="secondary"
-        size="small"
         [outlined]="true"
         (onClick)="reset()"
       >
         <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
       </p-button>
     }
-    <p-tag [value]="countText() + ' Trades'" severity="secondary" class="ml-auto" />
+    <p-tag [value]="countText() + ' Trades'" severity="secondary" class="xl:ml-auto" />
 </div>

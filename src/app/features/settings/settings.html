@@ -1,4 +1,4 @@
-<p-toast />
+<p-toast position="bottom-right" />
 <p-confirmdialog />
 
 <section class="flex max-w-4xl flex-col gap-6">
@@ -53,14 +53,12 @@
                   type="button"
                   [attr.aria-label]="'Save rename for ' + portfolio.name"
                   label="Save"
-                  size="small"
                   (onClick)="commitRename()"
                 />
                 <p-button
                   type="button"
                   ariaLabel="Cancel rename"
                   label="Cancel"
-                  size="small"
                   severity="secondary"
                   [text]="true"
                   (onClick)="cancelRename()"
@@ -78,7 +76,6 @@
                     [attr.aria-label]="'Rename ' + portfolio.name"
                     severity="secondary"
                     [outlined]="true"
-                    size="small"
                     (onClick)="startRename(portfolio.id)"
                   >
                     <ng-template pTemplate="icon"><ng-icon name="lucidePencil" class="size-3.5" /></ng-template>
@@ -88,7 +85,6 @@
                     [attr.aria-label]="'Delete ' + portfolio.name"
                     severity="secondary"
                     [outlined]="true"
-                    size="small"
                     (onClick)="requestDelete(portfolio.id)"
                   >
                     <ng-template pTemplate="icon"><ng-icon name="lucideTrash2" class="size-3.5" /></ng-template>
@@ -205,7 +201,7 @@
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of setupVocabulary(); track value) {
-            <li class="rounded-full border border-surface-200 px-2 py-0.5 text-xs dark:border-surface-700">{{ value }}</li>
+            <li class="oj-pill">{{ value }}</li>
           }
         </ul>
       </div>
@@ -218,7 +214,7 @@
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of emotionVocabulary(); track value) {
-            <li class="rounded-full border border-surface-200 px-2 py-0.5 text-xs dark:border-surface-700">{{ value }}</li>
+            <li class="oj-pill">{{ value }}</li>
           }
         </ul>
       </div>
@@ -231,7 +227,7 @@
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of mistakeVocabulary(); track value) {
-            <li class="rounded-full border border-surface-200 px-2 py-0.5 text-xs dark:border-surface-700">{{ value }}</li>
+            <li class="oj-pill">{{ value }}</li>
           }
         </ul>
       </div>
@@ -244,7 +240,7 @@
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of tagVocabulary(); track value) {
-            <li class="rounded-full border border-surface-200 px-2 py-0.5 text-xs dark:border-surface-700">{{ value }}</li>
+            <li class="oj-pill">{{ value }}</li>
           }
         </ul>
       </div>
@@ -267,7 +263,6 @@
                 label="Archive"
                 severity="secondary"
                 [text]="true"
-                size="small"
                 (onClick)="archivePlaybook(playbook.name)"
               />
             </div>
@@ -284,7 +279,6 @@
                       [attr.aria-label]="'Remove rule ' + rule + ' from ' + playbook.name"
                       severity="secondary"
                       [text]="true"
-                      size="small"
                       (onClick)="removePlaybookRule(playbook.name, i)"
                     >
                       <ng-template pTemplate="icon"><ng-icon name="lucideX" class="size-3.5" /></ng-template>
@@ -308,7 +302,6 @@
                 label="Add rule"
                 severity="secondary"
                 [outlined]="true"
-                size="small"
                 (onClick)="addPlaybookRule(playbook.name, newRule.value); newRule.value = ''"
               >
                 <ng-template pTemplate="icon"><ng-icon name="lucidePlus" class="size-3.5" /></ng-template>
@@ -332,7 +325,6 @@
                   label="Unarchive"
                   severity="secondary"
                   [outlined]="true"
-                  size="small"
                   (onClick)="unarchivePlaybook(playbook.name)"
                 />
               </li>

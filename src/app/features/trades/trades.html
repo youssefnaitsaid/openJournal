@@ -26,7 +26,7 @@
   }
 
   @if (logFormOpen()) {
-  <p-card header="Log trade" subheader="One closed round-trip with an entry and an exit">
+  <p-card header="Log Trade" subheader="One closed round-trip with an entry and an exit">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 md:grid-cols-2">
       <label class="flex flex-col gap-1 text-sm">Asset
         <input pInputText formControlName="asset" #assetInput />
@@ -130,7 +130,7 @@
         </datalist>
       </label>
       <div class="flex items-center gap-2 md:col-span-2">
-        <p-button type="submit" label="Log trade" [disabled]="!store.canLog()" />
+        <p-button type="submit" label="Log Trade" [disabled]="!store.canLog()" />
         <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="closeLogForm()" />
         @if (!store.canLog()) {
           <p class="text-sm text-surface-600 dark:text-surface-300">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
@@ -161,7 +161,7 @@
         />
       } @else {
         <div class="mb-2 flex justify-end">
-          <p-button type="button" label="Export CSV" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()">
+          <p-button type="button" label="Export CSV" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()">
             <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
           </p-button>
         </div>
@@ -199,12 +199,12 @@
             <ng-template pTemplate="body" let-trade let-expanded="expanded">
               <tr>
                 <td>
-                  <p-button type="button" [text]="true" [rounded]="true" size="small" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
+                  <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
                     <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
                   </p-button>
                 </td>
-                <td class="whitespace-nowrap">{{ trade.openedAt | date:'MMM d, y, h:mm a' }}</td>
-                <td class="whitespace-nowrap">{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</td>
+                <td class="whitespace-nowrap">{{ trade.openedAt | date:'MMM d, h:mm a' }}</td>
+                <td class="whitespace-nowrap">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
                 <td class="font-medium">{{ trade.asset }}</td>
                 <td>{{ trade.market }}</td>
                 <td>{{ trade.side }}</td>
@@ -240,7 +240,7 @@
                 <td>
                   <div class="flex flex-nowrap gap-1">
                     @for (tag of trade.tags; track tag) {
-                      <p-chip [label]="tag" />
+                      <span class="oj-pill">{{ tag }}</span>
                     }
                   </div>
                 </td>

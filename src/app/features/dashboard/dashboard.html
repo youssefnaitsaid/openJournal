@@ -10,7 +10,7 @@
     </span>
     <p-tag
       [value]="formatPercent(metrics().winRate) + '% win rate'"
-      [severity]="isPositive() ? 'success' : 'danger'"
+      [severity]="!hasTrades() ? 'secondary' : isPositive() ? 'success' : 'danger'"
     />
     @if (store.isFiltering()) {
       <p-tag value="Filtered view" severity="secondary" />
