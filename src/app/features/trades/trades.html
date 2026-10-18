@@ -161,7 +161,7 @@
         />
       } @else {
         <div class="mb-2 flex justify-end">
-          <p-button type="button" label="Export CSV" severity="secondary" size="small" [outlined]="true" (onClick)="dt.exportCSV()">
+          <p-button type="button" label="Export CSV" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()">
             <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
           </p-button>
         </div>
@@ -199,7 +199,7 @@
             <ng-template pTemplate="body" let-trade let-expanded="expanded">
               <tr>
                 <td>
-                  <p-button type="button" [text]="true" [rounded]="true" size="small" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
+                  <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
                     <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
                   </p-button>
                 </td>
@@ -240,7 +240,7 @@
                 <td>
                   <div class="flex flex-nowrap gap-1">
                     @for (tag of trade.tags; track tag) {
-                      <span class="inline-flex items-center rounded-full bg-surface-100 px-2.5 py-0.5 text-xs font-medium text-surface-700 dark:bg-surface-800 dark:text-surface-200">{{ tag }}</span>
+                      <span class="oj-pill">{{ tag }}</span>
                     }
                   </div>
                 </td>
