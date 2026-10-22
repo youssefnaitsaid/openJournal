@@ -9,8 +9,8 @@
   />
 
   <p-card aria-label="Portfolios">
-    <h2 class="text-lg font-semibold tracking-tight">Portfolios</h2>
-    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Create, rename, and delete Portfolios, each with its own starting balance. Trades are logged into the active Portfolio; All stays read-only.</p>
+    <h2 class="text-xl font-semibold tracking-tight">Portfolios</h2>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Create, rename, and delete Portfolios, each with its own starting balance. Trades are logged into the active Portfolio; All stays read-only.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-2">
@@ -69,7 +69,7 @@
               }
             } @else {
               <div class="flex items-center justify-between gap-2">
-                <span class="truncate text-sm font-semibold">{{ portfolio.name }}</span>
+                <span class="truncate text-base font-semibold">{{ portfolio.name }}</span>
                 <div class="flex shrink-0 gap-1.5">
                   <p-button
                     type="button"
@@ -92,7 +92,7 @@
                 </div>
               </div>
             }
-            <label class="flex items-center justify-between gap-2 text-sm">
+            <label class="flex items-center justify-between gap-2 text-base">
               <span>Starting balance (USD)</span>
               <p-inputnumber
                 [attr.aria-label]="'Starting balance for ' + portfolio.name"
@@ -109,11 +109,11 @@
   </p-card>
 
   <p-card aria-label="Guards">
-    <h2 class="text-lg font-semibold tracking-tight">Guards</h2>
-    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.</p>
+    <h2 class="text-xl font-semibold tracking-tight">Guards</h2>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.</p>
 
     <div class="mt-4 flex flex-col gap-4">
-      <label class="flex w-full max-w-xs flex-col gap-1 text-sm">
+      <label class="flex w-full max-w-xs flex-col gap-1 text-base">
         <span>Starting balance for {{ store.activeName() }} (USD)</span>
         <p-inputnumber
           ariaLabel="Active portfolio starting balance"
@@ -126,7 +126,7 @@
       </label>
 
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-sm">Daily loss Guard (USD)
+        <label class="flex flex-col gap-1 text-base">Daily loss Guard (USD)
           <p-inputnumber
             ariaLabel="Daily loss Guard"
             [ngModel]="toNumberOrNull(guardInputs().dailyMaxLoss)"
@@ -136,7 +136,7 @@
             fluid
           />
         </label>
-        <label class="flex flex-col gap-1 text-sm">Daily trade count Guard
+        <label class="flex flex-col gap-1 text-base">Daily trade count Guard
           <p-inputnumber
             ariaLabel="Daily trade count Guard"
             [ngModel]="toNumberOrNull(guardInputs().dailyMaxTrades)"
@@ -146,7 +146,7 @@
             fluid
           />
         </label>
-        <label class="flex flex-col gap-1 text-sm">Daily stop time Guard
+        <label class="flex flex-col gap-1 text-base">Daily stop time Guard
           <p-datepicker
             ariaLabel="Daily stop time Guard"
             [ngModel]="guardStopTimeValue()"
@@ -159,7 +159,7 @@
             fluid
           />
         </label>
-        <label class="flex flex-col gap-1 text-sm">Weekly loss Guard (USD)
+        <label class="flex flex-col gap-1 text-base">Weekly loss Guard (USD)
           <p-inputnumber
             ariaLabel="Weekly loss Guard"
             [ngModel]="toNumberOrNull(guardInputs().weeklyMaxLoss)"
@@ -169,7 +169,7 @@
             fluid
           />
         </label>
-        <label class="flex flex-col gap-1 text-sm">Weekly trade count Guard
+        <label class="flex flex-col gap-1 text-base">Weekly trade count Guard
           <p-inputnumber
             ariaLabel="Weekly trade count Guard"
             [ngModel]="toNumberOrNull(guardInputs().weeklyMaxTrades)"
@@ -184,17 +184,17 @@
       @for (error of guardErrors(); track error) {
         <p-message severity="error">{{ error }}</p-message>
       }
-      <p class="text-sm">{{ weekStatusText() }}</p>
+      <p class="text-base">{{ weekStatusText() }}</p>
     </div>
   </p-card>
 
   <p-card aria-label="Vocabulary">
-    <h2 class="text-lg font-semibold tracking-tight">Vocabulary</h2>
-    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Grow your Setup, Emotion, Mistake, and Tag vocabulary. User-added values merge after the seeds and survive reloads.</p>
+    <h2 class="text-xl font-semibold tracking-tight">Vocabulary</h2>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Grow your Setup, Emotion, Mistake, and Tag vocabulary. User-added values merge after the seeds and survive reloads.</p>
 
     <div class="mt-4 flex flex-col gap-6">
       <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">Setups</span>
+        <span class="text-base font-semibold">Setups</span>
         <div class="flex gap-2">
           <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="min-w-0 flex-1" />
           <p-button type="button" ariaLabel="Add setup" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('setup', newSetup.value); newSetup.value = ''" />
@@ -207,7 +207,7 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">Emotions</span>
+        <span class="text-base font-semibold">Emotions</span>
         <div class="flex gap-2">
           <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="min-w-0 flex-1" />
           <p-button type="button" ariaLabel="Add emotion" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('emotion', newEmotion.value); newEmotion.value = ''" />
@@ -220,7 +220,7 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">Mistakes</span>
+        <span class="text-base font-semibold">Mistakes</span>
         <div class="flex gap-2">
           <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="min-w-0 flex-1" />
           <p-button type="button" ariaLabel="Add mistake" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('mistake', newMistake.value); newMistake.value = ''" />
@@ -233,7 +233,7 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">Tags</span>
+        <span class="text-base font-semibold">Tags</span>
         <div class="flex gap-2">
           <input pInputText #newTag aria-label="New tag" placeholder="New tag, comma-separated…" class="min-w-0 flex-1" />
           <p-button type="button" ariaLabel="Add tag" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('tag', newTag.value); newTag.value = ''" />
@@ -248,15 +248,15 @@
   </p-card>
 
   <p-card aria-label="Playbooks">
-    <h2 class="text-lg font-semibold tracking-tight">Playbooks</h2>
-    <p class="mt-1 text-sm text-surface-600 dark:text-surface-300">Each Playbook is a Setup plus its Rule list and archived state. The log form checklist snapshots these Rules when a Trade is logged.</p>
+    <h2 class="text-xl font-semibold tracking-tight">Playbooks</h2>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Each Playbook is a Setup plus its Rule list and archived state. The log form checklist snapshots these Rules when a Trade is logged.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <ul class="flex flex-col gap-4">
         @for (playbook of activePlaybooks(); track playbook.name) {
           <li class="flex flex-col gap-3 rounded-xl border border-surface-200 p-3 dark:border-surface-700">
             <div class="flex items-center justify-between gap-2">
-              <span class="truncate text-sm font-semibold">{{ playbook.name }}</span>
+              <span class="truncate text-base font-semibold">{{ playbook.name }}</span>
               <p-button
                 type="button"
                 [attr.aria-label]="'Archive ' + playbook.name + ' Playbook'"
@@ -268,12 +268,12 @@
             </div>
 
             @if (playbook.rules.length === 0) {
-              <p class="text-xs text-surface-600 dark:text-surface-300">No Rules yet — add the first below.</p>
+              <p class="text-base text-surface-600 dark:text-surface-300">No Rules yet — add the first below.</p>
             } @else {
               <ul class="flex flex-col gap-1.5">
                 @for (rule of playbook.rules; track rule; let i = $index) {
                   <li class="flex items-center gap-2">
-                    <span class="flex-1 text-sm">{{ rule }}</span>
+                    <span class="flex-1 text-base">{{ rule }}</span>
                     <p-button
                       type="button"
                       [attr.aria-label]="'Remove rule ' + rule + ' from ' + playbook.name"
@@ -294,7 +294,7 @@
                 #newRule
                 [attr.aria-label]="'New rule for ' + playbook.name"
                 placeholder="New rule, e.g. risk ≤ 1%…"
-                class="min-w-0 flex-1 text-sm"
+                class="min-w-0 flex-1 text-base"
               />
               <p-button
                 type="button"
@@ -313,12 +313,12 @@
 
       @if (archivedPlaybooks().length > 0) {
         <div class="flex flex-col gap-2">
-          <span class="text-sm font-semibold">Archived Playbooks</span>
-          <p class="text-xs text-surface-600 dark:text-surface-300">Archived Playbooks stay in logged Trades but leave the Setup picker.</p>
+          <span class="text-base font-semibold">Archived Playbooks</span>
+          <p class="text-base text-surface-600 dark:text-surface-300">Archived Playbooks stay in logged Trades but leave the Setup picker.</p>
           <ul class="flex flex-col gap-1.5">
             @for (playbook of archivedPlaybooks(); track playbook.name) {
               <li class="flex items-center gap-2">
-                <span class="flex-1 text-sm">{{ playbook.name }}</span>
+                <span class="flex-1 text-base">{{ playbook.name }}</span>
                 <p-button
                   type="button"
                   [attr.aria-label]="'Unarchive ' + playbook.name + ' Playbook'"

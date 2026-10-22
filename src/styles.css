@@ -56,29 +56,13 @@
   text-align: right;
 }
 
-/* Unified control height (DESIGN.md geometry exception). A single-line text
-   field, Select trigger, DatePicker field, ToggleButton and Button that share
-   a row render at one height per size, so mixed filter/form lines sit on a
-   single baseline. Each PrimeNG part carries its own padding/line-height token,
-   which is why the small filter row read 34/35/39px and default [input][Add]
-   lines read 40.84/42px before this. Vertical padding folds into the fixed
-   height; native inputs centre their line, the flex button-like parts already
-   centre their content. Unlayered and `.p-component`-doubled so it outranks the
-   theme's own single-class padding regardless of load order; the -sm block
-   follows the base block so it wins at equal specificity. Icon-only buttons get
-   a matching square so the toolbar/row toggles stay circular at control height. */
+/* Icon-only toolbar toggles keep a square footprint at the control height
+   (DESIGN.md geometry exception). Mixed form/filter lines take their height from
+   FloatLabel's in-variant field padding instead of a pinned control height, so
+   the label always has room to float inside the field. */
 :root {
   --oj-control-h: 2.5rem;
   --oj-control-h-sm: 2.125rem;
-}
-
-input.p-inputtext.p-component,
-.p-select.p-component,
-.p-togglebutton.p-component,
-.p-button.p-component:not(.p-button-icon-only) {
-  box-sizing: border-box;
-  height: var(--oj-control-h);
-  padding-block: 0;
 }
 
 .p-button.p-component.p-button-icon-only {
@@ -86,14 +70,6 @@ input.p-inputtext.p-component,
   height: var(--oj-control-h);
   width: var(--oj-control-h);
   padding: 0;
-}
-
-input.p-inputtext.p-inputtext-sm,
-.p-select.p-select-sm,
-.p-togglebutton.p-togglebutton-sm,
-.p-button.p-button-sm:not(.p-button-icon-only) {
-  height: var(--oj-control-h-sm);
-  padding-block: 0;
 }
 
 .p-button.p-button-sm.p-button-icon-only {

@@ -3,13 +3,13 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideCalendarDays,
   lucideChevronDown,
   lucideChevronLeft,
   lucideChevronRight,
   lucideClipboardCheck,
   lucideClipboardCopy,
   lucideShieldAlert,
-  lucideShieldCheck,
 } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
@@ -29,7 +29,6 @@ import {
   formatMonthReportCard,
 } from './journal-report-card';
 import { EmptyState } from '../../ui/empty-state';
-import { PageHero } from '../../ui/page-hero';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
@@ -37,16 +36,16 @@ import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 
 @Component({
-  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule, ButtonModule, TagModule, TableModule],
+  imports: [DatePipe, NgIcon, EmptyState, CardModule, MessageModule, ButtonModule, TagModule, TableModule],
   providers: [
     provideIcons({
+      lucideCalendarDays,
       lucideChevronDown,
       lucideChevronLeft,
       lucideChevronRight,
       lucideClipboardCheck,
       lucideClipboardCopy,
       lucideShieldAlert,
-      lucideShieldCheck,
     }),
   ],
   selector: 'app-journal',

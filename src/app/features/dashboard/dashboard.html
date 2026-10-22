@@ -5,46 +5,50 @@
     [subtitle]="`Where you stand right now · ${store.activeName()}`"
     icon="lucideChartLine"
   >
-    <span aria-label="Net P&L headline" class="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
-      {{ formatSignedDollars(metrics().netTotal) }}
-    </span>
-    <p-tag
-      [value]="formatPercent(metrics().winRate) + '% win rate'"
-      [severity]="!hasTrades() ? 'secondary' : isPositive() ? 'success' : 'danger'"
-    />
-    @if (store.isFiltering()) {
-      <p-tag value="Filtered view" severity="secondary" />
-    }
+    <div class="flex flex-col items-end gap-2">
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <span aria-label="Net P&L headline" class="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{{ formatSignedDollars(metrics().netTotal) }}</span>
+        <p-tag [value]="formatPercent(metrics().winRate) + '% win rate'" [severity]="!hasTrades() ? 'secondary' : isPositive() ? 'success' : 'danger'" />
+        @if (store.isFiltering()) { <p-tag value="Filtered view" severity="secondary" /> }
+      </div>
+      @if (guardStatus().show) {
+        <div class="flex flex-wrap items-center justify-end gap-2" aria-label="Guard status">
+          <a routerLink="/settings" class="flex flex-wrap items-center justify-end gap-2">
+            @for (item of guardStatus().text.split(' · '); track item; let last = $last) {
+              <span class="{{ last ? 'rounded-full bg-highlight px-2 py-0.5 text-xs font-semibold text-highlight' : 'rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-xs text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300' }}">{{ item }}</span>
+            }
+          </a>
+        </div>
+      }
+    </div>
   </app-page-hero>
 
   @if (hasTrades()) {
-    <p-card aria-label="Key metrics">
-      <dl class="grid grid-cols-1 gap-x-8 gap-y-2 text-sm tabular-nums sm:grid-cols-2 lg:grid-cols-3">
-        @for (line of kpiBand(); track line.label) {
-          <div class="flex items-baseline justify-between gap-3">
-            <dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt>
-            <dd class="font-semibold">{{ line.value }}</dd>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3" role="group" aria-label="Key metrics">
+      @for (group of [{ title: 'Edge', icon: 'lucideZap', idx: [1, 3, 7] }, { title: 'Consistency', icon: 'lucideFlame', idx: [0, 2, 6] }, { title: 'Account', icon: 'lucideWallet', idx: [4, 5, 8] }]; track group.title) {
+        <p-card>
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <ng-icon [name]="group.icon" class="size-5 shrink-0 text-primary" />
+              <h3 class="text-base font-semibold tracking-tight text-surface-800 dark:text-surface-100">{{ group.title }}</h3>
+            </div>
+            <dl class="flex flex-col gap-1.5 text-base tabular-nums">
+              @for (idx of group.idx; track idx) {
+                <div class="flex items-baseline justify-between gap-3"><dt class="text-surface-600 dark:text-surface-300">{{ kpiBand()[idx].label }}</dt><dd class="font-semibold text-surface-900 dark:text-surface-50">{{ kpiBand()[idx].value }}</dd></div>
+              }
+            </dl>
           </div>
-        }
-      </dl>
-    </p-card>
-  }
-
-  @if (guardStatus().show) {
-    <p-card aria-label="Guard status">
-      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <p class="text-sm">{{ guardStatus().text }}</p>
-        <a routerLink="/settings" class="text-sm font-semibold text-primary">Edit Guards in Settings</a>
-      </div>
-    </p-card>
+        </p-card>
+      }
+    </div>
   }
 
   @if (store.isFiltering()) {
     <p-card aria-label="Filtered view">
-      <p class="text-sm">
+      <p class="text-base">
         Filtered view · {{ filteredStrip().shown }} of {{ filteredStrip().total }} Trades
       </p>
-      <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <p class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-base">
         <span>Net <span class="font-semibold">{{ formatSignedDollars(filteredStrip().netTotal) }}</span></span>
         <span>Win-rate <span class="font-semibold">{{ formatPercent(filteredStrip().winRate) }}%</span></span>
         <span>Avg R <span class="font-semibold">{{ formatR(filteredStrip().avgR) }}</span></span>
@@ -53,12 +57,12 @@
   }
 
   @if (hasTrades()) {
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
-      <p-card header="Account balance" subheader="Cumulative Net P&amp;L from starting balance" class="lg:col-span-3">
-        <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="18rem" ariaLabel="Account balance over time" />
+    <div class="grid grid-cols-1 items-center gap-4 lg:grid-cols-5">
+      <p-card header="Account balance" class="lg:col-span-3">
+        <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="20rem" ariaLabel="Account balance over time" />
       </p-card>
-      <p-card header="Recent trades" subheader="Newest close first" class="lg:col-span-2">
-        <p-table [value]="metrics().recent">
+      <p-card header="Recent trades" class="lg:col-span-2">
+        <p-table [value]="metrics().recent.slice(0, 5)">
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>

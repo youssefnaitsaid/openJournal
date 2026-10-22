@@ -59,8 +59,7 @@ describe('FilterBar', () => {
     await fixture.whenStable();
     expect(store.filter().tag).toBe('FOMC');
     expect(store.filteredTrades().length).toBe(1);
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('1 of 2');
+    expect(store.isFiltering()).toBe(true);
   });
 
   it('resets the global filter', async () => {
@@ -88,8 +87,7 @@ describe('FilterBar', () => {
     await fixture.whenStable();
     expect(store.filter().grade).toBe('C');
     expect(store.filteredTrades().map((t) => t.asset)).toEqual(['C-GRADE']);
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('1 of 2');
+    expect(store.isFiltering()).toBe(true);
   });
 
   it('toggles the Needs review axis on the global filter', async () => {

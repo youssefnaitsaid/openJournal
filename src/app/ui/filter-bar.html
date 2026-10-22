@@ -1,80 +1,93 @@
 <div class="flex flex-wrap items-center gap-2">
-    <span class="inline-flex items-center gap-1.5 text-sm font-medium">
-      <ng-icon name="lucideListFilter" class="size-4" />
-      Filter
-    </span>
-    <label class="inline-flex items-center gap-1.5 text-sm">From
+    <p-floatlabel variant="in">
       <p-datepicker
         ariaLabel="From date"
-        placeholder="YYYY-MM-DD"
         [ngModel]="dateFromValue()"
         (onSelect)="onDateChange('dateFrom', $event)"
         (onClear)="onDateChange('dateFrom', null)"
         [showClear]="true"
         dateFormat="yy-mm-dd"
+        inputId="dateFrom"
+        showIcon
+        iconDisplay="input"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">To
+      <label for="dateFrom">From</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-datepicker
         ariaLabel="To date"
-        placeholder="YYYY-MM-DD"
         [ngModel]="dateToValue()"
         (onSelect)="onDateChange('dateTo', $event)"
         (onClear)="onDateChange('dateTo', null)"
         [showClear]="true"
         dateFormat="yy-mm-dd"
+        inputId="dateTo"
+        showIcon
+        iconDisplay="input"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Asset
+      <label for="dateTo">To</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <input
         pInputText
         aria-label="Asset filter"
-        placeholder="e.g. MES"
         [value]="store.filter().asset"
         (input)="onTextChange('asset', $event)"
         class="w-28"
+        inputId="asset"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Setup
+      <label for="asset">Asset</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-select
         ariaLabel="Setup filter"
         [options]="setupSelectOptions()"
-        [ngModel]="store.filter().setup"
+        [ngModel]="setupValue()"
         (onChange)="onSetupChange($event)"
+        inputId="setup"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Side
+      <label for="setup">Setup</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-select
         ariaLabel="Side filter"
         [options]="sideSelectOptions()"
-        [ngModel]="store.filter().side"
+        [ngModel]="sideValue()"
         (onChange)="onSideChange($event)"
+        inputId="side"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Tag
+      <label for="side">Side</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-select
         ariaLabel="Tag filter"
         [options]="tagSelectOptions()"
-        [ngModel]="store.filter().tag"
+        [ngModel]="tagValue()"
         (onChange)="onTagChange($event)"
+        inputId="tag"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Outcome
+      <label for="tag">Tag</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-select
         ariaLabel="Outcome filter"
         [options]="outcomeSelectOptions"
         [ngModel]="store.filter().outcome"
         (onChange)="onOutcomeChange($event)"
+        inputId="outcome"
       />
-    </label>
-    <label class="inline-flex items-center gap-1.5 text-sm">Grade
+      <label for="outcome">Outcome</label>
+    </p-floatlabel>
+    <p-floatlabel variant="in">
       <p-select
         ariaLabel="Grade filter"
         [options]="gradeSelectOptions"
-        [ngModel]="store.filter().grade"
+        [ngModel]="gradeValue()"
         (onChange)="onGradeChange($event)"
+        inputId="grade"
       />
-    </label>
+      <label for="grade">Grade</label>
+    </p-floatlabel>
     <p-toggleButton
       ariaLabel="Needs review filter"
       onLabel="Needs review"
@@ -93,5 +106,4 @@
         <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
       </p-button>
     }
-    <p-tag [value]="countText() + ' Trades'" severity="secondary" class="xl:ml-auto" />
 </div>

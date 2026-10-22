@@ -1,0 +1,19 @@
+/* Month calendar heatmap: tint each day cell by the sign of its net. */
+.oj-win {
+  background: color-mix(in srgb, var(--p-green-500), transparent 30%);
+  border-color: transparent;
+}
+
+.oj-loss {
+  background: color-mix(in srgb, var(--p-red-500), transparent 30%);
+  border-color: transparent;
+}
+
+/* Day cells: elevation ring marks the selected day. */
+.oj-cell {
+  transition: box-shadow 0.12s ease;
+}
+
+.oj-cell[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-blue-400), transparent 30%);
+}

@@ -1,6 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideFlame, lucideWallet, lucideZap } from '@ng-icons/lucide';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
@@ -33,7 +35,8 @@ interface GuardStatusView {
 }
 
 @Component({
-  imports: [DatePipe, RouterLink, ButtonModule, CardModule, ChartModule, TableModule, TagModule, PageHero, EmptyState],
+  imports: [DatePipe, NgIcon, RouterLink, ButtonModule, CardModule, ChartModule, TableModule, TagModule, PageHero, EmptyState],
+  providers: [provideIcons({ lucideFlame, lucideWallet, lucideZap })],
   selector: 'app-dashboard',
   styleUrl: './dashboard.css',
   templateUrl: './dashboard.html',
