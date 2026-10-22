@@ -79,6 +79,12 @@ describe('Analytics', () => {
     expect(content).toContain('0.00R');
     expect(content).toContain('+1.00R');
     expect(content).toContain('2 of 3');
+    const band = compiled
+      .querySelector('[aria-label="R-metrics summary"]')
+      ?.textContent?.replace(/\s+/g, ' ') ?? '';
+    // Risked Amount is capital at risk, not a signed result.
+    expect(band).toContain('$200.00');
+    expect(band).not.toContain('+$200.00');
   });
 
   it('charts the true Top 10 by |Net| descending while the table keeps every row', async () => {

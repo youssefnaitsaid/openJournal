@@ -184,7 +184,7 @@ describe('computeKpiBand', () => {
     expect(asMap.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(asMap.get('Total trades')).toBe('2');
     expect(asMap.get('Max drawdown')).toBe('$105.00 · 1.04%');
-    expect(asMap.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
+    expect(asMap.get('Streaks')).toBe('Current 0W · 1L / Best 1W · 1L');
     expect(asMap.get('Expectancy / Trade')).toBe('-$3.00');
     expect(asMap.get('Current balance')).toBe('$9,994.00');
   });
@@ -206,7 +206,7 @@ describe('pure formatters', () => {
 
   it('formatStreaks names current and best runs', () => {
     const m = computeMetrics([WIN_A(), WIN_B(), LOSS()], 10000);
-    expect(formatStreaks(m)).toBe('W0 · L1 / Best W2 · L1');
+    expect(formatStreaks(m)).toBe('Current 0W · 1L / Best 2W · 1L');
   });
 
   it('formatGuardStatus lists only configured limits and appends breaches', () => {

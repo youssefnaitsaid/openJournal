@@ -5,43 +5,39 @@
     header="openJournal"
     ariaCloseLabel="Close navigation"
   >
-    <nav aria-label="Primary mobile" class="flex flex-col gap-1">
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Overview</p>
-      @for (item of overviewItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
+    <nav aria-label="Primary mobile" class="flex h-full flex-col gap-1">
+      @for (group of navGroups; track group.label) {
+        <p class="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-surface-500 first:pt-0 dark:text-surface-400">{{ group.label }}</p>
+        @for (item of group.items; track item.url) {
+          <a
+            [routerLink]="item.url"
+            routerLinkActive="bg-highlight text-highlight"
+            ariaCurrentWhenActive="page"
+            (click)="closeSidebar()"
+            class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800"
+          >
+            <ng-icon [name]="item.icon" class="size-4 shrink-0" />
+            <span class="truncate">{{ item.label }}</span>
+          </a>
+        }
       }
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Portfolios</p>
-      <div class="flex flex-col gap-2 px-3 py-1">
-        <p-select
-          ariaLabel="Active portfolio"
-          inputId="mobile-active-portfolio"
-          [options]="portfolioOptions()"
-          [ngModel]="store.activeId()"
-          (onChange)="onSelectActive($event)"
-          fluid
-        />
+      <div class="mt-auto flex flex-col gap-1 pt-6">
+        <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">Portfolios</p>
+        <div class="px-3 py-1">
+          <p-select
+            ariaLabel="Active portfolio"
+            inputId="mobile-active-portfolio"
+            [options]="portfolioOptions()"
+            [ngModel]="store.activeId()"
+            (onChange)="onSelectActive($event)"
+            fluid
+          />
+        </div>
       </div>
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Workspace</p>
-      @for (item of workspaceItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
-      }
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Configuration</p>
-      @for (item of settingsItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" (click)="closeSidebar()" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
-      }
     </nav>
   </p-drawer>
 
-  <aside class="hidden w-80 shrink-0 flex-col gap-1 border-r border-surface-200 p-4 dark:border-surface-700 md:flex">
+  <aside class="hidden w-80 shrink-0 flex-col gap-1 border-r border-surface-200 p-4 dark:border-surface-700 lg:flex">
     <div class="mb-4 flex items-center gap-3 rounded-xl border border-surface-200 px-3 py-3 dark:border-surface-700">
       <p-avatar label="oJ" shape="circle" />
       <span class="grid flex-1 text-left leading-tight">
@@ -50,42 +46,33 @@
       </span>
     </div>
     <nav aria-label="Primary" class="flex flex-col gap-1">
-      <p class="px-3 pb-1 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Overview</p>
-      @for (item of overviewItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
-      }
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Workspace</p>
-      @for (item of workspaceItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
-      }
-      <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Configuration</p>
-      @for (item of settingsItems; track item.url) {
-        <a [routerLink]="item.url" routerLinkActive="bg-highlight text-highlight" class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800">
-          <ng-icon [name]="item.icon" class="size-4 shrink-0" />
-          <span class="truncate">{{ item.label }}</span>
-        </a>
+      @for (group of navGroups; track group.label) {
+        <p class="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-surface-500 first:pt-0 dark:text-surface-400">{{ group.label }}</p>
+        @for (item of group.items; track item.url) {
+          <a
+            [routerLink]="item.url"
+            routerLinkActive="bg-highlight text-highlight"
+            ariaCurrentWhenActive="page"
+            class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800"
+          >
+            <ng-icon [name]="item.icon" class="size-4 shrink-0" />
+            <span class="truncate">{{ item.label }}</span>
+          </a>
+        }
       }
     </nav>
-    <p class="px-3 pb-1 pt-4 text-base font-medium uppercase tracking-[0.18em] text-surface-600 dark:text-surface-300">Portfolios</p>
-    <div class="flex flex-col gap-2 px-3 py-1">
-      <label class="flex items-center gap-2 text-base">
-        <ng-icon name="lucideWallet" class="size-4 shrink-0" />
+    <div class="mt-auto flex flex-col gap-1 pt-6">
+      <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">Portfolios</p>
+      <div class="px-3 py-1">
         <p-select
           ariaLabel="Active portfolio"
           inputId="active-portfolio"
           [options]="portfolioOptions()"
           [ngModel]="store.activeId()"
           (onChange)="onSelectActive($event)"
-          class="min-w-0 flex-1"
           fluid
         />
-      </label>
+      </div>
     </div>
   </aside>
 
@@ -94,6 +81,7 @@
       <p-toolbar>
         <ng-template pTemplate="start">
           <p-button
+            class="lg:hidden"
             type="button"
             ariaLabel="Toggle navigation"
             [text]="true"
@@ -103,7 +91,7 @@
           >
             <ng-template pTemplate="icon"><ng-icon name="lucideMenu" class="size-4" /></ng-template>
           </p-button>
-          <span class="truncate text-base font-semibold tracking-tight md:hidden">openJournal</span>
+          <span class="truncate text-base font-semibold tracking-tight lg:hidden">openJournal</span>
         </ng-template>
         <ng-template pTemplate="end">
           @if (tradeCount() > 0) {

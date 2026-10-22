@@ -9,6 +9,7 @@
     <!-- Empty Portfolio: ONE onboarding state, never three repeated messages. -->
     <app-empty-state
       icon="lucideInbox"
+      [headingLevel]="2"
       title="No Trades yet"
       description="Log your first Trade to see where Net P&L comes from."
       actionLabel="Log your first Trade"
@@ -17,10 +18,27 @@
   } @else {
     <app-filter-bar />
 
-    <p-card data-testid="breakdowns" header="Breakdown by {{ dimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per value">
+    <p-card data-testid="breakdowns">
+      <ng-template pTemplate="header">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="text-xl font-semibold tracking-tight">Breakdown by {{ dimensionLabel() }}</h2>
+            <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Count, Net P&amp;L, win-rate, avg R-Multiple, and avg Compliance per value</p>
+          </div>
+          <p-select
+            aria-label="Breakdown dimension"
+            [options]="[...dimensions]"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="dimension()"
+            (onChange)="dimension.set($event.value)"
+          />
+        </div>
+      </ng-template>
       @if (filteredEmpty()) {
         <app-empty-state
           icon="lucideInbox"
+          [embedded]="true"
           title="No Trades match this filter"
           description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
         />
@@ -34,19 +52,9 @@
             </div>
           }
         </dl>
-        <div class="mb-3 flex justify-end">
-          <p-select
-            aria-label="Breakdown dimension"
-            [options]="[...dimensions]"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="dimension()"
-            (onChange)="dimension.set($event.value)"
-          />
-        </div>
         @if (breakdownChart().labels.length > 0) {
-          <p class="mb-1 text-base font-medium text-surface-600 dark:text-surface-300">Top 10 by |Net|</p>
-          <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions" height="16rem" ariaLabel="Top 10 by |Net| breakdown chart" />
+          <p class="mb-1 mt-3 text-base font-medium text-surface-600 dark:text-surface-300">Top 10 by |Net|</p>
+          <p-chart type="bar" [data]="breakdownChart()" [options]="chartOptions()" height="18rem" ariaLabel="Top 10 by |Net| breakdown chart" />
         }
         <!-- The table keeps every breakdown row and stays sortable. -->
         <p-table [value]="[...breakdowns()]">
@@ -74,15 +82,13 @@
       }
     </p-card>
 
-    <p-card data-testid="time-patterns" header="Time-pattern by {{ timeDimensionLabel() }}" subheader="Count, Net P&L, win-rate, avg R-Multiple, and avg Compliance per time bucket">
-      @if (filteredEmpty()) {
-        <app-empty-state
-          icon="lucideInbox"
-          title="No Trades match this filter"
-          description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
-        />
-      } @else {
-        <div class="mb-3 flex justify-end">
+    <p-card data-testid="time-patterns">
+      <ng-template pTemplate="header">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="text-xl font-semibold tracking-tight">Time-pattern by {{ timeDimensionLabel() }}</h2>
+            <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Count, Net P&amp;L, win-rate, avg R-Multiple, and avg Compliance per time bucket</p>
+          </div>
           <p-select
             aria-label="Time-pattern dimension"
             [options]="[...timeDimensions]"
@@ -92,6 +98,15 @@
             (onChange)="timeDimension.set($event.value)"
           />
         </div>
+      </ng-template>
+      @if (filteredEmpty()) {
+        <app-empty-state
+          icon="lucideInbox"
+          [embedded]="true"
+          title="No Trades match this filter"
+          description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
+        />
+      } @else {
         <!-- Fixed chronological rows (Monday→Sunday, 00→23, Intraday→Swing) — never re-sorted by value. -->
         <p-table [value]="[...timePatterns()]">
           <ng-template pTemplate="header">
@@ -122,12 +137,14 @@
       @if (filteredEmpty()) {
         <app-empty-state
           icon="lucideInbox"
+          [embedded]="true"
           title="No Trades match this filter"
           description="Every Trade in this Portfolio is cut by the active filter — Reset it in the filter bar above."
         />
       } @else if (compliance().scored === 0) {
         <app-empty-state
           icon="lucideInbox"
+          [embedded]="true"
           title="No scored trades yet"
           description="Touch a playbook checklist when logging to score compliance."
         />

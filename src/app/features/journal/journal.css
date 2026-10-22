@@ -1,19 +1,28 @@
-/* Month calendar heatmap: tint each day cell by the sign of its net. */
-.oj-win {
-  background: color-mix(in srgb, var(--p-green-500), transparent 30%);
-  border-color: transparent;
+/* Calendar day cells are the narrowest money surface in the app. The Aura
+   tag's preset geometry is compressed to a chip so a rounded four-figure day
+   fits a 1024 cell (and a compact five-figure day fits a phone cell). Colors
+   and severity stay component-owned. */
+.journal-calendar .p-tag {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
-.oj-loss {
-  background: color-mix(in srgb, var(--p-red-500), transparent 30%);
-  border-color: transparent;
-}
+/* Phones cannot fit a dollar value in a 7-column month grid. The Net tag
+   becomes a severity-tinted dot; the cell's aria-label and the Day detail
+   header carry the exact number. */
+@media (max-width: 639.98px) {
+  .journal-day-net {
+    display: inline-flex;
+  }
 
-/* Day cells: elevation ring marks the selected day. */
-.oj-cell {
-  transition: box-shadow 0.12s ease;
-}
-
-.oj-cell[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-blue-400), transparent 30%);
+  .journal-day-net .p-tag {
+    width: 0.625rem;
+    height: 0.625rem;
+    padding: 0;
+    border-radius: 9999px;
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+  }
 }

@@ -28,6 +28,19 @@ class ActionHost {
 })
 class PlainHost {}
 
+@Component({
+  imports: [EmptyState],
+  selector: 'app-empty-state-embedded-host',
+  template: `<app-empty-state
+    icon="lucideInbox"
+    title="No trades yet"
+    description="Log a Trade to fill this card."
+    [headingLevel]="2"
+    [embedded]="true"
+  />`,
+})
+class EmbeddedHost {}
+
 describe('EmptyState', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -56,5 +69,21 @@ describe('EmptyState', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('button')).toBeNull();
+  });
+
+  it('uses the requested heading level', async () => {
+    const fixture = TestBed.createComponent(EmbeddedHost);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h2')?.textContent).toContain('No trades yet');
+    expect(compiled.querySelector('h3')).toBeNull();
+  });
+
+  it('drops the card wrapper when embedded in a card', async () => {
+    const fixture = TestBed.createComponent(EmbeddedHost);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('p-card')).toBeNull();
+    expect(compiled.textContent).toContain('Log a Trade to fill this card.');
   });
 });

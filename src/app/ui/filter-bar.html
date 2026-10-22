@@ -1,32 +1,38 @@
 <div class="flex flex-wrap items-center gap-2">
-    <p-floatlabel variant="in">
-      <p-datepicker
-        ariaLabel="From date"
-        [ngModel]="dateFromValue()"
-        (onSelect)="onDateChange('dateFrom', $event)"
-        (onClear)="onDateChange('dateFrom', null)"
-        [showClear]="true"
-        dateFormat="yy-mm-dd"
-        inputId="dateFrom"
-        showIcon
-        iconDisplay="input"
-      />
-      <label for="dateFrom">From</label>
-    </p-floatlabel>
-    <p-floatlabel variant="in">
-      <p-datepicker
-        ariaLabel="To date"
-        [ngModel]="dateToValue()"
-        (onSelect)="onDateChange('dateTo', $event)"
-        (onClear)="onDateChange('dateTo', null)"
-        [showClear]="true"
-        dateFormat="yy-mm-dd"
-        inputId="dateTo"
-        showIcon
-        iconDisplay="input"
-      />
-      <label for="dateTo">To</label>
-    </p-floatlabel>
+    <div class="w-44">
+      <p-floatlabel variant="in">
+        <p-datepicker
+          ariaLabel="From date"
+          [ngModel]="dateFromValue()"
+          (onSelect)="onDateChange('dateFrom', $event)"
+          (onClear)="onDateChange('dateFrom', null)"
+          [showClear]="true"
+          dateFormat="yy-mm-dd"
+          inputId="dateFrom"
+          showIcon
+          iconDisplay="input"
+          fluid
+        />
+        <label for="dateFrom">From</label>
+      </p-floatlabel>
+    </div>
+    <div class="w-44">
+      <p-floatlabel variant="in">
+        <p-datepicker
+          ariaLabel="To date"
+          [ngModel]="dateToValue()"
+          (onSelect)="onDateChange('dateTo', $event)"
+          (onClear)="onDateChange('dateTo', null)"
+          [showClear]="true"
+          dateFormat="yy-mm-dd"
+          inputId="dateTo"
+          showIcon
+          iconDisplay="input"
+          fluid
+        />
+        <label for="dateTo">To</label>
+      </p-floatlabel>
+    </div>
     <p-floatlabel variant="in">
       <input
         pInputText

@@ -38,7 +38,7 @@ export const formatProfitFactor = (value: number): string =>
   Number.isFinite(value) ? value.toFixed(2) : '∞';
 
 export const formatStreaks = (m: DashboardMetrics): string =>
-  `W${m.currentWinStreak} · L${m.currentLossStreak} / Best W${m.longestWinStreak} · L${m.longestLossStreak}`;
+  `Current ${m.currentWinStreak}W · ${m.currentLossStreak}L / Best ${m.longestWinStreak}W · ${m.longestLossStreak}L`;
 
 export interface GuardStatusInput {
   dailyLoss: { spent: number; limit: number | null };

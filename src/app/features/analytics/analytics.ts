@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ThemeService } from '../../theme';
 import { TradesStore } from '../trades/trades-store';
-import { formatSignedDollars } from '../dashboard/dashboard-metrics';
+import { formatDollars, formatSignedDollars } from '../dashboard/dashboard-metrics';
 import {
   computeBreakdowns,
   computeComplianceCorrelation,
@@ -153,11 +153,29 @@ export class Analytics {
     };
   });
 
-  readonly chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-  };
+  readonly chartOptions = computed(() => {
+    const tick = this.chartToken('--p-text-muted-color', '#64748b');
+    const grid = this.chartToken('--p-content-border-color', '#e2e8f0');
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      // Rotated category labels sit outside the plot box on narrow cards;
+      // reserve a little space so the first and last labels stay whole.
+      layout: { padding: { left: 56, right: 8, bottom: 8 } },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: tick },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { color: tick },
+          grid: { color: grid },
+          border: { display: false },
+        },
+      },
+    };
+  });
 
   // Compact R-metrics band in the Breakdown section header — the tile strip
   // is gone; same metrics, same formatters, label:value definition-list style.
@@ -167,7 +185,7 @@ export class Analytics {
       { label: 'R-Expectancy (avg R)', value: this.formatR(m.rExpectancy) },
       { label: 'Median R', value: this.formatR(m.medianR) },
       { label: 'R sum', value: this.formatR(m.rSum) },
-      { label: 'Risked Amount', value: this.formatSignedDollars(m.riskedTotal) },
+      { label: 'Risked Amount', value: this.formatDollars(m.riskedTotal) },
       { label: 'Net P&L', value: this.formatSignedDollars(m.netTotal) },
       { label: 'Risked coverage', value: `${m.riskedCount} of ${m.totalTrades}` },
     ];
@@ -180,10 +198,12 @@ export class Analytics {
     return `0.00R`;
   };
 
-  // Currency presentation delegates to the shared grouped formatter so a
+  // Currency presentation delegates to the shared grouped formatters so a
   // five-figure Risked Amount / Net P&L reads as $7,794.82 here exactly as it
   // does on the dashboard, trades table, and journal; derivations untouched.
+  // Risked Amount is unsigned capital at risk, unlike the signed Net P&L.
   readonly formatSignedDollars = formatSignedDollars;
+  readonly formatDollars = formatDollars;
 
   readonly formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 

@@ -89,15 +89,28 @@ export class Dashboard {
     };
   });
 
-  readonly chartOptions = computed(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { maxTicksLimit: 6 } },
-      y: { ticks: { maxTicksLimit: 5 } },
-    },
-  }));
+  readonly chartOptions = computed(() => {
+    // Canvas does not inherit the preset's muted text token; read it (and the
+    // content border) so axis labels and the grid clear AA in both schemes.
+    const tick = this.chartToken('--p-text-muted-color', '#64748b');
+    const grid = this.chartToken('--p-content-border-color', '#e2e8f0');
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { maxTicksLimit: 6, color: tick },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { maxTicksLimit: 5, color: tick },
+          grid: { color: grid },
+          border: { display: false },
+        },
+      },
+    };
+  });
 
   readonly metrics = computed(() =>
     computeMetrics(this.store.activeTrades(), this.startingBalance()),

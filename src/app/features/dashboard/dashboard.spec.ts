@@ -83,7 +83,7 @@ describe('Dashboard', () => {
     expect(band.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(band.get('Total trades')).toBe('2');
     expect(band.get('Max drawdown')).toBe('$105.00 · 1.04%');
-    expect(band.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
+    expect(band.get('Streaks')).toBe('Current 0W · 1L / Best 1W · 1L');
     expect(band.get('Expectancy / Trade')).toBe('-$3.00');
   });
 
@@ -306,7 +306,7 @@ describe('Dashboard', () => {
     expect(content).toContain('Max drawdown');
     expect(content).toContain('$105');
     expect(content).toContain('Streaks');
-    expect(content).toContain('W0');
+    expect(content).toContain('Current 0W · 1L / Best 1W · 1L');
     expect(content).toContain('Expectancy / Trade');
     expect(content).toContain('-$3.00');
   });
