@@ -12,17 +12,19 @@
         @if (store.isFiltering()) { <p-tag value="Filtered view" severity="secondary" /> }
       </div>
       @if (guardStatus().show) {
-        <div class="flex flex-wrap items-center justify-end gap-2">
-          @for (item of guardStatus().text.split(' · '); track item; let last = $last) {
-            <span class="{{ last ? 'rounded-full bg-highlight px-2 py-0.5 text-xs font-semibold text-highlight' : 'rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-xs text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300' }}">{{ item }}</span>
-          }
+        <div class="flex flex-wrap items-center justify-end gap-2" aria-label="Guard status">
+          <a routerLink="/settings" class="flex flex-wrap items-center justify-end gap-2">
+            @for (item of guardStatus().text.split(' · '); track item; let last = $last) {
+              <span class="{{ last ? 'rounded-full bg-highlight px-2 py-0.5 text-xs font-semibold text-highlight' : 'rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-xs text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300' }}">{{ item }}</span>
+            }
+          </a>
         </div>
       }
     </div>
   </app-page-hero>
 
   @if (hasTrades()) {
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3" role="group" aria-label="Key metrics">
       @for (group of [{ title: 'Edge', icon: 'lucideZap', idx: [1, 3, 7] }, { title: 'Consistency', icon: 'lucideFlame', idx: [0, 2, 6] }, { title: 'Account', icon: 'lucideWallet', idx: [4, 5, 8] }]; track group.title) {
         <p-card>
           <div class="flex flex-col gap-3">
