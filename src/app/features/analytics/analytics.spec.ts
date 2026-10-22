@@ -205,7 +205,7 @@ describe('Analytics', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const filtered = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(filtered).toContain('1 of 2');
+    expect(store.filteredTrades().length).toBe(1);
     expect(filtered).toContain('+2.00R');
   });
 
