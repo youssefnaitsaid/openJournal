@@ -18,7 +18,7 @@ import {
   lucideChevronRight,
   lucideDownload,
 } from '@ng-icons/lucide';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -93,6 +93,9 @@ export class Trades {
   // (the dominant task - scan/sort/filter history - owns the viewport).
   readonly logFormOpen = signal(false);
   private readonly assetInput = viewChild<ElementRef<HTMLInputElement>>('assetInput');
+  // The history table renders only once there are rows; a viewChild keeps the
+  // Export action in the filter row above that branch instead of inside it.
+  private readonly tradesTable = viewChild<Table>('dt');
 
   openLogForm(): void {
     this.logFormOpen.set(true);
@@ -115,6 +118,10 @@ export class Trades {
 
   resetFilters(): void {
     this.store.resetFilter();
+  }
+
+  exportCsv(): void {
+    this.tradesTable()?.exportCSV();
   }
 
   // Honest history count for the hero: "n of m" while filtering (filtered vs

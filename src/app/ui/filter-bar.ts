@@ -5,6 +5,7 @@ import { lucideListFilter, lucideRotateCcw } from '@ng-icons/lucide';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
@@ -18,8 +19,14 @@ import {
   taxonomyVersion,
 } from '../features/journal/taxonomy';
 
+// FloatLabel treats an empty-string value as "no value": the label stays inside
+// the field and paints over the displayed option. The "All" option therefore
+// carries a real value and is mapped back to the empty filter (no constraint)
+// on write, the same idiom the Outcome axis already used.
+const ALL = 'All';
+
 @Component({
-  imports: [FormsModule, NgIcon, ButtonModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule],
+  imports: [FormsModule, NgIcon, ButtonModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule, FloatLabelModule],
   providers: [provideIcons({ lucideListFilter, lucideRotateCcw })],
   selector: 'app-filter-bar',
   templateUrl: './filter-bar.html',
@@ -36,32 +43,32 @@ export class FilterBar {
     tagOptionsWithTrades(this.store.trades()),
   );
 
-  readonly setupSelectOptions = computed(() => [
-    { label: 'All', value: '' },
+  readonly setupSelectOptions = computed((): { label: string; value: string }[] => [
+    { label: 'All', value: ALL },
     ...this.setupOptions().map((s) => ({ label: s, value: s })),
   ]);
 
-  readonly sideSelectOptions = computed(() => [
-    { label: 'All', value: '' },
+  readonly sideSelectOptions = computed((): { label: string; value: Side | typeof ALL }[] => [
+    { label: 'All', value: ALL },
     { label: 'Long', value: 'Long' },
     { label: 'Short', value: 'Short' },
   ]);
 
-  readonly tagSelectOptions = computed(() => [
-    { label: 'All', value: '' },
+  readonly tagSelectOptions = computed((): { label: string; value: string }[] => [
+    { label: 'All', value: ALL },
     ...this.tagOptions().map((t) => ({ label: t, value: t })),
   ]);
 
-  readonly outcomeSelectOptions = [
+  readonly outcomeSelectOptions: { label: string; value: OutcomeFilter }[] = [
     { label: 'All', value: 'All' },
     { label: 'Win', value: 'Win' },
     { label: 'Loss', value: 'Loss' },
     { label: 'Breakeven', value: 'Breakeven' },
   ];
 
-  readonly gradeSelectOptions: { label: string; value: '' | Grade }[] = [
-    { label: 'All', value: '' },
-    ...GRADES.map((grade) => ({ label: grade, value: grade as '' | Grade })),
+  readonly gradeSelectOptions: { label: string; value: Grade | typeof ALL }[] = [
+    { label: 'All', value: ALL },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade })),
   ];
 
   readonly dateFromValue = computed(() => {
@@ -74,11 +81,12 @@ export class FilterBar {
     return raw === '' ? null : new Date(`${raw}T00:00:00.000Z`);
   });
 
-  readonly countText = computed(() => {
-    const total = this.store.trades().length;
-    const shown = this.store.filteredTrades().length;
-    return `${shown} of ${total}`;
-  });
+  // A select needs a non-empty value for FloatLabel to lift its label out of
+  // the field, so these read the "All" sentinel while the filter stays empty.
+  readonly setupValue = computed(() => this.store.filter().setup || ALL);
+  readonly sideValue = computed((): Side | typeof ALL => this.store.filter().side || ALL);
+  readonly tagValue = computed(() => this.store.filter().tag || ALL);
+  readonly gradeValue = computed((): Grade | typeof ALL => this.store.filter().grade || ALL);
 
   onTextChange(field: 'dateFrom' | 'dateTo' | 'asset', event: Event): void {
     const el = event.target as HTMLInputElement | null;
@@ -90,15 +98,15 @@ export class FilterBar {
       event instanceof Event
         ? (event.target as HTMLSelectElement | null)?.value ?? ''
         : event.value;
-    this.store.setFilter({ setup: value });
+    this.store.setFilter({ setup: value === ALL ? '' : value });
   }
 
-  onSideChange(event: Event | { value: '' | Side }): void {
+  onSideChange(event: Event | { value: Side | '' | typeof ALL }): void {
     const value =
       event instanceof Event
-        ? ((event.target as HTMLSelectElement | null)?.value as '' | Side)
+        ? ((event.target as HTMLSelectElement | null)?.value as Side | '' | typeof ALL)
         : event.value;
-    if (value !== undefined) this.store.setFilter({ side: value });
+    if (value !== undefined) this.store.setFilter({ side: value === ALL ? '' : value });
   }
 
   onTagChange(event: Event | { value: string }): void {
@@ -106,7 +114,7 @@ export class FilterBar {
       event instanceof Event
         ? (event.target as HTMLSelectElement | null)?.value ?? ''
         : event.value;
-    this.store.setFilter({ tag: value });
+    this.store.setFilter({ tag: value === ALL ? '' : value });
   }
 
   onOutcomeChange(event: Event | { value: OutcomeFilter }): void {
@@ -117,12 +125,12 @@ export class FilterBar {
     if (value !== undefined) this.store.setFilter({ outcome: value });
   }
 
-  onGradeChange(event: Event | { value: '' | Grade }): void {
+  onGradeChange(event: Event | { value: Grade | '' | typeof ALL }): void {
     const value =
       event instanceof Event
-        ? ((event.target as HTMLSelectElement | null)?.value as '' | Grade)
+        ? ((event.target as HTMLSelectElement | null)?.value as Grade | '' | typeof ALL)
         : event.value;
-    if (value !== undefined) this.store.setFilter({ grade: value });
+    if (value !== undefined) this.store.setFilter({ grade: value === ALL ? '' : value });
   }
 
   get needsReviewModel(): boolean {

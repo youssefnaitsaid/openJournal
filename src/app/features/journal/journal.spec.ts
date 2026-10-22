@@ -184,7 +184,7 @@ describe('Journal', () => {
     expect(compiled.textContent).toContain('Opening-drive');
   });
 
-  it('tints loss days on the Aura danger severity and prefixes gains with +', async () => {
+  it('tints loss days red and prefixes gains with +', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
@@ -192,10 +192,10 @@ describe('Journal', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('+$99.00');
-    const dangerTags = [...compiled.querySelectorAll('p-tag')]
-      .filter((el) => el.className.includes('p-tag-danger'))
-      .map((el) => el.textContent?.trim());
-    expect(dangerTags.some((t) => t?.includes('-$105.00'))).toBe(true);
+    const lossCells = [...compiled.querySelectorAll('[role="grid"] button.oj-loss')].map(
+      (el) => el.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(lossCells.some((t) => t?.includes('-$105.00'))).toBe(true);
   });
 
   it('renders local dates without raw ISO', async () => {
@@ -229,18 +229,22 @@ describe('Journal', () => {
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const cells = [...compiled.querySelectorAll('[role="grid"] button')].map(
-      (b) => ({
-        day: (b as HTMLElement).textContent?.slice(0, 2),
-        net: (b as HTMLElement).querySelector('p-tag')?.textContent?.trim() ?? null,
-        severity:
-          (b as HTMLElement).querySelector('p-tag')?.className.match(/p-tag-(success|danger|secondary)/)?.[0] ?? null,
-      }),
-    );
+    const cells = [...compiled.querySelectorAll('[role="grid"] button')].map((b) => {
+      const el = b as HTMLElement;
+      return {
+        day: el.textContent?.slice(0, 2),
+        net: el.querySelector('span.tabular-nums')?.textContent?.trim() ?? null,
+        tint: el.classList.contains('oj-win')
+          ? 'win'
+          : el.classList.contains('oj-loss')
+            ? 'loss'
+            : 'flat',
+      };
+    });
     expect(cells.find((c) => c.day === '05')?.net).toBe('$0.00');
-    expect(cells.find((c) => c.day === '05')?.severity).toBe('p-tag-secondary');
-    expect(cells.find((c) => c.day === '01')?.severity).toBe('p-tag-success');
-    expect(cells.find((c) => c.day === '03')?.severity).toBe('p-tag-danger');
+    expect(cells.find((c) => c.day === '05')?.tint).toBe('flat');
+    expect(cells.find((c) => c.day === '01')?.tint).toBe('win');
+    expect(cells.find((c) => c.day === '03')?.tint).toBe('loss');
     expect(cells.find((c) => c.day === '02')?.net).toBeNull();
   });
 
@@ -362,9 +366,9 @@ describe('Journal', () => {
     expect(compiled.querySelector('.pi-copy')).toBeNull();
     expect(compiled.querySelector('.pi-check')).toBeNull();
     const heroButtons = [
-      ...compiled
-        .querySelector('app-page-hero')
-        ?.querySelectorAll('button[aria-label="Previous month"], button[aria-label="Next month"]') ?? [],
+      ...compiled.querySelectorAll(
+        'button[aria-label="Previous month"], button[aria-label="Next month"]',
+      ),
     ];
     expect(heroButtons.length).toBe(2);
     for (const button of heroButtons) {
@@ -410,7 +414,7 @@ describe('Journal', () => {
     expect(compiled.querySelector('[role="grid"]')).not.toBeNull();
   });
 
-  it('marks Guard-breached days and inside days on the heatmap', async () => {
+  it('tints win/loss days and flags Guard breaches on the heatmap', async () => {
     await seed();
     const store = TestBed.inject(TradesStore);
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -422,9 +426,13 @@ describe('Journal', () => {
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('Guard breached');
-    expect(content).toContain('Inside Guards');
+    // Net sign rides the cell tint, not a text badge.
+    expect(compiled.querySelector('.oj-win, .oj-loss')).not.toBeNull();
+    // A breached day gets the icon-only guard indicator.
+    expect(compiled.querySelector('[aria-label="Guard breached"]')).not.toBeNull();
+    // Inside-Guard days stay silent — no badge text in the grid.
+    const grid = compiled.querySelector('[aria-label="Month calendar"]')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(grid).not.toContain('Inside Guards');
   });
 
   it('shows no Guard markers when every Guard is unset', async () => {
@@ -433,9 +441,7 @@ describe('Journal', () => {
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).not.toContain('Guard breached');
-    expect(content).not.toContain('Inside Guards');
+    expect(compiled.querySelector('[aria-label="Guard breached"]')).toBeNull();
   });
 
   it('names breached daily and containing-week Guards in day detail', async () => {
