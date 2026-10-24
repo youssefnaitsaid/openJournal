@@ -93,6 +93,15 @@ export class Analytics {
     computeComplianceCorrelation(this.store.activeFilteredTrades()),
   );
 
+  // "No scored trades yet" is a Portfolio-level claim. Once any checklist was
+  // touched, a filter that happens to leave only unscored Trades must name the
+  // filter instead of claiming process data was never captured.
+  readonly hasScoredTrades = computed(() =>
+    this.store
+      .activeTrades()
+      .some((trade) => trade.compliance !== null && trade.compliance !== undefined),
+  );
+
   readonly complianceRows = computed(() => {
     const compliance = this.compliance();
     return [
@@ -182,9 +191,9 @@ export class Analytics {
   readonly kpiBand = computed(() => {
     const m = this.metrics();
     return [
-      { label: 'R-Expectancy (avg R)', value: this.formatR(m.rExpectancy) },
-      { label: 'Median R', value: this.formatR(m.medianR) },
-      { label: 'R sum', value: this.formatR(m.rSum) },
+      { label: 'R-Expectancy', value: this.formatR(m.rExpectancy) },
+      { label: 'Median R-Multiple', value: this.formatR(m.medianR) },
+      { label: 'R-Multiple sum', value: this.formatR(m.rSum) },
       { label: 'Risked Amount', value: this.formatDollars(m.riskedTotal) },
       { label: 'Net P&L', value: this.formatSignedDollars(m.netTotal) },
       { label: 'Risked coverage', value: `${m.riskedCount} of ${m.totalTrades}` },
