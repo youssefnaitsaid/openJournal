@@ -189,15 +189,27 @@ describe('Journal', () => {
     expect(link).not.toBeNull();
   });
 
-  it('summarises month Net and balance from the shared setting', async () => {
+  it('states Month Net P&L and month-end balance once inside the Month report card', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    const card = compiled.querySelector(
+      '[aria-label="Month report card"]',
+    ) as HTMLElement;
+    expect(card).not.toBeNull();
+    const content = card.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Month Net P&L');
     expect(content).toContain('-$6.00');
+    expect(content).toContain('Balance at month end');
     expect(content).toContain('9,994');
+    // The headline Net is the report's Net: no second Net metric row.
+    const labels = [...card.querySelectorAll('dt')].map(
+      (dt) => dt.textContent?.trim() ?? '',
+    );
+    expect(labels.filter((label) => label === 'Month Net P&L').length).toBe(1);
+    expect(labels).not.toContain('Net P&L');
   });
 
   it('renders user-added tag values with no code change', async () => {
@@ -292,30 +304,51 @@ describe('Journal', () => {
     const cells = [...compiled.querySelectorAll('[role="grid"] button')].map((b) => {
       const el = b as HTMLElement;
       return {
-        day: el.textContent?.trim().slice(0, 2),
+        day: el.querySelector('span')?.textContent?.trim() ?? '',
         net: el.querySelector('p-tag')?.textContent?.trim() ?? null,
         tinted:
           el.classList.contains('oj-win') || el.classList.contains('oj-loss'),
       };
     });
-    expect(cells.find((c) => c.day === '05')?.net).toBe('0');
-    expect(cells.find((c) => c.day === '05')?.tinted).toBe(false);
-    expect(cells.find((c) => c.day === '01')?.net).toBe('+$99');
-    expect(cells.find((c) => c.day === '03')?.net).toBe('-$105');
-    expect(cells.find((c) => c.day === '02')?.net).toBeNull();
+    expect(cells.find((c) => c.day === '5')?.net).toBe('0');
+    expect(cells.find((c) => c.day === '5')?.tinted).toBe(false);
+    expect(cells.find((c) => c.day === '1')?.net).toBe('+$99');
+    expect(cells.find((c) => c.day === '3')?.net).toBe('-$105');
+    expect(cells.find((c) => c.day === '2')?.net).toBeNull();
     expect(cells.every((c) => !c.tinted)).toBe(true);
   });
 
-  it('renders the month report card with metrics and copy control', async () => {
+  it('drops leading zeros from calendar day numbers', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    const numbers = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].map((button) => button.textContent?.trim().match(/^\d+/)?.[0] ?? '');
+    expect(numbers).toContain('1');
+    expect(numbers).toContain('3');
+    expect(numbers).not.toContain('01');
+    expect(numbers).not.toContain('05');
+    expect(numbers.every((day) => !/^0\d/.test(day))).toBe(true);
+  });
+
+  it('renders exactly one Month report card carrying every report metric and Copy', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const cards = compiled.querySelectorAll('[aria-label="Month report card"]');
+    expect(cards.length).toBe(1);
+    expect(compiled.querySelector('[aria-label="Month summary"]')).toBeNull();
+    const card = cards[0] as HTMLElement;
+    const content = card.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Month report card');
     expect(content).toContain('Total Trades');
-    expect(content).toContain('Net P&L');
+    expect(content).toContain('Month Net P&L');
+    expect(content).toContain('Balance at month end');
     expect(content).toContain('Win-rate');
     expect(content).toContain('Profit Factor');
     expect(content).toContain('Best Setup');
@@ -323,7 +356,7 @@ describe('Journal', () => {
     expect(content).toContain('Top Mistake');
     expect(content).toContain('Compliance');
     expect(
-      compiled.querySelector('[aria-label="Copy month report card"]'),
+      card.querySelector('[aria-label="Copy month report card"]'),
     ).not.toBeNull();
   });
 
@@ -344,7 +377,7 @@ describe('Journal', () => {
     expect(metric?.querySelector('dd')?.textContent?.trim()).toBe('2');
   });
 
-  it('orders the page calendar-first: calendar, then day detail, then summary and report', async () => {
+  it('orders the page calendar-first: calendar, then day detail, then one Month report', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     const component = fixture.componentInstance;
@@ -355,12 +388,11 @@ describe('Journal', () => {
     const landmarks = [...compiled.querySelectorAll(
       '[aria-label="Month calendar"], [aria-label="Day detail"], [aria-label="Month summary"], [aria-label="Month report card"]',
     )];
-    expect(landmarks.length).toBe(4);
+    expect(landmarks.length).toBe(3);
     const order = landmarks.map((el) => el.getAttribute('aria-label'));
     expect(order).toEqual([
       'Month calendar',
       'Day detail',
-      'Month summary',
       'Month report card',
     ]);
   });
@@ -374,7 +406,7 @@ describe('Journal', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(
       compiled.querySelector('[aria-label="Month summary"]'),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(
       compiled.querySelector('[aria-label="Month report card"]'),
     ).not.toBeNull();
@@ -384,7 +416,8 @@ describe('Journal', () => {
     expect(content).toContain('November 2026');
     expect(compiled.querySelector('[aria-label="Month summary"]')).toBeNull();
     expect(compiled.querySelector('[aria-label="Month report card"]')).toBeNull();
-    expect(content).not.toContain('Month Net');
+    expect(content).not.toContain('Month Net P&L');
+    expect(content).not.toContain('Balance at month end');
     expect(content).not.toContain('Total Trades');
     expect(
       compiled.querySelector('[aria-label="Copy month report card"]'),

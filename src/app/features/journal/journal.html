@@ -49,9 +49,9 @@
                 [attr.aria-label]="dayAriaLabel(cell)"
                 [class.bg-highlight]="activeDay() === cell.date"
                 [class.text-highlight]="activeDay() === cell.date"
-                class="flex min-h-16 flex-col items-start gap-1 rounded-lg border border-surface-200 p-1 text-left transition-colors hover:bg-surface-100 sm:p-1.5 dark:border-surface-700 dark:hover:bg-surface-800"
+                class="flex min-h-14 flex-col items-start gap-1 rounded-lg border border-surface-200 p-1 text-left transition-colors hover:bg-surface-100 sm:p-1.5 dark:border-surface-700 dark:hover:bg-surface-800"
               >
-                <span class="text-sm font-medium tabular-nums">{{ cell.date.slice(8, 10) }}</span>
+                <span class="text-sm font-medium tabular-nums">{{ dayNumber(cell.date) }}</span>
                 @if (cell.trades.length > 0) {
                   <div class="flex flex-wrap items-center gap-1">
                     <span class="journal-day-net">
@@ -171,25 +171,25 @@
   </section>
 
   @if (monthHasCloses()) {
-    <p-card aria-label="Month summary">
-      <dl class="grid gap-4 sm:grid-cols-2">
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Month Net</dt>
-          <dd class="text-xl font-semibold tabular-nums">{{ formatSignedDollars(summary().monthNet) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Balance at month end</dt>
-          <dd class="text-xl font-semibold tabular-nums">{{ formatDollars(summary().balanceEnd) }}</dd>
-        </div>
-      </dl>
-    </p-card>
-
+    <!-- One Month report: the headline states Month Net P&L and month-end
+         balance, the body carries every process metric, and Copy stays in the
+         header. A month without closes hides the whole card. -->
     <p-card aria-label="Month report card">
       <ng-template pTemplate="header">
-        <div class="flex items-start justify-between gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="min-w-0">
             <h2 class="text-xl font-semibold tracking-tight">Month report card</h2>
             <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Auto-generated from this month's closed Trades.</p>
+            <dl class="mt-3 flex flex-wrap gap-x-10 gap-y-2">
+              <div class="flex flex-col gap-0.5">
+                <dt class="text-sm text-surface-600 dark:text-surface-300">Month Net P&amp;L</dt>
+                <dd class="text-xl font-semibold tabular-nums">{{ formatSignedDollars(reportCard().netTotal) }}</dd>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <dt class="text-sm text-surface-600 dark:text-surface-300">Balance at month end</dt>
+                <dd class="text-xl font-semibold tabular-nums">{{ formatDollars(monthEndBalance()) }}</dd>
+              </div>
+            </dl>
           </div>
           <p-button
             type="button"
@@ -205,14 +205,10 @@
           </p-button>
         </div>
       </ng-template>
-      <dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+      <dl class="grid gap-x-8 gap-y-4 border-t border-surface-200 pt-4 sm:grid-cols-2 dark:border-surface-700">
         <div class="flex flex-col gap-0.5">
           <dt class="text-sm text-surface-600 dark:text-surface-300">Total Trades</dt>
           <dd class="text-base font-semibold tabular-nums">{{ reportCard().totalTrades }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Net P&amp;L</dt>
-          <dd><p-tag [value]="signedDollars(reportCard().netTotal)" [severity]="reportCard().netTotal < 0 ? 'danger' : reportCard().netTotal > 0 ? 'success' : 'secondary'" /></dd>
         </div>
         <div class="flex flex-col gap-0.5">
           <dt class="text-sm text-surface-600 dark:text-surface-300">Win-rate</dt>
