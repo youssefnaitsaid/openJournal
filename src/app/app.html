@@ -5,12 +5,12 @@
     header="openJournal"
     ariaCloseLabel="Close navigation"
   >
-    <nav aria-label="Primary mobile" class="flex h-full min-h-0 flex-col">
-      <div class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
+    <div class="flex h-full min-h-0 flex-col">
+      <nav aria-label="Primary mobile" class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
         <ng-container [ngTemplateOutlet]="navList" [ngTemplateOutletContext]="{ $implicit: true }" />
-      </div>
+      </nav>
       <ng-container [ngTemplateOutlet]="portfolioFooter" [ngTemplateOutletContext]="{ $implicit: true }" />
-    </nav>
+    </div>
   </p-drawer>
 
   <aside
@@ -89,7 +89,10 @@
 </ng-template>
 
 <ng-template #portfolioFooter let-mobile>
-  <footer aria-label="Portfolio scope" class="mt-4 shrink-0 border-t border-surface-200 pt-4 dark:border-surface-700">
+  <footer
+    [attr.aria-label]="mobile ? 'Portfolio scope mobile' : 'Portfolio scope'"
+    class="mt-4 shrink-0 border-t border-surface-200 pt-4 dark:border-surface-700"
+  >
     <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-surface-500 dark:text-surface-400">Portfolios</p>
     <div class="px-3 py-1">
       <p-select

@@ -136,11 +136,15 @@ describe('App', () => {
       'nav[aria-label="Primary mobile"]',
     ) as HTMLElement | null;
     expect(mobileNav).not.toBeNull();
-    const content = mobileNav!.textContent?.replace(/\s+/g, ' ') ?? '';
+    const mobilePanel = mobileNav!.parentElement as HTMLElement;
+    const content = mobilePanel.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Overview');
     expect(content).toContain('Workspace');
     expect(content).toContain('Configuration');
-    expect(mobileNav!.querySelector('p-select')).not.toBeNull();
+    expect(mobilePanel.querySelector('p-select')).not.toBeNull();
+    expect(
+      mobilePanel.querySelector('footer[aria-label="Portfolio scope mobile"]'),
+    ).not.toBeNull();
     expect(content).toContain('Net P&L');
     expect(content).toContain('+$20.00');
   });
