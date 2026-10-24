@@ -51,6 +51,89 @@ describe('FilterBar', () => {
     expect(compiled.querySelector('p-card')).toBeNull();
   });
 
+  it('collapses to a flat Filters disclosure that counts active axes', async () => {
+    const { fixture, store } = await harness();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const disclosure = compiled.querySelector(
+      'button[aria-controls="filter-fields"]',
+    ) as HTMLButtonElement;
+
+    expect(disclosure).not.toBeNull();
+    expect(disclosure.tagName).toBe('BUTTON');
+    expect(disclosure.getAttribute('type')).toBe('button');
+    expect(disclosure.textContent?.trim()).toBe('Filters');
+
+    store.setFilter({ asset: 'fomc' });
+    await fixture.whenStable();
+    expect(disclosure.textContent?.trim()).toBe('Filters (1)');
+
+    // The close-date range is one axis even when both ends are set.
+    store.setFilter({
+      dateFrom: '2026-10-01',
+      dateTo: '2026-10-03',
+      side: 'Long',
+    });
+    await fixture.whenStable();
+    expect(disclosure.textContent?.trim()).toBe('Filters (3)');
+
+    store.setFilter({
+      setup: 'Breakout',
+      tag: 'FOMC',
+      outcome: 'Win',
+      grade: 'A',
+      needsReview: true,
+    });
+    await fixture.whenStable();
+    expect(disclosure.textContent?.trim()).toBe('Filters (8)');
+  });
+
+  it('expands the one filter bar in place from the disclosure', async () => {
+    const { fixture } = await harness();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const disclosure = compiled.querySelector(
+      'button[aria-controls="filter-fields"]',
+    ) as HTMLButtonElement;
+    const fields = compiled.querySelector('#filter-fields') as HTMLElement;
+
+    expect(fields).not.toBeNull();
+    expect(disclosure.getAttribute('aria-expanded')).toBe('false');
+
+    disclosure.click();
+    await fixture.whenStable();
+    expect(disclosure.getAttribute('aria-expanded')).toBe('true');
+    // Still the same single bar: no second set of controls appeared.
+    expect(compiled.querySelectorAll('p-datepicker').length).toBe(2);
+    expect(compiled.querySelectorAll('p-toggleButton').length).toBe(1);
+
+    disclosure.click();
+    await fixture.whenStable();
+    expect(disclosure.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('renders Reset as an icon-only action with an accessible name only while filtering', async () => {
+    const { fixture, store } = await harness();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(
+      compiled.querySelector('button[aria-label="Reset filter"]'),
+    ).toBeNull();
+
+    store.setFilter({ asset: 'fomc' });
+    await fixture.whenStable();
+    const reset = compiled.querySelector(
+      'button[aria-label="Reset filter"]',
+    ) as HTMLButtonElement;
+    expect(reset).not.toBeNull();
+    expect(reset.textContent?.trim()).toBe('');
+    expect(reset.querySelector('ng-icon')).not.toBeNull();
+
+    reset.click();
+    await fixture.whenStable();
+    expect(store.isFiltering()).toBe(false);
+    expect(
+      compiled.querySelector('button[aria-label="Reset filter"]'),
+    ).toBeNull();
+  });
+
   it('narrows the journal when a Tag is picked and reports n of m', async () => {
     const { fixture, store } = await harness();
     (fixture.componentInstance as unknown as { onTagChange: (e: { value: string }) => void }).onTagChange({
