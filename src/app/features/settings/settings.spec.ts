@@ -80,17 +80,53 @@ describe('Settings', () => {
     expect(localStorage.getItem(PORTFOLIOS_STORAGE_KEY)).toContain('Renamed');
   });
 
-  it('edits the starting balance of every listed Portfolio and persists it', async () => {
+  it('edits each starting balance once in the Portfolios card and persists it', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
+    expect(store.addPortfolio('Funded')).toBeNull();
+    const funded = store.portfolios().find((p) => p.name === 'Funded')!;
     const fixture = TestBed.createComponent(Settings);
     const component = fixture.componentInstance;
     await fixture.whenStable();
 
+    const compiled = fixture.nativeElement as HTMLElement;
+    const portfoliosCard = compiled.querySelector('[aria-label="Portfolios"]')!;
+    const editors = [...portfoliosCard.querySelectorAll('p-inputnumber')];
+    expect(editors.map((editor) => editor.getAttribute('aria-label'))).toEqual([
+      'Starting balance for Main',
+      'Starting balance for Funded',
+    ]);
+
     component.onPortfolioBalance(DEFAULT_PORTFOLIO_ID, 20000);
+    component.onPortfolioBalance(funded.id, 5000);
     await fixture.whenStable();
     expect(store.portfolios().find((p) => p.id === DEFAULT_PORTFOLIO_ID)!.startingBalance).toBe(20000);
-    expect(localStorage.getItem(PORTFOLIOS_STORAGE_KEY)).toContain('20000');
+    expect(store.portfolios().find((p) => p.name === 'Funded')!.startingBalance).toBe(5000);
+    const saved = JSON.parse(
+      localStorage.getItem(PORTFOLIOS_STORAGE_KEY) ?? '[]',
+    ) as { startingBalance: number }[];
+    expect(saved.map((p) => p.startingBalance)).toEqual([20000, 5000]);
+  });
+
+  it('shows the summed All anchor once, read-only, and keeps it in sync with balance edits', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    expect(store.addPortfolio('Funded')).toBeNull();
+    const fixture = TestBed.createComponent(Settings);
+    const component = fixture.componentInstance;
+    await fixture.whenStable();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const anchors = compiled.querySelectorAll('[aria-label="All starting balance"]');
+    expect(anchors.length).toBe(1);
+    const anchor = anchors[0] as HTMLElement;
+    expect(compiled.querySelector('[aria-label="Portfolios"]')!.contains(anchor)).toBe(true);
+    expect(anchor.textContent).toContain('$20,000.00');
+    expect(anchor.querySelector('input')).toBeNull();
+
+    component.onPortfolioBalance(DEFAULT_PORTFOLIO_ID, 25000);
+    await fixture.whenStable();
+    expect(anchor.textContent).toContain('$35,000.00');
   });
 
   it('deletes a Portfolio only after confirm-dialog acceptance', async () => {
@@ -142,16 +178,29 @@ describe('Settings', () => {
     expect(store.portfolios().length).toBe(1);
   });
 
-  it('edits the active Guards and persists them', async () => {
+  it('keeps starting balance out of Guards while editing the active Portfolio daily and weekly limits', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade(tradeInput({ asset: 'AAPL' }));
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
     const fixture = TestBed.createComponent(Settings);
     await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const guardsCard = compiled.querySelector('[aria-label="Guards"]')!;
+    expect(guardsCard.textContent).not.toContain('Starting balance');
+    expect(
+      guardsCard.querySelector('[aria-label="Active portfolio starting balance"]'),
+    ).toBeNull();
 
     fixture.componentInstance.onGuardNumber('dailyMaxLoss', 200);
+    fixture.componentInstance.onGuardNumber('weeklyMaxLoss', 500);
+    fixture.componentInstance.onGuardNumber('weeklyMaxTrades', 5);
     await fixture.whenStable();
+    const saved = store.guardMap()[DEFAULT_PORTFOLIO_ID];
+    expect(saved?.daily.maxLoss).toBe(200);
+    expect(saved?.weekly.maxLoss).toBe(500);
+    expect(saved?.weekly.maxTrades).toBe(5);
     expect(localStorage.getItem(GUARDS_STORAGE_KEY)).toContain('200');
   });
 
@@ -192,22 +241,28 @@ describe('Settings', () => {
     expect(compiled.textContent).toContain('Weekly loss Guard');
   });
 
-  it('locks Guards and starting balance as read-only while All is active', async () => {
+  it('replaces Guard inputs with one quiet per-Portfolio state and no Guard status while All is active', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
     store.addTrade(tradeInput({ asset: 'AAPL' }));
+    store.saveActiveGuards({
+      daily: { maxLoss: 100, maxTrades: null, stopTime: null },
+      weekly: { maxLoss: 500, maxTrades: null },
+    });
+    store.setActiveId('all');
     expect(store.isAll()).toBe(true);
     const fixture = TestBed.createComponent(Settings);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    const guardsCard = compiled.querySelector('[aria-label="Guards"]');
-    const inputs = [
-      ...(guardsCard?.querySelectorAll('input') ?? []),
-    ] as HTMLInputElement[];
-    expect(inputs.length).toBeGreaterThan(0);
-    expect(inputs.every((input) => input.disabled)).toBe(true);
-    expect(compiled.textContent).toContain('per Portfolio');
+    const guardsCard = compiled.querySelector('[aria-label="Guards"]')!;
+    const guardsText = guardsCard.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(guardsText).toContain('Guards are set per Portfolio — select one');
+    expect(guardsCard.querySelectorAll('input, select, textarea').length).toBe(0);
+    expect(guardsText).not.toContain('This week');
+    expect(guardsText).not.toContain('No Guards set');
+    expect(compiled.querySelectorAll('[aria-label="All starting balance"]').length).toBe(1);
   });
 
   it('adds Setup, Emotion, Mistake, and Tag vocabulary and persists it', async () => {

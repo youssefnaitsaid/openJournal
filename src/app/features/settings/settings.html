@@ -105,95 +105,100 @@
           </li>
         }
       </ul>
+
+      <div
+        role="group"
+        aria-label="All starting balance"
+        class="flex items-center justify-between gap-3 rounded-xl border border-dashed border-surface-200 p-3 dark:border-surface-700"
+      >
+        <div class="flex min-w-0 flex-col">
+          <span class="text-base font-semibold">All</span>
+          <span class="text-sm text-surface-600 dark:text-surface-300">Summed anchor across every Portfolio — read-only.</span>
+        </div>
+        <span class="shrink-0 text-base font-semibold tabular-nums">{{ formatDollars(allAnchorBalance()) }}</span>
+      </div>
     </div>
   </p-card>
 
   <p-card aria-label="Guards">
     <h2 class="text-xl font-semibold tracking-tight">Guards</h2>
-    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.</p>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">
+      @if (store.isAll()) {
+        Optional daily and weekly brakes for the active Portfolio. Warnings only, logging is never blocked.
+      } @else {
+        Optional daily and weekly brakes for the active Portfolio — {{ store.activeName() }}. Warnings only, logging is never blocked.
+      }
+    </p>
 
     <div class="mt-4 flex flex-col gap-6">
-      <label class="flex w-full max-w-xs flex-col gap-1 text-base">
-        <span>Starting balance for {{ store.activeName() }} (USD)</span>
-        <p-inputnumber
-          ariaLabel="Active portfolio starting balance"
-          [ngModel]="startingBalance()"
-          (ngModelChange)="onBalanceNumber($event)"
-          [min]="0"
-          [disabled]="store.isAll()"
-          fluid
-        />
-      </label>
+      @if (store.isAll()) {
+        <p class="text-base text-surface-600 dark:text-surface-300">Guards are set per Portfolio — select one</p>
+      } @else {
+        <div class="grid items-start gap-8 xl:grid-cols-2">
+          <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
+            <legend class="px-1 text-base font-semibold">Daily</legend>
+            <p class="text-sm text-surface-600 dark:text-surface-300">Resets each UTC day.</p>
+            <label class="flex flex-col gap-1 text-base">Daily loss Guard (USD)
+              <p-inputnumber
+                ariaLabel="Daily loss Guard"
+                [ngModel]="toNumberOrNull(guardInputs().dailyMaxLoss)"
+                (ngModelChange)="onGuardNumber('dailyMaxLoss', $event)"
+                [min]="0"
+                fluid
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-base">Daily trade count Guard
+              <p-inputnumber
+                ariaLabel="Daily trade count Guard"
+                [ngModel]="toNumberOrNull(guardInputs().dailyMaxTrades)"
+                (ngModelChange)="onGuardNumber('dailyMaxTrades', $event)"
+                [min]="0"
+                fluid
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-base">Daily stop time Guard
+              <p-datepicker
+                ariaLabel="Daily stop time Guard"
+                [ngModel]="guardStopTimeValue()"
+                (onSelect)="onGuardStopTime($event)"
+                [timeOnly]="true"
+                hourFormat="24"
+                [showClear]="true"
+                (onClear)="onGuardStopTime(null)"
+                fluid
+              />
+            </label>
+          </fieldset>
 
-      <div class="grid items-start gap-8 xl:grid-cols-2">
-        <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
-          <legend class="px-1 text-base font-semibold">Daily</legend>
-          <p class="text-sm text-surface-600 dark:text-surface-300">Resets each UTC day.</p>
-          <label class="flex flex-col gap-1 text-base">Daily loss Guard (USD)
-            <p-inputnumber
-              ariaLabel="Daily loss Guard"
-              [ngModel]="toNumberOrNull(guardInputs().dailyMaxLoss)"
-              (ngModelChange)="onGuardNumber('dailyMaxLoss', $event)"
-              [min]="0"
-              [disabled]="store.isAll()"
-              fluid
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-base">Daily trade count Guard
-            <p-inputnumber
-              ariaLabel="Daily trade count Guard"
-              [ngModel]="toNumberOrNull(guardInputs().dailyMaxTrades)"
-              (ngModelChange)="onGuardNumber('dailyMaxTrades', $event)"
-              [min]="0"
-              [disabled]="store.isAll()"
-              fluid
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-base">Daily stop time Guard
-            <p-datepicker
-              ariaLabel="Daily stop time Guard"
-              [ngModel]="guardStopTimeValue()"
-              (onSelect)="onGuardStopTime($event)"
-              [timeOnly]="true"
-              hourFormat="24"
-              [showClear]="true"
-              (onClear)="onGuardStopTime(null)"
-              [disabled]="store.isAll()"
-              fluid
-            />
-          </label>
-        </fieldset>
+          <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
+            <legend class="px-1 text-base font-semibold">Weekly</legend>
+            <p class="text-sm text-surface-600 dark:text-surface-300">Resets each Monday-to-Sunday UTC week.</p>
+            <label class="flex flex-col gap-1 text-base">Weekly loss Guard (USD)
+              <p-inputnumber
+                ariaLabel="Weekly loss Guard"
+                [ngModel]="toNumberOrNull(guardInputs().weeklyMaxLoss)"
+                (ngModelChange)="onGuardNumber('weeklyMaxLoss', $event)"
+                [min]="0"
+                fluid
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-base">Weekly trade count Guard
+              <p-inputnumber
+                ariaLabel="Weekly trade count Guard"
+                [ngModel]="toNumberOrNull(guardInputs().weeklyMaxTrades)"
+                (ngModelChange)="onGuardNumber('weeklyMaxTrades', $event)"
+                [min]="0"
+                fluid
+              />
+            </label>
+          </fieldset>
+        </div>
 
-        <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
-          <legend class="px-1 text-base font-semibold">Weekly</legend>
-          <p class="text-sm text-surface-600 dark:text-surface-300">Resets each Monday-to-Sunday UTC week.</p>
-          <label class="flex flex-col gap-1 text-base">Weekly loss Guard (USD)
-            <p-inputnumber
-              ariaLabel="Weekly loss Guard"
-              [ngModel]="toNumberOrNull(guardInputs().weeklyMaxLoss)"
-              (ngModelChange)="onGuardNumber('weeklyMaxLoss', $event)"
-              [min]="0"
-              [disabled]="store.isAll()"
-              fluid
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-base">Weekly trade count Guard
-            <p-inputnumber
-              ariaLabel="Weekly trade count Guard"
-              [ngModel]="toNumberOrNull(guardInputs().weeklyMaxTrades)"
-              (ngModelChange)="onGuardNumber('weeklyMaxTrades', $event)"
-              [min]="0"
-              [disabled]="store.isAll()"
-              fluid
-            />
-          </label>
-        </fieldset>
-      </div>
-
-      @for (error of guardErrors(); track error) {
-        <p-message severity="error">{{ error }}</p-message>
+        @for (error of guardErrors(); track error) {
+          <p-message severity="error">{{ error }}</p-message>
+        }
+        <p class="text-base">{{ weekStatusText() }}</p>
       }
-      <p class="text-base">{{ weekStatusText() }}</p>
     </div>
   </p-card>
 
