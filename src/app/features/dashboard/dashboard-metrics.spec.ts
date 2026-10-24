@@ -94,6 +94,17 @@ describe('computeMetrics', () => {
     expect(m.recent.map((t) => t.asset)).toEqual(['FLAT', 'LOSS']);
   });
 
+  it('caps Recent Trades at five newest closes by default', () => {
+    const trades = Array.from({ length: 7 }, (_, i) =>
+      tradeFixture({
+        asset: `T${i + 1}`,
+        closedAt: `2026-10-0${i + 1}T14:30:00.000Z`,
+      }),
+    );
+    const m = computeMetrics(trades, 10000);
+    expect(m.recent.map((t) => t.asset)).toEqual(['T7', 'T6', 'T5', 'T4', 'T3']);
+  });
+
   it('reads zero drawdown on an empty journal', () => {
     const m = computeMetrics([], 10000);
     expect(m.maxDrawdown).toBe(0);

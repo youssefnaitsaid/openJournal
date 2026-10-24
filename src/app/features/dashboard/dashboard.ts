@@ -18,6 +18,7 @@ import {
   formatProfitFactor,
   formatSignedDollars,
 } from './dashboard-metrics';
+import type { KpiLine } from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
 import {
   GUARD_LABELS,
@@ -32,6 +33,12 @@ import { PageHero } from '../../ui/page-hero';
 interface GuardStatusView {
   readonly show: boolean;
   readonly text: string;
+}
+
+interface KpiGroupView {
+  readonly title: string;
+  readonly icon: string;
+  readonly lines: KpiLine[];
 }
 
 @Component({
@@ -119,6 +126,17 @@ export class Dashboard {
   readonly kpiBand = computed(() =>
     computeKpiBand(this.metrics(), this.startingBalance()),
   );
+
+  // One band card, three rule-separated groups; computeKpiBand orders the
+  // nine lines contiguously by group so no label is repeated in the view.
+  readonly kpiGroups = computed<readonly KpiGroupView[]>(() => {
+    const band = this.kpiBand();
+    return [
+      { title: 'Edge', icon: 'lucideZap', lines: band.slice(0, 3) },
+      { title: 'Consistency', icon: 'lucideFlame', lines: band.slice(3, 6) },
+      { title: 'Account', icon: 'lucideWallet', lines: band.slice(6, 9) },
+    ];
+  });
 
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
 
