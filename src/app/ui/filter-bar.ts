@@ -1,7 +1,7 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideListFilter, lucideRotateCcw } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideChevronUp, lucideRotateCcw } from '@ng-icons/lucide';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
@@ -11,6 +11,7 @@ import { TagModule } from 'primeng/tag';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { SETUPS, GRADES } from '../features/trades/trade';
 import type { Grade, Side } from '../features/trades/trade';
+import { countActiveFilterAxes } from '../features/trades/trades-filter';
 import type { GlobalFilter, OutcomeFilter } from '../features/trades/trades-filter';
 import { TradesStore } from '../features/trades/trades-store';
 import {
@@ -27,12 +28,26 @@ const ALL = 'All';
 
 @Component({
   imports: [FormsModule, NgIcon, ButtonModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule, FloatLabelModule],
-  providers: [provideIcons({ lucideListFilter, lucideRotateCcw })],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronUp, lucideRotateCcw })],
   selector: 'app-filter-bar',
   templateUrl: './filter-bar.html',
 })
 export class FilterBar {
   readonly store = inject(TradesStore);
+
+  // Below 1440px the controls fold behind a flat "Filters (n)" disclosure; at
+  // 1440px and wider the same controls sit on one line. The state lives here
+  // (not in the store) because it is presentation only.
+  readonly expanded = signal(false);
+
+  readonly activeAxisCount = computed(() =>
+    countActiveFilterAxes(this.store.filter()),
+  );
+
+  readonly disclosureLabel = computed(() => {
+    const count = this.activeAxisCount();
+    return count === 0 ? 'Filters' : `Filters (${count})`;
+  });
 
   readonly setupOptions = computed(() => {
     taxonomyVersion();
@@ -153,5 +168,9 @@ export class FilterBar {
 
   reset(): void {
     this.store.resetFilter();
+  }
+
+  toggleExpanded(): void {
+    this.expanded.update((open) => !open);
   }
 }

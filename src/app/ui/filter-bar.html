@@ -1,8 +1,28 @@
-<div class="flex flex-wrap items-center gap-2">
-    <div class="w-44">
+<div class="flex flex-col gap-1">
+  <div class="min-[1440px]:hidden">
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-base font-medium text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-800"
+      aria-controls="filter-fields"
+      [attr.aria-expanded]="expanded()"
+      (click)="toggleExpanded()"
+    >
+      <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucideChevronDown'" class="size-4" />
+      <span>{{ disclosureLabel() }}</span>
+    </button>
+  </div>
+
+  <div
+    id="filter-fields"
+    class="flex-wrap items-center gap-1 min-[1440px]:flex min-[1440px]:flex-nowrap"
+    [class.flex]="expanded()"
+    [class.hidden]="!expanded()"
+  >
+    <div class="w-31 min-w-0 shrink-0">
       <p-floatlabel variant="in">
         <p-datepicker
           ariaLabel="From date"
+          size="small"
           [ngModel]="dateFromValue()"
           (onSelect)="onDateChange('dateFrom', $event)"
           (onClear)="onDateChange('dateFrom', null)"
@@ -16,10 +36,11 @@
         <label for="dateFrom">From</label>
       </p-floatlabel>
     </div>
-    <div class="w-44">
+    <div class="w-31 min-w-0 shrink-0">
       <p-floatlabel variant="in">
         <p-datepicker
           ariaLabel="To date"
+          size="small"
           [ngModel]="dateToValue()"
           (onSelect)="onDateChange('dateTo', $event)"
           (onClear)="onDateChange('dateTo', null)"
@@ -33,69 +54,82 @@
         <label for="dateTo">To</label>
       </p-floatlabel>
     </div>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-19 min-w-0">
       <input
         pInputText
+        pSize="small"
         aria-label="Asset filter"
         [value]="store.filter().asset"
         (input)="onTextChange('asset', $event)"
-        class="w-28"
+        class="w-full"
         inputId="asset"
       />
       <label for="asset">Asset</label>
     </p-floatlabel>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-29 min-w-0">
       <p-select
         ariaLabel="Setup filter"
+        size="small"
         [options]="setupSelectOptions()"
         [ngModel]="setupValue()"
         (onChange)="onSetupChange($event)"
         inputId="setup"
+        fluid
       />
       <label for="setup">Setup</label>
     </p-floatlabel>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-24 min-w-0">
       <p-select
         ariaLabel="Side filter"
+        size="small"
         [options]="sideSelectOptions()"
         [ngModel]="sideValue()"
         (onChange)="onSideChange($event)"
         inputId="side"
+        fluid
       />
       <label for="side">Side</label>
     </p-floatlabel>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-20 min-w-0">
       <p-select
         ariaLabel="Tag filter"
+        size="small"
         [options]="tagSelectOptions()"
         [ngModel]="tagValue()"
         (onChange)="onTagChange($event)"
         inputId="tag"
+        fluid
       />
       <label for="tag">Tag</label>
     </p-floatlabel>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-32 min-w-0">
       <p-select
         ariaLabel="Outcome filter"
+        size="small"
         [options]="outcomeSelectOptions"
         [ngModel]="store.filter().outcome"
         (onChange)="onOutcomeChange($event)"
         inputId="outcome"
+        fluid
       />
       <label for="outcome">Outcome</label>
     </p-floatlabel>
-    <p-floatlabel variant="in">
+    <p-floatlabel variant="in" class="w-20 min-w-0">
       <p-select
         ariaLabel="Grade filter"
+        size="small"
         [options]="gradeSelectOptions"
         [ngModel]="gradeValue()"
         (onChange)="onGradeChange($event)"
         inputId="grade"
+        fluid
       />
       <label for="grade">Grade</label>
     </p-floatlabel>
     <p-toggleButton
       ariaLabel="Needs review filter"
+      class="w-27 shrink-0"
+      size="small"
       onLabel="Needs review"
       offLabel="Needs review"
       [(ngModel)]="needsReviewModel"
@@ -104,7 +138,7 @@
       <p-button
         type="button"
         ariaLabel="Reset filter"
-        label="Reset"
+        class="shrink-0"
         severity="secondary"
         [outlined]="true"
         (onClick)="reset()"
@@ -112,4 +146,5 @@
         <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
       </p-button>
     }
+  </div>
 </div>
