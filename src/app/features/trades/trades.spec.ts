@@ -404,7 +404,7 @@ describe('Trades', () => {
     expect(component.form.controls.multiplier.value).toBe(1);
   });
 
-  it('shows full trade columns in the table', async () => {
+  it('keeps history review-first: exactly Close, Asset, Side, Net P&L, R-Multiple, Setup, Grade, Compliance, Tags', async () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
@@ -413,46 +413,145 @@ describe('Trades', () => {
     component.onSubmit();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const header =
-      compiled.querySelector('thead tr')?.textContent?.replace(/\s+/g, ' ') ??
-      '';
-    for (const label of [
+    const headers = [...compiled.querySelectorAll('thead th')]
+      .map((h) => h.textContent?.replace(/\s+/g, ' ').trim() ?? '')
+      .filter((text) => text !== '');
+    expect(headers).toEqual([
+      'Close',
+      'Asset',
+      'Side',
+      'Net P&L',
+      'R-Multiple',
+      'Setup',
+      'Grade',
+      'Compliance',
+      'Tags',
+    ]);
+    expect(compiled.querySelectorAll('tbody tr').length).toBe(1);
+  });
+
+  it('moves execution, process, snapshot, and chart detail into the row expansion', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    component.store.addTrade(
+      tradeInput({
+        asset: 'AAPL',
+        market: 'Futures',
+        quantity: 2,
+        multiplier: 5,
+        entryPrice: 100,
+        exitPrice: 110,
+        stopPrice: 98,
+        takePrice: 115,
+        fees: 1,
+        emotionBefore: 'FOMO',
+        emotionAfter: 'Disciplined',
+        mistake: 'Moved-stop',
+        grade: 'B',
+        rules: [{ text: 'risk ≤ 1%', followed: true }],
+        chartUrl: 'https://example.com/chart',
+        notes: 'Held to target',
+        tags: ['FOMC'],
+      }),
+    );
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const content = () =>
+      compiled.querySelector('tbody')?.textContent?.replace(/\s+/g, ' ') ?? '';
+
+    // Review-first at rest: execution and process extras are not in the row.
+    for (const folded of [
+      'Open',
+      'Market',
       'Quantity',
+      'Multiplier',
       'Entry',
       'Exit',
-      'Gross',
+      'Gross P&L',
       'Fees',
       'Stop',
       'Take',
-      'Risked',
+      'Risked Amount',
       'Emotion before',
       'Emotion after',
       'Mistake',
+      'Held to target',
+      'risk ≤ 1%',
+      'Open chart',
+    ]) {
+      expect(content()).not.toContain(folded);
+    }
+
+    const toggle = compiled.querySelector<HTMLButtonElement>(
+      '[aria-label="Toggle details"]',
+    )!;
+    toggle.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const expanded = content();
+    for (const label of [
+      'Closed',
+      'Open',
+      'Market',
+      'Quantity',
       'Multiplier',
-      'R-Multiple',
+      'Entry',
+      'Exit',
+      'Gross P&L',
+      'Fees',
+      'Stop',
+      'Take',
+      'Risked Amount',
+      'Emotion before',
+      'Emotion after',
+      'Mistake',
+      'Playbook Rule snapshot',
     ]) {
-      expect(header).toContain(label);
+      expect(expanded).toContain(label);
     }
-    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
-      r.textContent?.replace(/\s+/g, ' '),
-    );
-    expect(rows.length).toBe(1);
     for (const value of [
-      '10',
-      '100',
-      '110',
-      '100',
-      '1',
-      '98',
-      '115',
-      '20',
-      'Calm',
+      'Futures',
+      '$100.00',
+      '$1.00',
+      '$20.00',
+      'FOMO',
       'Disciplined',
-      'None-followed-plan',
+      'Moved-stop',
+      'Held to target',
+      '✓ risk ≤ 1%',
     ]) {
-      expect(rows[0]).toContain(value);
+      expect(expanded).toContain(value);
     }
-    expect(compiled.querySelector('.overflow-x-auto')).not.toBeNull();
+    const chart = compiled.querySelector<HTMLAnchorElement>(
+      'a[href="https://example.com/chart"]',
+    );
+    expect(chart?.textContent).toContain('Open chart');
+  });
+
+  it('keeps every visible history column sortable after the execution fields move out', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.addTrade(tradeInput({ asset: 'WIN-A', exitPrice: 110, closedAt: '2026-10-03T14:30:00.000Z' }));
+    store.addTrade(tradeInput({ asset: 'LOSS-B', exitPrice: 90, fees: 5, closedAt: '2026-10-02T14:30:00.000Z' }));
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const firstAsset = () =>
+      compiled.querySelector('tbody tr')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    const header = (label: string) =>
+      [...compiled.querySelectorAll<HTMLTableCellElement>('th')].find((h) =>
+        h.textContent?.includes(label),
+      )!;
+    expect(firstAsset()).toContain('WIN-A');
+    header('Asset').click();
+    await fixture.whenStable();
+    expect(firstAsset()).toContain('LOSS-B');
+    header('Close').click();
+    await fixture.whenStable();
+    expect(firstAsset()).toContain('LOSS-B');
   });
 
   it('renders local dates without raw ISO', async () => {

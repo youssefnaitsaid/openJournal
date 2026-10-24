@@ -105,6 +105,10 @@ export class Journal {
 
   readonly dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  // Calendar cells name the day without a leading zero so the month scans
+  // faster; the date stays available in each cell's exact ARIA label.
+  readonly dayNumber = (date: string): number => Number(date.slice(8, 10));
+
   readonly weeks = computed(() =>
     buildMonth(this.store.activeTrades(), this.cursor().year, this.cursor().month),
   );
@@ -184,13 +188,16 @@ export class Journal {
     return formatted.endsWith('.00') ? formatted.slice(0, -3) : formatted;
   };
 
-  readonly summary = computed(() =>
-    monthSummary(
-      this.store.activeTrades(),
-      this.cursor().year,
-      this.cursor().month,
-      this.startingBalance(),
-    ),
+  // The merged Month report states its own Net; only the month-end balance
+  // still comes from the shared month summary seam.
+  readonly monthEndBalance = computed(
+    () =>
+      monthSummary(
+        this.store.activeTrades(),
+        this.cursor().year,
+        this.cursor().month,
+        this.startingBalance(),
+      ).balanceEnd,
   );
 
   readonly reportCard = computed(() =>
