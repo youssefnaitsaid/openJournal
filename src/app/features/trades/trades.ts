@@ -16,10 +16,12 @@ import {
   lucideArrowDownUp,
   lucideChevronDown,
   lucideChevronRight,
+  lucideChevronUp,
   lucideDownload,
 } from '@ng-icons/lucide';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
@@ -70,12 +72,13 @@ function chartUrlValidator(
 }
 
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, TagModule, TextareaModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, FloatLabelModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, TagModule, TextareaModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({
       lucideArrowDownUp,
       lucideChevronDown,
       lucideChevronRight,
+      lucideChevronUp,
       lucideDownload,
     }),
   ],
@@ -92,6 +95,9 @@ export class Trades {
   // The log form is hidden behind the hero button until deliberately revealed
   // (the dominant task - scan/sort/filter history - owns the viewport).
   readonly logFormOpen = signal(false);
+  // Below lg the optional tail (Stop, Take, Risked Amount, Chart, Notes, Tags)
+  // is disclosed in place; from lg up the region is always visible.
+  readonly moreDetailsOpen = signal(false);
   private readonly assetInput = viewChild<ElementRef<HTMLInputElement>>('assetInput');
   // The history table renders only once there are rows; a viewChild keeps the
   // Export action in the filter row above that branch instead of inside it.
@@ -106,6 +112,11 @@ export class Trades {
 
   closeLogForm(): void {
     this.logFormOpen.set(false);
+    this.moreDetailsOpen.set(false);
+  }
+
+  toggleMoreDetails(): void {
+    this.moreDetailsOpen.update((open) => !open);
   }
 
   toggleLogForm(): void {
@@ -130,9 +141,9 @@ export class Trades {
 
   readonly markets: readonly Market[] = MARKETS;
 
-  readonly gradeOptions: { label: string; value: Grade | '' }[] = [
-    { label: '—', value: '' },
-    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | '' })),
+  readonly gradeOptions: { label: string; value: Grade | null }[] = [
+    { label: 'Ungraded', value: null },
+    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | null })),
   ];
 
   readonly sides: readonly Side[] = ['Long', 'Short'];
@@ -252,7 +263,7 @@ export class Trades {
     emotionBefore: ['Calm' as Emotion, Validators.required],
     emotionAfter: ['Calm' as Emotion, Validators.required],
     mistake: ['None-followed-plan' as Mistake, Validators.required],
-    grade: ['' as Grade | ''],
+    grade: this.fb.control<Grade | null>(null),
     chartUrl: ['', chartUrlValidator],
     notes: [''],
     tags: [''],
@@ -276,6 +287,11 @@ export class Trades {
     if (!this.store.canLog()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      // Chart URL is the only validated field behind the phone disclosure;
+      // reveal it so a blocking error is never hidden below lg.
+      if (this.form.controls.chartUrl.invalid) {
+        this.moreDetailsOpen.set(true);
+      }
       return;
     }
     const v = this.form.getRawValue();
@@ -299,7 +315,7 @@ export class Trades {
       emotionBefore: v.emotionBefore,
       emotionAfter: v.emotionAfter,
       mistake: v.mistake,
-      grade: v.grade,
+      grade: v.grade ?? '',
       rules: this.checklistTouched() ? [...this.checks()] : undefined,
       chartUrl: v.chartUrl ?? '',
       notes: v.notes ?? '',
@@ -317,12 +333,13 @@ export class Trades {
       emotionBefore: 'Calm',
       emotionAfter: 'Calm',
       mistake: 'None-followed-plan',
-      grade: '',
+      grade: null,
       chartUrl: '',
       notes: '',
       tags: '',
     });
     // Capture done: collapse back so the working surface (history) returns.
+    this.moreDetailsOpen.set(false);
     this.logFormOpen.set(false);
   }
 }

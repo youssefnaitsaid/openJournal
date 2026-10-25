@@ -28,7 +28,7 @@ function validValues() {
     emotionBefore: 'Calm' as Emotion,
     emotionAfter: 'Disciplined' as Emotion,
     mistake: 'None-followed-plan' as Mistake,
-    grade: '' as Grade,
+    grade: null,
     chartUrl: '',
     notes: '',
     tags: '',
@@ -72,8 +72,12 @@ describe('Trades', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(compiled.querySelector('form')).not.toBeNull();
-    const assetInput = compiled.querySelector('form input') as HTMLInputElement;
-    expect(assetInput.closest('label')?.textContent).toContain('Asset');
+    const assetInput = compiled.querySelector(
+      'form #log-asset',
+    ) as HTMLInputElement;
+    expect(
+      compiled.querySelector('form label[for="log-asset"]')?.textContent,
+    ).toContain('Asset');
     expect(document.activeElement).toBe(assetInput);
   });
 
@@ -220,7 +224,7 @@ describe('Trades', () => {
     expect(compiled.querySelector('app-filter-bar p-card')).toBeNull();
   });
 
-  it('lays the log form out as a single column below the md breakpoint', async () => {
+  it('groups the log form into Trade & execution and Process sections with a FloatLabel per field', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     const fixture = TestBed.createComponent(Trades);
@@ -229,10 +233,102 @@ describe('Trades', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const classes = compiled.querySelector('form')?.className.split(/\s+/) ?? [];
-    expect(classes).toContain('grid-cols-1');
-    expect(classes.some((c) => /^(sm|lg):grid-cols-2$/.test(c))).toBe(false);
-    expect(classes).toContain('md:grid-cols-2');
+    const form = compiled.querySelector('form')!;
+    const headings = [...form.querySelectorAll('h2')].map((h) =>
+      h.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(headings).toEqual(['Trade & execution', 'Process']);
+
+    const labels = [...form.querySelectorAll<HTMLLabelElement>('label')];
+    expect(labels.map((label) => label.textContent?.trim())).toEqual([
+      'Asset',
+      'Market',
+      'Side',
+      'Quantity',
+      'Multiplier',
+      'Entry price',
+      'Exit price',
+      'Fees',
+      'Opened at',
+      'Closed at',
+      'Setup',
+      'Grade',
+      'Emotion before',
+      'Emotion after',
+      'Mistake',
+      'Stop price',
+      'Take price',
+      'Risked Amount',
+      'Chart URL',
+      'Notes',
+      'Tags',
+    ]);
+    for (const label of labels) {
+      const id = label.getAttribute('for');
+      expect(id).toBeTruthy();
+      const field = form.querySelector(`#${id}`);
+      expect(field).not.toBeNull();
+      expect(field!.closest('p-floatlabel')?.getAttribute('variant')).toBe('in');
+    }
+
+    const execution = form.querySelector(
+      '[aria-labelledby="log-trade-execution-heading"]',
+    );
+    const process = form.querySelector(
+      '[aria-labelledby="log-trade-process-heading"]',
+    );
+    expect(execution?.textContent).toContain('Asset');
+    expect(execution?.textContent).not.toContain('Chart URL');
+    expect(process?.textContent).toContain('Setup');
+    expect(process?.textContent).not.toContain('Asset');
+    // Every field stays mounted while the phone disclosure is collapsed, so
+    // desktop capture keeps the full form visible.
+    expect(compiled.querySelectorAll('form label[for]').length).toBe(21);
+
+    // The open form coexists with the always-rendered filter bar; duplicate
+    // ids would steal each other's label focus.
+    const ids = [...compiled.querySelectorAll<HTMLElement>('[id]')].map(
+      (el) => el.id,
+    );
+    expect(ids.length).toBe(new Set(ids).size);
+  });
+
+  it('keeps the optional tail behind a More details disclosure that expands in place', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const fixture = TestBed.createComponent(Trades);
+    await fixture.whenStable();
+    fixture.componentInstance.openLogForm();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const form = compiled.querySelector('form')!;
+    const disclosure = form.querySelector<HTMLButtonElement>(
+      'button[aria-controls~="log-trade-optional"]',
+    )!;
+    expect(disclosure).not.toBeNull();
+    expect(disclosure.textContent).toContain('More details');
+    expect(disclosure.getAttribute('aria-expanded')).toBe('false');
+    expect(disclosure.getAttribute('aria-controls')).toBe('log-trade-optional');
+
+    const optional = form.querySelector('#log-trade-optional')!;
+    for (const label of [
+      'Stop price',
+      'Take price',
+      'Risked Amount',
+      'Chart URL',
+      'Notes',
+      'Tags',
+    ]) {
+      expect(optional.textContent).toContain(label);
+    }
+
+    disclosure.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(disclosure.getAttribute('aria-expanded')).toBe('true');
+    expect(disclosure.textContent).toContain('Fewer details');
+    expect(disclosure.textContent).not.toContain('More details');
   });
 
   it('shows a logged Trade in the table with its Net P&L', async () => {
@@ -266,6 +362,13 @@ describe('Trades', () => {
     expect(store.trades().length).toBe(0);
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('valid URL');
+    // The only validated field behind the phone disclosure is revealed so the
+    // blocking error is never hidden below lg.
+    expect(
+      compiled
+        .querySelector('button[aria-controls~="log-trade-optional"]')
+        ?.getAttribute('aria-expanded'),
+    ).toBe('true');
   });
 
   it('banners a breached Guard for today only', async () => {
@@ -571,8 +674,8 @@ describe('Trades', () => {
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await component.store.whenReady();
-    expect(component.form.controls.grade.value).toBe('');
-    component.form.setValue({ ...validValues(), grade: '' as Grade });
+    expect(component.form.controls.grade.value).toBeNull();
+    component.form.setValue({ ...validValues(), grade: null });
     component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
     component.onSubmit();
     const store = TestBed.inject(TradesStore);
