@@ -109,7 +109,7 @@
       <div
         role="group"
         aria-label="All starting balance"
-        class="flex items-center justify-between gap-3 rounded-xl border border-dashed border-surface-200 p-3 dark:border-surface-700"
+        class="mt-4 flex items-center justify-between gap-3 border-t border-surface-200 pt-4 dark:border-surface-700"
       >
         <div class="flex min-w-0 flex-col">
           <span class="text-base font-semibold">All</span>
@@ -282,7 +282,7 @@
             </div>
 
             @if (playbook.rules.length === 0) {
-              <p class="text-base text-surface-600 dark:text-surface-300">No Rules yet — add the first below.</p>
+              <p class="text-base text-surface-600 dark:text-surface-300">No Rules yet. Add the first below.</p>
             } @else {
               <ul class="flex flex-col gap-1.5">
                 @for (rule of playbook.rules; track rule; let i = $index) {

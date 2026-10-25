@@ -98,6 +98,7 @@ export class Trades {
   // Below lg the optional tail (Stop, Take, Risked Amount, Chart, Notes, Tags)
   // is disclosed in place; from lg up the region is always visible.
   readonly moreDetailsOpen = signal(false);
+  readonly submitAttempted = signal(false);
   private readonly assetInput = viewChild<ElementRef<HTMLInputElement>>('assetInput');
   // The history table renders only once there are rows; a viewChild keeps the
   // Export action in the filter row above that branch instead of inside it.
@@ -113,6 +114,7 @@ export class Trades {
   closeLogForm(): void {
     this.logFormOpen.set(false);
     this.moreDetailsOpen.set(false);
+    this.submitAttempted.set(false);
   }
 
   toggleMoreDetails(): void {
@@ -141,10 +143,9 @@ export class Trades {
 
   readonly markets: readonly Market[] = MARKETS;
 
-  readonly gradeOptions: { label: string; value: Grade | null }[] = [
-    { label: 'Ungraded', value: null },
-    ...GRADES.map((grade) => ({ label: grade, value: grade as Grade | null })),
-  ];
+  readonly gradeOptions: { label: string; value: Grade }[] = GRADES.map(
+    (grade) => ({ label: grade, value: grade }),
+  );
 
   readonly sides: readonly Side[] = ['Long', 'Short'];
 
@@ -285,6 +286,7 @@ export class Trades {
 
   onSubmit(): void {
     if (!this.store.canLog()) return;
+    this.submitAttempted.set(true);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       // Chart URL is the only validated field behind the phone disclosure;
@@ -341,5 +343,6 @@ export class Trades {
     // Capture done: collapse back so the working surface (history) returns.
     this.moreDetailsOpen.set(false);
     this.logFormOpen.set(false);
+    this.submitAttempted.set(false);
   }
 }

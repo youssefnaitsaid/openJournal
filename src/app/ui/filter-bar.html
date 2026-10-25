@@ -29,8 +29,6 @@
           [showClear]="true"
           dateFormat="yy-mm-dd"
           inputId="dateFrom"
-          showIcon
-          iconDisplay="input"
           fluid
         />
         <label for="dateFrom">From</label>
@@ -47,8 +45,6 @@
           [showClear]="true"
           dateFormat="yy-mm-dd"
           inputId="dateTo"
-          showIcon
-          iconDisplay="input"
           fluid
         />
         <label for="dateTo">To</label>
@@ -62,7 +58,7 @@
         [value]="store.filter().asset"
         (input)="onTextChange('asset', $event)"
         class="w-full"
-        inputId="asset"
+        id="asset"
       />
       <label for="asset">Asset</label>
     </p-floatlabel>

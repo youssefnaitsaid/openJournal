@@ -263,6 +263,8 @@ describe('Trades', () => {
       'Notes',
       'Tags',
     ]);
+    // datetime-local carries a placeholder solely to make FloatLabel float:
+    // browsers ignore the placeholder text on date/time inputs.
     for (const label of labels) {
       const id = label.getAttribute('for');
       expect(id).toBeTruthy();
@@ -310,6 +312,9 @@ describe('Trades', () => {
     expect(disclosure.textContent).toContain('More details');
     expect(disclosure.getAttribute('aria-expanded')).toBe('false');
     expect(disclosure.getAttribute('aria-controls')).toBe('log-trade-optional');
+    // The control is phone-only; the wrapper keeps Tailwind's display rule
+    // from losing to PrimeNG's button display.
+    expect(disclosure.parentElement?.className).toContain('lg:hidden');
 
     const optional = form.querySelector('#log-trade-optional')!;
     for (const label of [
@@ -455,6 +460,25 @@ describe('Trades', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('form')).toBeNull();
     expect(compiled.querySelector('tbody tr')).not.toBeNull();
+  });
+
+  it('does not flag the auto-focused Asset until a submit is attempted', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.openLogForm();
+    fixture.detectChanges();
+    component.form.controls.asset.markAsTouched();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
+      'Asset is required',
+    );
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    component.onSubmit();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Asset is required',
+    );
   });
 
   it('explains what is missing when submitted empty', async () => {
@@ -907,7 +931,7 @@ describe('Trades', () => {
     expect(
       (compiled.querySelector('button[type="submit"]') as HTMLButtonElement).disabled,
     ).toBe(true);
-    expect(compiled.textContent).toContain('pick a Portfolio');
+    expect(compiled.textContent).toContain('choose a Portfolio');
     component.form.setValue(validValues());
     component.onSubmit();
     expect(store.trades().length).toBe(1);
