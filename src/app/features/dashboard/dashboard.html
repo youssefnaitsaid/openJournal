@@ -25,23 +25,23 @@
   </app-page-hero>
 
   @if (hasTrades()) {
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3" role="group" aria-label="Key metrics">
-      @for (group of [{ title: 'Edge', icon: 'lucideZap', idx: [1, 3, 7] }, { title: 'Consistency', icon: 'lucideFlame', idx: [0, 2, 6] }, { title: 'Account', icon: 'lucideWallet', idx: [4, 5, 8] }]; track group.title) {
-        <p-card>
-          <div class="flex flex-col gap-3">
+    <p-card role="group" aria-label="Key metrics">
+      <div class="grid grid-cols-1 md:grid-cols-3">
+        @for (group of kpiGroups(); track group.title) {
+          <section class="flex flex-col gap-3 border-t border-surface-200 py-4 first:border-t-0 first:pt-0 last:pb-0 md:border-t-0 md:border-l md:px-6 md:py-0 md:first:border-l-0 md:first:pl-0 md:last:pr-0 dark:border-surface-700">
             <div class="flex items-center gap-2">
               <ng-icon [name]="group.icon" class="size-5 shrink-0 text-primary" />
               <h2 class="text-base font-semibold tracking-tight text-surface-800 dark:text-surface-100">{{ group.title }}</h2>
             </div>
             <dl class="flex flex-col gap-1.5 text-base tabular-nums">
-              @for (idx of group.idx; track idx) {
-                <div class="flex items-baseline justify-between gap-3"><dt class="text-surface-600 dark:text-surface-300">{{ kpiBand()[idx].label }}</dt><dd class="font-semibold text-surface-900 dark:text-surface-50">{{ kpiBand()[idx].value }}</dd></div>
+              @for (line of group.lines; track line.label) {
+                <div class="flex items-baseline justify-between gap-3"><dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt><dd class="font-semibold text-surface-900 dark:text-surface-50">{{ line.value }}</dd></div>
               }
             </dl>
-          </div>
-        </p-card>
-      }
-    </div>
+          </section>
+        }
+      </div>
+    </p-card>
   }
 
   @if (store.isFiltering()) {
@@ -69,7 +69,7 @@
             <a routerLink="/trades" class="text-base font-medium text-primary hover:underline">View all</a>
           </div>
         </ng-template>
-        <p-table [value]="metrics().recent.slice(0, 5)">
+        <p-table [value]="metrics().recent">
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>

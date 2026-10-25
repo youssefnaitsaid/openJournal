@@ -26,18 +26,22 @@ export const EMPTY_FILTER: GlobalFilter = {
   needsReview: false,
 };
 
+export function countActiveFilterAxes(filter: GlobalFilter): number {
+  let count = 0;
+  // The close-date range is one axis even when both ends are set.
+  if (filter.dateFrom !== '' || filter.dateTo !== '') count += 1;
+  if (filter.asset !== '') count += 1;
+  if (filter.setup !== '') count += 1;
+  if (filter.side !== '') count += 1;
+  if (filter.tag !== '') count += 1;
+  if (filter.outcome !== 'All') count += 1;
+  if (filter.grade !== '') count += 1;
+  if (filter.needsReview) count += 1;
+  return count;
+}
+
 export function isFilterActive(filter: GlobalFilter): boolean {
-  return (
-    filter.dateFrom !== '' ||
-    filter.dateTo !== '' ||
-    filter.asset !== '' ||
-    filter.setup !== '' ||
-    filter.side !== '' ||
-    filter.tag !== '' ||
-    filter.outcome !== 'All' ||
-    filter.grade !== '' ||
-    filter.needsReview !== false
-  );
+  return countActiveFilterAxes(filter) > 0;
 }
 
 export function applyGlobalFilter(

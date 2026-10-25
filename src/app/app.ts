@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -42,6 +43,7 @@ interface NavGroup {
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
+    NgTemplateOutlet,
     FormsModule,
     NgIcon,
     AvatarModule,
@@ -111,8 +113,6 @@ export class App {
   protected readonly netTotal = computed(() =>
     this.store.activeTrades().reduce((sum, trade) => sum + trade.net, 0),
   );
-
-  protected readonly tradeCount = computed(() => this.store.activeTrades().length);
 
   protected readonly formatSignedDollars = formatSignedDollars;
 

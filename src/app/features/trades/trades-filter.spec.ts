@@ -4,6 +4,7 @@ import { tradeFixture } from './trade-fixtures';
 import {
   EMPTY_FILTER,
   applyGlobalFilter,
+  countActiveFilterAxes,
   isFilterActive,
 } from './trades-filter';
 
@@ -135,6 +136,43 @@ describe('applyGlobalFilter', () => {
     expect(EMPTY_FILTER.grade).toBe('');
     expect(EMPTY_FILTER.needsReview).toBe(false);
     expect(isFilterActive(EMPTY_FILTER)).toBe(false);
+  });
+
+  it('counts active axes with the close-date range as one axis', () => {
+    expect(countActiveFilterAxes(EMPTY_FILTER)).toBe(0);
+    expect(
+      countActiveFilterAxes({ ...EMPTY_FILTER, dateFrom: '2026-10-01' }),
+    ).toBe(1);
+    expect(
+      countActiveFilterAxes({
+        ...EMPTY_FILTER,
+        dateFrom: '2026-10-01',
+        dateTo: '2026-10-03',
+      }),
+    ).toBe(1);
+    expect(
+      countActiveFilterAxes({
+        ...EMPTY_FILTER,
+        asset: 'mes',
+        needsReview: true,
+      }),
+    ).toBe(2);
+    expect(
+      countActiveFilterAxes({
+        dateFrom: '2026-10-01',
+        dateTo: '2026-10-03',
+        asset: 'mes',
+        setup: 'Breakout',
+        side: 'Long',
+        tag: 'FOMC',
+        outcome: 'Win',
+        grade: 'A',
+        needsReview: true,
+      }),
+    ).toBe(8);
+    expect(
+      countActiveFilterAxes({ ...EMPTY_FILTER, outcome: 'All' }),
+    ).toBe(0);
   });
 
   it('matches Grade exactly and excludes ungraded Trades', () => {
