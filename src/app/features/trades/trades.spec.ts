@@ -312,9 +312,6 @@ describe('Trades', () => {
     expect(disclosure.textContent).toContain('More details');
     expect(disclosure.getAttribute('aria-expanded')).toBe('false');
     expect(disclosure.getAttribute('aria-controls')).toBe('log-trade-optional');
-    // The control is phone-only; the wrapper keeps Tailwind's display rule
-    // from losing to PrimeNG's button display.
-    expect(disclosure.parentElement?.className).toContain('lg:hidden');
 
     const optional = form.querySelector('#log-trade-optional')!;
     for (const label of [

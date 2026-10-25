@@ -7,7 +7,11 @@ import { routes } from '../../app.routes';
 import { Settings } from './settings';
 import { TradesStore } from '../trades/trades-store';
 import { tradeInput } from '../trades/trade-fixtures';
-import { DEFAULT_PORTFOLIO_ID, PORTFOLIOS_STORAGE_KEY } from '../../portfolios';
+import {
+  ALL_PORTFOLIOS_ID,
+  DEFAULT_PORTFOLIO_ID,
+  PORTFOLIOS_STORAGE_KEY,
+} from '../../portfolios';
 import { GUARDS_STORAGE_KEY } from '../../guards';
 
 describe('Settings', () => {
@@ -250,7 +254,7 @@ describe('Settings', () => {
       daily: { maxLoss: 100, maxTrades: null, stopTime: null },
       weekly: { maxLoss: 500, maxTrades: null },
     });
-    store.setActiveId('all');
+    store.setActiveId(ALL_PORTFOLIOS_ID);
     expect(store.isAll()).toBe(true);
     const fixture = TestBed.createComponent(Settings);
     await fixture.whenStable();

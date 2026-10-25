@@ -7,7 +7,7 @@
   >
     <div class="flex h-full min-h-0 flex-col">
       <nav aria-label="Primary mobile" class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-        <ng-container [ngTemplateOutlet]="navList" [ngTemplateOutletContext]="{ $implicit: true }" />
+        <ng-container [ngTemplateOutlet]="navList" />
       </nav>
       <ng-container [ngTemplateOutlet]="portfolioFooter" [ngTemplateOutletContext]="{ $implicit: true }" />
     </div>
@@ -24,7 +24,7 @@
       </span>
     </div>
     <nav aria-label="Primary" class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-      <ng-container [ngTemplateOutlet]="navList" [ngTemplateOutletContext]="{ $implicit: false }" />
+      <ng-container [ngTemplateOutlet]="navList" />
     </nav>
     <ng-container [ngTemplateOutlet]="portfolioFooter" [ngTemplateOutletContext]="{ $implicit: false }" />
   </aside>
@@ -44,7 +44,7 @@
           >
             <ng-template pTemplate="icon"><ng-icon name="lucideMenu" class="size-4" /></ng-template>
           </p-button>
-          <span class="truncate text-base font-semibold tracking-tight lg:hidden">openJournal</span>
+          <span class="truncate text-base font-semibold tracking-tight">openJournal</span>
         </ng-template>
         <ng-template pTemplate="end">
           <p-button
@@ -70,7 +70,7 @@
 
 <!-- One source for both the desktop rail and the mobile drawer, so the two
      navigations can never drift in order, labels, or scope controls. -->
-<ng-template #navList let-mobile>
+<ng-template #navList>
   @for (group of navGroups; track group.label) {
     <p class="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-surface-500 first:pt-0 dark:text-surface-400">{{ group.label }}</p>
     @for (item of group.items; track item.url) {

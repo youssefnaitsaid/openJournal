@@ -117,7 +117,6 @@ export class Settings {
   });
 
   readonly weekStatusText = computed(() => {
-    if (this.store.isAll()) return '';
     if (!hasAnyGuard(this.guards())) return 'No Guards set';
     const breached = this.weekGuardBreaches();
     if (breached.length === 0) return 'This week: inside all Guards';
