@@ -57,8 +57,15 @@ describe('Analytics', () => {
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Analytics');
     expect(compiled.querySelectorAll('app-empty-state').length).toBe(1);
+    const panel = compiled.querySelector('app-empty-state') as HTMLElement;
     expect(content).toContain('No Trades yet');
     expect(content).toContain('Log your first Trade');
+    expect(panel.textContent).toContain('Analytics preview');
+    expect(panel.querySelector('[data-empty-preview]')).not.toBeNull();
+    expect(panel.querySelector('a[href="/journal"]')?.textContent).toContain('review the month');
+    expect(panel.querySelector('a[href="/settings"]')?.textContent).toContain(
+      'configure Playbooks',
+    );
     expect(content).not.toContain('No scored trades yet');
     // no zero-filled R-metrics band, no filter bar, no section chrome
     expect(content).not.toContain('R-Expectancy');

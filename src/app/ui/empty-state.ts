@@ -17,6 +17,8 @@ export class EmptyState {
   readonly description = input('');
   readonly actionLabel = input('');
   readonly compact = input(false);
+  /** Panel pairs the copy with a projected schematic at xl widths. */
+  readonly layout = input<'centered' | 'panel'>('centered');
   /** Drop the card wrapper when the state already sits inside a card. */
   readonly embedded = input(false);
   /** Heading level: 2 when the card is a page-level section, 3 when nested under a card heading. */
