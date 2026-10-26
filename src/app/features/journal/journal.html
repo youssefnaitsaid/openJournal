@@ -228,11 +228,23 @@
         </div>
         <div class="flex flex-col gap-0.5">
           <dt class="text-sm text-surface-600 dark:text-surface-300">Top Mistake</dt>
-          <dd class="text-base">{{ mistakeText(reportCard().topMistake) }}</dd>
+          <dd class="text-base">{{ frequencyText(reportCard().topMistake) }}</dd>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-before</dt>
+          <dd class="text-base">{{ frequencyText(reportCard().topEmotionBefore) }}</dd>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-after</dt>
+          <dd class="text-base">{{ frequencyText(reportCard().topEmotionAfter) }}</dd>
         </div>
         <div class="flex flex-col gap-0.5">
           <dt class="text-sm text-surface-600 dark:text-surface-300">Compliance</dt>
           <dd class="text-base">{{ complianceText() }}</dd>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <dt class="text-sm text-surface-600 dark:text-surface-300">Unscored Trades</dt>
+          <dd class="text-base font-semibold tabular-nums">{{ reportCard().unscored }}</dd>
         </div>
       </dl>
       <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>

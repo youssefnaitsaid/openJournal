@@ -1,4 +1,5 @@
 import { computeBreakdowns } from '../analytics/analytics-metrics';
+import type { BreakdownRow } from '../analytics/analytics-metrics';
 import { computeMetrics } from '../dashboard/dashboard-metrics';
 import type { Trade } from '../trades/trade';
 
@@ -13,6 +14,11 @@ export interface ReportMistake {
   readonly netTotal: number;
 }
 
+export interface ReportEmotion {
+  readonly value: string;
+  readonly trades: number;
+}
+
 export interface MonthReportCard {
   readonly monthKey: string;
   readonly totalTrades: number;
@@ -22,6 +28,8 @@ export interface MonthReportCard {
   readonly bestSetup: ReportSetup | null;
   readonly worstSetup: ReportSetup | null;
   readonly topMistake: ReportMistake | null;
+  readonly topEmotionBefore: ReportEmotion | null;
+  readonly topEmotionAfter: ReportEmotion | null;
   readonly avgCompliance: number | null;
   readonly scored: number;
   readonly unscored: number;
@@ -42,6 +50,24 @@ function profitFactorText(value: number): string {
   return Number.isFinite(value) ? value.toFixed(2) : '∞';
 }
 
+function frequencyText(entry: { value: string; trades: number } | null): string {
+  return entry === null ? '—' : `${entry.value} ×${entry.trades}`;
+}
+
+function mostFrequent(rows: readonly BreakdownRow[]): ReportEmotion | null {
+  let top: BreakdownRow | null = null;
+  for (const row of rows) {
+    if (
+      top === null ||
+      row.trades > top.trades ||
+      (row.trades === top.trades && row.value.localeCompare(top.value) < 0)
+    ) {
+      top = row;
+    }
+  }
+  return top === null ? null : { value: top.value, trades: top.trades };
+}
+
 export function formatMonthReportCard(card: MonthReportCard): string {
   const best =
     card.bestSetup === null
@@ -51,10 +77,7 @@ export function formatMonthReportCard(card: MonthReportCard): string {
     card.worstSetup === null
       ? '—'
       : `${card.worstSetup.value} (${signedDollars(card.worstSetup.netTotal)})`;
-  const mistake =
-    card.topMistake === null
-      ? '—'
-      : `${card.topMistake.value} ×${card.topMistake.trades}`;
+  const mistake = frequencyText(card.topMistake);
   const compliance =
     card.avgCompliance === null
       ? `— (${card.scored}/${card.totalTrades} scored)`
@@ -64,6 +87,7 @@ export function formatMonthReportCard(card: MonthReportCard): string {
     `Trades: ${card.totalTrades} · Net: ${signedDollars(card.netTotal)} · Win-rate: ${card.winRate.toFixed(2)}% · PF: ${profitFactorText(card.profitFactor)}`,
     `Best Setup: ${best} · Worst Setup: ${worst}`,
     `Top Mistake: ${mistake} · Compliance: ${compliance}`,
+    `Emotion-before: ${frequencyText(card.topEmotionBefore)} · Emotion-after: ${frequencyText(card.topEmotionAfter)} · Unscored: ${card.unscored}`,
   ].join('\n');
 }
 
@@ -107,6 +131,13 @@ export function computeMonthReportCard(
         }
       : null;
 
+  const topEmotionBefore = mostFrequent(
+    computeBreakdowns(monthTrades, 'emotionBefore'),
+  );
+  const topEmotionAfter = mostFrequent(
+    computeBreakdowns(monthTrades, 'emotionAfter'),
+  );
+
   let complianceSum = 0;
   let scored = 0;
   for (const t of monthTrades) {
@@ -125,6 +156,8 @@ export function computeMonthReportCard(
     bestSetup,
     worstSetup,
     topMistake,
+    topEmotionBefore,
+    topEmotionAfter,
     avgCompliance: scored > 0 ? complianceSum / scored : null,
     scored,
     unscored: monthTrades.length - scored,

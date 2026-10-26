@@ -18,6 +18,8 @@ describe('computeMonthReportCard core', () => {
       bestSetup: null,
       worstSetup: null,
       topMistake: null,
+      topEmotionBefore: null,
+      topEmotionAfter: null,
       avgCompliance: null,
       scored: 0,
       unscored: 0,
@@ -168,6 +170,50 @@ describe('computeMonthReportCard rankings', () => {
       netTotal: 99,
     });
   });
+
+  it('reads the most frequent Emotion before and after with counts', () => {
+    const trades = [
+      tradeFixture({
+        asset: 'A',
+        emotionBefore: 'Calm',
+        emotionAfter: 'Confident',
+        exitPrice: 110,
+        fees: 1,
+      }),
+      tradeFixture({
+        asset: 'B',
+        emotionBefore: 'Calm',
+        emotionAfter: 'Anxious',
+        exitPrice: 90,
+        fees: 5,
+        closedAt: '2026-10-02T14:30:00.000Z',
+      }),
+      tradeFixture({
+        asset: 'C',
+        emotionBefore: 'Anxious',
+        emotionAfter: 'Anxious',
+        exitPrice: 110,
+        fees: 1,
+        closedAt: '2026-10-03T14:30:00.000Z',
+      }),
+    ];
+    const card = computeMonthReportCard(trades, 2026, 9);
+    expect(card.topEmotionBefore).toEqual({ value: 'Calm', trades: 2 });
+    expect(card.topEmotionAfter).toEqual({ value: 'Anxious', trades: 2 });
+  });
+
+  it('breaks Emotion count ties alphabetically', () => {
+    const calm = tradeFixture({ asset: 'A', emotionBefore: 'Calm', exitPrice: 110, fees: 1 });
+    const anxious = tradeFixture({
+      asset: 'B',
+      emotionBefore: 'Anxious',
+      exitPrice: 110,
+      fees: 1,
+      closedAt: '2026-10-02T14:30:00.000Z',
+    });
+    const card = computeMonthReportCard([calm, anxious], 2026, 9);
+    expect(card.topEmotionBefore?.value).toBe('Anxious');
+  });
 });
 
 describe('computeMonthReportCard compliance', () => {
@@ -238,18 +284,21 @@ describe('formatMonthReportCard', () => {
     bestSetup: { value: 'Breakout', netTotal: 500 },
     worstSetup: { value: 'Chop', netTotal: -210 },
     topMistake: { value: 'Moved-stop', trades: 3, netTotal: -50 },
+    topEmotionBefore: { value: 'Calm', trades: 7 },
+    topEmotionAfter: { value: 'Disciplined', trades: 5 },
     avgCompliance: 75,
     scored: 8,
     unscored: 4,
   };
 
-  it('writes the fixed four-line template with Dashboard/Analytics formatting', () => {
+  it('writes the fixed five-line template with Dashboard/Analytics formatting', () => {
     expect(formatMonthReportCard(CARD)).toBe(
       [
         'OpenJournal — 2026-10 report card',
         'Trades: 12 · Net: +$340.00 · Win-rate: 58.33% · PF: 1.80',
         'Best Setup: Breakout (+$500.00) · Worst Setup: Chop (-$210.00)',
         'Top Mistake: Moved-stop ×3 · Compliance: 75.00% (8/12 scored)',
+        'Emotion-before: Calm ×7 · Emotion-after: Disciplined ×5 · Unscored: 4',
       ].join('\n'),
     );
   });
@@ -265,6 +314,8 @@ describe('formatMonthReportCard', () => {
         bestSetup: null,
         worstSetup: null,
         topMistake: null,
+        topEmotionBefore: null,
+        topEmotionAfter: null,
         avgCompliance: null,
         scored: 0,
         unscored: 0,
@@ -275,6 +326,7 @@ describe('formatMonthReportCard', () => {
         'Trades: 0 · Net: $0.00 · Win-rate: 0.00% · PF: 0.00',
         'Best Setup: — · Worst Setup: —',
         'Top Mistake: — · Compliance: — (0/0 scored)',
+        'Emotion-before: — · Emotion-after: — · Unscored: 0',
       ].join('\n'),
     );
   });
@@ -310,6 +362,7 @@ describe('formatMonthReportCard', () => {
         'Trades: 1 · Net: +$99.00 · Win-rate: 100.00% · PF: ∞',
         'Best Setup: Breakout (+$99.00) · Worst Setup: —',
         'Top Mistake: None-followed-plan ×1 · Compliance: — (0/1 scored)',
+        'Emotion-before: Calm ×1 · Emotion-after: Calm ×1 · Unscored: 1',
       ].join('\n'),
     );
   });

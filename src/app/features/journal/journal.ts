@@ -313,7 +313,7 @@ export class Journal {
   readonly setupText = (entry: { value: string; netTotal: number } | null): string =>
     entry === null ? '—' : `${entry.value} (${this.signedDollars(entry.netTotal)})`;
 
-  readonly mistakeText = (
+  readonly frequencyText = (
     entry: { value: string; trades: number } | null,
   ): string => (entry === null ? '—' : `${entry.value} ×${entry.trades}`);
 
