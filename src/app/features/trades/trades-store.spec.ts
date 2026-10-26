@@ -62,6 +62,22 @@ describe('TradesStore', () => {
     expect(loaded[0]?.net).toBe(99);
   });
 
+  it('removes exactly the requested Trade and persists the removal', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade({ ...INPUT, asset: 'KEEP' });
+    const drop = store.addTrade({ ...INPUT, asset: 'DROP' });
+    store.removeTrade(drop.id);
+    expect(store.trades().map((t) => t.asset)).toEqual(['KEEP']);
+    const raw = new Collection<Trade, string>({
+      persistence: createLocalStorageAdapter<Trade, string>(
+        'openjournal-trades',
+      ),
+    });
+    await raw.isReady();
+    expect(raw.find().fetch().map((t) => t.asset)).toEqual(['KEEP']);
+  });
+
   it('lists Trades newest close first', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();

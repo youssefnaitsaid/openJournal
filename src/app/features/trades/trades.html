@@ -1,3 +1,21 @@
+<p-toast
+  position="bottom-right"
+  [breakpoints]="{ '480px': { width: 'calc(100vw - 2.5rem)' } }"
+>
+  <ng-template pTemplate="message" let-message>
+    <div class="flex items-center gap-2">
+      <span class="text-base">{{ message?.summary }}</span>
+      <p-button
+        label="Undo"
+        [text]="true"
+        size="small"
+        ariaLabel="Undo logging this Trade"
+        (onClick)="undoLastSave()"
+      />
+    </div>
+  </ng-template>
+</p-toast>
+
 <section class="flex flex-col gap-6">
   <app-page-hero
     aria-label="Trades hero"
