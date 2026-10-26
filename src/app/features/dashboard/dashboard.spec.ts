@@ -83,8 +83,35 @@ describe('Dashboard', () => {
     expect(band.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(band.get('Total trades')).toBe('2');
     expect(band.get('Max drawdown')).toBe('$105.00 · 1.04%');
-    expect(band.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
+    expect(band.get('Streaks')).toBe('Current 0W · 1L / Best 1W · 1L');
     expect(band.get('Expectancy / Trade')).toBe('-$3.00');
+  });
+
+  it('renders one KPI band card with Edge, Consistency, and Account groups in order', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const bands = compiled.querySelectorAll('[aria-label="Key metrics"]');
+    expect(bands.length).toBe(1);
+    const band = bands[0] as HTMLElement;
+    expect(band.tagName.toLowerCase()).toBe('p-card');
+    const groups = [...band.querySelectorAll('section')];
+    expect(
+      groups.map((g) => g.querySelector('h2')?.textContent?.trim()),
+    ).toEqual(['Edge', 'Consistency', 'Account']);
+    expect(
+      groups.map((g) =>
+        [...g.querySelectorAll('dt')].map(
+          (dt) => dt.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+        ),
+      ),
+    ).toEqual([
+      ['Profit factor', 'Avg win / loss', 'Expectancy / Trade'],
+      ['Trade win %', 'Day win %', 'Streaks'],
+      ['Total trades', 'Max drawdown', 'Current balance'],
+    ]);
+    expect(band.querySelectorAll('dt').length).toBe(9);
   });
 
   it('shows the end-of-curve balance once, as a band line, not repeated under the chart', async () => {
@@ -139,6 +166,33 @@ describe('Dashboard', () => {
     await fixture.whenStable();
     // One click on the sortable Asset header reorders alphabetically ascending.
     expect(assets()).toEqual(['AAPL', 'TSLA']);
+  });
+
+  it('caps Recent Trades at five newest-close rows and links to the full history', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    for (let i = 1; i <= 7; i += 1) {
+      store.addTrade({
+        ...tradeInput({
+          asset: `T${i}`,
+          closedAt: `2026-10-0${i}T14:30:00.000Z`,
+        }),
+      });
+    }
+    const fixture = TestBed.createComponent(Dashboard);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const rows = [...compiled.querySelectorAll('tbody tr')].map((r) =>
+      r.textContent?.replace(/\s+/g, ' '),
+    );
+    expect(rows.length).toBe(5);
+    expect(rows[0]).toContain('T7');
+    expect(rows[4]).toContain('T3');
+    const viewAll = [...compiled.querySelectorAll('a')].find(
+      (a) => a.textContent?.trim() === 'View all',
+    );
+    expect(viewAll?.getAttribute('href')).toBe('/trades');
   });
 
   it('shows Infinity as ∞ when there are wins but no losses', async () => {
@@ -306,7 +360,7 @@ describe('Dashboard', () => {
     expect(content).toContain('Max drawdown');
     expect(content).toContain('$105');
     expect(content).toContain('Streaks');
-    expect(content).toContain('W0');
+    expect(content).toContain('Current 0W · 1L / Best 1W · 1L');
     expect(content).toContain('Expectancy / Trade');
     expect(content).toContain('-$3.00');
   });

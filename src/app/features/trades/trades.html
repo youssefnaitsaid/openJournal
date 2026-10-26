@@ -14,11 +14,14 @@
         {{ historyTotal() }} {{ historyTotal() === 1 ? 'Trade' : 'Trades' }}
       </span>
     }
-    <p-button
-      type="button"
-      [label]="logFormOpen() ? 'Close' : 'Log Trade'"
-      (onClick)="toggleLogForm()"
-    />
+    <div class="w-full sm:w-auto">
+      <p-button
+        type="button"
+        [label]="logFormOpen() ? 'Close' : 'Log Trade'"
+        [fluid]="true"
+        (onClick)="toggleLogForm()"
+      />
+    </div>
   </app-page-hero>
 
   @if (todayGuardLabels().length > 0) {
@@ -27,132 +30,243 @@
 
   @if (logFormOpen()) {
   <p-card header="Log Trade" subheader="One closed round-trip with an entry and an exit">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <label class="flex flex-col gap-1 text-base">Asset
-        <input pInputText formControlName="asset" #assetInput />
-        @if (form.controls.asset.touched && form.controls.asset.hasError('required')) {
-          <p-message severity="error">Asset is required.</p-message>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      <section aria-labelledby="log-trade-execution-heading" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <h2 id="log-trade-execution-heading" class="text-xl font-semibold tracking-tight">Trade &amp; execution</h2>
+          <p class="text-base text-surface-600 dark:text-surface-300">The closed round-trip: Asset, Market, Side, Quantity, prices, Fees, and both timestamps.</p>
+        </div>
+
+        <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <input pInputText id="log-asset" formControlName="asset" #assetInput class="w-full" />
+              <label for="log-asset">Asset</label>
+            </p-floatlabel>
+            @if (form.controls.asset.hasError('required') && (form.controls.asset.dirty || submitAttempted())) {
+              <p-message severity="error">Asset is required.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-market" formControlName="market" [options]="[...markets]" fluid />
+              <label for="log-market">Market</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-side" formControlName="side" [options]="[...sides]" fluid />
+              <label for="log-side">Side</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-quantity" formControlName="quantity" fluid />
+              <label for="log-quantity">Quantity</label>
+            </p-floatlabel>
+            @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+              <p-message severity="error">Quantity must be above zero.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-multiplier" formControlName="multiplier" fluid />
+              <label for="log-multiplier">Multiplier</label>
+            </p-floatlabel>
+            @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
+              <p-message severity="error">Multiplier must be above zero.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-entryPrice" formControlName="entryPrice" fluid />
+              <label for="log-entryPrice">Entry price</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-exitPrice" formControlName="exitPrice" fluid />
+              <label for="log-exitPrice">Exit price</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-fees" formControlName="fees" fluid />
+              <label for="log-fees">Fees</label>
+            </p-floatlabel>
+            @if (form.controls.fees.touched && form.controls.fees.invalid) {
+              <p-message severity="error">Fees cannot be negative.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <input pInputText id="log-openedAt" type="datetime-local" formControlName="openedAt" placeholder="YYYY-MM-DD HH:MM" class="w-full" />
+              <label for="log-openedAt">Opened at</label>
+            </p-floatlabel>
+            @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
+              <p-message severity="error">Opened at is required.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <input pInputText id="log-closedAt" type="datetime-local" formControlName="closedAt" placeholder="YYYY-MM-DD HH:MM" class="w-full" />
+              <label for="log-closedAt">Closed at</label>
+            </p-floatlabel>
+            @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
+              <p-message severity="error">Closed at is required.</p-message>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="log-trade-process-heading" class="flex flex-col gap-4 border-t border-surface-200 pt-6 dark:border-surface-700">
+        <div class="flex flex-col gap-1">
+          <h2 id="log-trade-process-heading" class="text-xl font-semibold tracking-tight">Process</h2>
+          <p class="text-base text-surface-600 dark:text-surface-300">Setup, Grade, Emotion, Mistake, and the Playbook checklist. Reflection is optional — a blank Grade or untouched checklist logs unscored.</p>
+        </div>
+
+        <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-setup" formControlName="setup" [options]="setupOptions()" fluid />
+              <label for="log-setup">Setup</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-grade" formControlName="grade" [options]="gradeOptions" optionLabel="label" optionValue="value" [showClear]="true" fluid />
+              <label for="log-grade">Grade</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-emotionBefore" formControlName="emotionBefore" [options]="emotionOptions()" fluid />
+              <label for="log-emotionBefore">Emotion before</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-emotionAfter" formControlName="emotionAfter" [options]="emotionOptions()" fluid />
+              <label for="log-emotionAfter">Emotion after</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-select inputId="log-mistake" formControlName="mistake" [options]="mistakeOptions()" fluid />
+              <label for="log-mistake">Mistake</label>
+            </p-floatlabel>
+          </div>
+        </div>
+
+        @if (checks().length > 0) {
+          <fieldset class="flex flex-col gap-2 rounded-xl border border-surface-200 bg-surface-0 px-3 py-2 text-base dark:border-surface-700 dark:bg-surface-900">
+            <legend class="px-1 text-base font-semibold">Playbook checklist</legend>
+            @for (check of checks(); track check.text; let i = $index) {
+              <div class="inline-flex items-center gap-2 text-base">
+                <p-checkbox [binary]="true" [ngModel]="check.followed" [ngModelOptions]="{ standalone: true }" (onChange)="toggleCheck(i)" />
+                {{ check.text }}
+              </div>
+            }
+            <span class="text-sm text-surface-600 dark:text-surface-300">Untouched checklist logs the Trade unscored, like a blank Grade. Rules are snapshotted onto the Trade at capture (ADR-0002).</span>
+            <a routerLink="/settings" class="text-base font-medium text-primary">Manage playbooks</a>
+          </fieldset>
         }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Market
-        <p-select formControlName="market" [options]="[...markets]" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Side
-        <p-select formControlName="side" [options]="[...sides]" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Quantity
-        <p-inputnumber formControlName="quantity" />
-        @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
-          <p-message severity="error">Quantity must be above zero.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Multiplier
-        <p-inputnumber formControlName="multiplier" />
-        @if (form.controls.multiplier.touched && form.controls.multiplier.invalid) {
-          <p-message severity="error">Multiplier must be above zero.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Entry price
-        <p-inputnumber formControlName="entryPrice" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Exit price
-        <p-inputnumber formControlName="exitPrice" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Fees
-        <p-inputnumber formControlName="fees" />
-        @if (form.controls.fees.touched && form.controls.fees.invalid) {
-          <p-message severity="error">Fees cannot be negative.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Stop price (optional)
-        <p-inputnumber formControlName="stopPrice" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Take price (optional)
-        <p-inputnumber formControlName="takePrice" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Risked override (optional)
-        <p-inputnumber formControlName="riskedAmount" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Opened at
-        <input pInputText type="datetime-local" formControlName="openedAt" />
-        @if (form.controls.openedAt.touched && form.controls.openedAt.invalid) {
-          <p-message severity="error">Opened at is required.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Closed at
-        <input pInputText type="datetime-local" formControlName="closedAt" />
-        @if (form.controls.closedAt.touched && form.controls.closedAt.invalid) {
-          <p-message severity="error">Closed at is required.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Setup
-        <p-select formControlName="setup" [options]="setupOptions()" />
-      </label>
-      @if (checks().length > 0) {
-        <fieldset class="flex flex-col gap-1 rounded-xl border border-surface-200 bg-surface-0 px-3 py-2 text-base dark:border-surface-700 dark:bg-surface-900">
-          <legend class="px-1 text-base">Playbook checklist (optional)</legend>
-          @for (check of checks(); track check.text; let i = $index) {
-            <div class="inline-flex items-center gap-2 text-base">
-              <p-checkbox [binary]="true" [ngModel]="check.followed" [ngModelOptions]="{ standalone: true }" (onChange)="toggleCheck(i)" />
-              {{ check.text }}
-            </div>
-          }
-          <span class="text-base text-surface-600 dark:text-surface-300">Untouched checklist logs the Trade unscored, like a blank Grade. Rules are snapshotted onto the Trade at capture (ADR-0002).</span>
-          <a routerLink="/settings" class="mt-1 text-base font-medium text-primary">Manage playbooks</a>
-        </fieldset>
-      }
-      <label class="flex flex-col gap-1 text-base">Emotion before
-        <p-select formControlName="emotionBefore" [options]="emotionOptions()" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Emotion after
-        <p-select formControlName="emotionAfter" [options]="emotionOptions()" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Mistake
-        <p-select formControlName="mistake" [options]="mistakeOptions()" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Grade (optional)
-        <p-select formControlName="grade" [options]="gradeOptions" optionLabel="label" optionValue="value" />
-      </label>
-      <label class="flex flex-col gap-1 text-base">Chart URL (optional)
-        <input pInputText formControlName="chartUrl" inputmode="url" placeholder="https://…" />
-        @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
-          <p-message severity="error">Enter a valid URL starting with http(s), or leave empty.</p-message>
-        }
-      </label>
-      <label class="flex flex-col gap-1 text-base">Notes
-        <textarea pTextarea formControlName="notes" rows="2"></textarea>
-      </label>
-      <label class="flex flex-col gap-1 text-base">Tags (optional, comma-separated)
-        <input pInputText formControlName="tags" list="tag-options" placeholder="FOMC, earnings" />
-        <span class="text-base text-surface-600 dark:text-surface-300">Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
-        <datalist id="tag-options">
-          @for (t of tagOptions(); track t) { <option [value]="t"></option> }
-        </datalist>
-      </label>
-      <div class="flex items-center gap-2 md:col-span-2">
+      </section>
+
+      <div class="flex flex-col gap-4 border-t border-surface-200 pt-4 dark:border-surface-700">
+        <div class="lg:hidden">
+          <button
+            pButton
+            type="button"
+            [text]="true"
+            [attr.aria-expanded]="moreDetailsOpen()"
+            aria-controls="log-trade-optional"
+            (click)="toggleMoreDetails()"
+          >
+            <ng-icon [name]="moreDetailsOpen() ? 'lucideChevronUp' : 'lucideChevronDown'" class="size-4" />
+            <span>{{ moreDetailsOpen() ? 'Fewer details' : 'More details' }}</span>
+          </button>
+        </div>
+
+        <div id="log-trade-optional" class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3" [class.max-lg:hidden]="!moreDetailsOpen()">
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-stopPrice" formControlName="stopPrice" fluid />
+              <label for="log-stopPrice">Stop price</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-takePrice" formControlName="takePrice" fluid />
+              <label for="log-takePrice">Take price</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <p-inputnumber inputId="log-riskedAmount" formControlName="riskedAmount" fluid />
+              <label for="log-riskedAmount">Risked Amount</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <input pInputText id="log-chartUrl" formControlName="chartUrl" inputmode="url" placeholder="https://…" class="w-full" />
+              <label for="log-chartUrl">Chart URL</label>
+            </p-floatlabel>
+            @if (form.controls.chartUrl.touched && form.controls.chartUrl.invalid) {
+              <p-message severity="error">Enter a valid URL starting with http(s), or leave empty.</p-message>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <textarea pTextarea id="log-notes" formControlName="notes" rows="2" fluid></textarea>
+              <label for="log-notes">Notes</label>
+            </p-floatlabel>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p-floatlabel variant="in">
+              <input pInputText id="log-tags" formControlName="tags" list="tag-options" placeholder="FOMC, earnings" class="w-full" />
+              <label for="log-tags">Tags</label>
+            </p-floatlabel>
+            <span class="text-sm text-surface-600 dark:text-surface-300">Comma-separated. Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
+            <datalist id="tag-options">
+              @for (t of tagOptions(); track t) { <option [value]="t"></option> }
+            </datalist>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 border-t border-surface-200 pt-4 dark:border-surface-700">
         <p-button type="submit" label="Log Trade" [disabled]="!store.canLog()" />
         <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="closeLogForm()" />
         @if (!store.canLog()) {
-          <p class="text-base text-surface-600 dark:text-surface-300">All portfolios is read-only — pick a Portfolio in the sidebar to log a Trade.</p>
+          <p class="text-base text-surface-600 dark:text-surface-300">All portfolios is read-only — choose a Portfolio to log a Trade.</p>
         }
       </div>
     </form>
   </p-card>
   }
-
-  <p-card header="Trade history" subheader="Newest close first">
-    <div>
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <app-filter-bar class="w-full min-w-0 xl:w-auto xl:flex-1" />
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="text-xl font-semibold tracking-tight">Trade history</h2>
+          <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Newest close first</p>
+        </div>
         @if (rows().length > 0) {
-          <p-button class="ml-auto shrink-0" type="button" label="Export CSV" severity="secondary" [outlined]="true" (onClick)="exportCsv()">
+          <p-button type="button" label="Export CSV" severity="secondary" [outlined]="true" (onClick)="exportCsv()">
             <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
           </p-button>
         }
       </div>
+    </ng-template>
+    <div>
+      <div class="mb-3">
+        <app-filter-bar />
+      </div>
       @if (rows().length === 0 && store.isFiltering()) {
         <app-empty-state
           icon="lucideInbox"
+          [embedded]="true"
           title="No Trades match this filter"
           description="Every Trade in this Portfolio is cut by the active filter."
           actionLabel="Reset filters"
@@ -161,6 +275,7 @@
       } @else if (rows().length === 0) {
         <app-empty-state
           icon="lucideInbox"
+          [embedded]="true"
           title="No Trades yet"
           description="Log your first Trade to start the history."
           actionLabel="Log your first Trade"
@@ -172,30 +287,15 @@
             <ng-template pTemplate="header">
               <tr>
                 <th class="w-10"></th>
-                <th pSortableColumn="openedAt">Open date <p-sortIcon field="openedAt" /></th>
-                <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
+                <th pSortableColumn="closedAt" class="hidden sm:table-cell">Close <p-sortIcon field="closedAt" /></th>
                 <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
-                <th pSortableColumn="market">Market <p-sortIcon field="market" /></th>
                 <th pSortableColumn="side">Side <p-sortIcon field="side" /></th>
-                <th pSortableColumn="quantity" class="text-right">Quantity <p-sortIcon field="quantity" /></th>
-                <th pSortableColumn="multiplier" class="text-right">Multiplier <p-sortIcon field="multiplier" /></th>
-                <th pSortableColumn="entryPrice" class="text-right">Entry <p-sortIcon field="entryPrice" /></th>
-                <th pSortableColumn="exitPrice" class="text-right">Exit <p-sortIcon field="exitPrice" /></th>
-                <th pSortableColumn="gross" class="text-right">Gross <p-sortIcon field="gross" /></th>
-                <th pSortableColumn="fees" class="text-right">Fees <p-sortIcon field="fees" /></th>
                 <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
-                <th pSortableColumn="stopPrice" class="text-right">Stop <p-sortIcon field="stopPrice" /></th>
-                <th pSortableColumn="takePrice" class="text-right">Take <p-sortIcon field="takePrice" /></th>
-                <th pSortableColumn="risked" class="text-right">Risked <p-sortIcon field="risked" /></th>
                 <th pSortableColumn="rMultiple" class="text-right">R-Multiple <p-sortIcon field="rMultiple" /></th>
                 <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
-                <th pSortableColumn="emotionBefore">Emotion before <p-sortIcon field="emotionBefore" /></th>
-                <th pSortableColumn="emotionAfter">Emotion after <p-sortIcon field="emotionAfter" /></th>
-                <th pSortableColumn="mistake">Mistake <p-sortIcon field="mistake" /></th>
                 <th pSortableColumn="grade">Grade <p-sortIcon field="grade" /></th>
                 <th pSortableColumn="compliance">Compliance <p-sortIcon field="compliance" /></th>
                 <th>Tags</th>
-                <th>Chart</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-trade let-expanded="expanded">
@@ -205,30 +305,16 @@
                     <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
                   </p-button>
                 </td>
-                <td class="whitespace-nowrap">{{ trade.openedAt | date:'MMM d, h:mm a' }}</td>
-                <td class="whitespace-nowrap">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
+                <td class="hidden whitespace-nowrap sm:table-cell">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
                 <td class="font-medium">{{ trade.asset }}</td>
-                <td>{{ trade.market }}</td>
                 <td>{{ trade.side }}</td>
-                <td class="text-right tabular-nums">{{ trade.quantity }}</td>
-                <td class="text-right tabular-nums">{{ trade.multiplier }}</td>
-                <td class="text-right tabular-nums">{{ formatPrice(trade.entryPrice) }}</td>
-                <td class="text-right tabular-nums">{{ formatPrice(trade.exitPrice) }}</td>
-                <td class="whitespace-nowrap text-right tabular-nums">{{ formatMoney(trade.gross) }}</td>
-                <td class="whitespace-nowrap text-right tabular-nums">{{ formatMoney(trade.fees) }}</td>
                 <td class="text-right"
                   ><p-tag
                     [value]="formatSignedDollars(trade.net)"
                     [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'"
                   /></td>
-                <td class="text-right tabular-nums">{{ formatPrice(trade.stopPrice) }}</td>
-                <td class="text-right tabular-nums">{{ formatPrice(trade.takePrice) }}</td>
-                <td class="whitespace-nowrap text-right tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</td>
                 <td class="text-right tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
                 <td>{{ trade.setup }}</td>
-                <td>{{ trade.emotionBefore }}</td>
-                <td>{{ trade.emotionAfter }}</td>
-                <td>{{ trade.mistake }}</td>
                 <td>
                   @if (trade.grade !== '') {
                     <p-tag [value]="trade.grade" severity="secondary" />
@@ -246,29 +332,100 @@
                     }
                   </div>
                 </td>
-                <td>
-                  @if (trade.chartUrl !== '') {
-                    <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="underline">chart</a>
-                  }
-                </td>
               </tr>
             </ng-template>
             <ng-template pTemplate="expandedrow" let-trade>
               <tr>
-                <td colspan="25">
-                  <div class="flex flex-col gap-2 text-base">
+                <td colspan="10">
+                  <div class="flex flex-col gap-3 text-base">
+                    <dl class="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 xl:grid-cols-4">
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Closed</dt>
+                        <dd class="m-0 tabular-nums">{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Open</dt>
+                        <dd class="m-0 tabular-nums">{{ trade.openedAt | date:'MMM d, y, h:mm a' }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Market</dt>
+                        <dd class="m-0">{{ trade.market }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Quantity</dt>
+                        <dd class="m-0 tabular-nums">{{ trade.quantity }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Multiplier</dt>
+                        <dd class="m-0 tabular-nums">{{ trade.multiplier }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Entry</dt>
+                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.entryPrice) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Exit</dt>
+                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.exitPrice) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Gross P&amp;L</dt>
+                        <dd class="m-0 tabular-nums">{{ formatMoney(trade.gross) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Fees</dt>
+                        <dd class="m-0 tabular-nums">{{ formatMoney(trade.fees) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Stop</dt>
+                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.stopPrice) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Take</dt>
+                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.takePrice) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Risked Amount</dt>
+                        <dd class="m-0 tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion before</dt>
+                        <dd class="m-0">{{ trade.emotionBefore }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion after</dt>
+                        <dd class="m-0">{{ trade.emotionAfter }}</dd>
+                      </div>
+                      <div class="flex flex-col">
+                        <dt class="text-sm text-surface-600 dark:text-surface-300">Mistake</dt>
+                        <dd class="m-0">{{ trade.mistake }}</dd>
+                      </div>
+                      @if (trade.chartUrl !== '') {
+                        <div class="flex flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Chart</dt>
+                          <dd class="m-0">
+                            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="font-medium text-primary underline">Open chart</a>
+                          </dd>
+                        </div>
+                      }
+                    </dl>
                     @if (trade.notes !== '') {
-                      <p>{{ trade.notes }}</p>
+                      <div class="flex flex-col gap-1">
+                        <span class="text-sm text-surface-600 dark:text-surface-300">Notes</span>
+                        <p class="m-0">{{ trade.notes }}</p>
+                      </div>
                     }
-                    @if ((trade.rules ?? []).length > 0) {
-                      <ul class="flex flex-col gap-1">
-                        @for (rule of trade.rules; track rule.text) {
-                          <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
-                        }
-                      </ul>
-                    } @else {
-                      <span>Unscored — checklist untouched.</span>
-                    }
+                    <div class="flex flex-col gap-1">
+                      <span class="text-sm text-surface-600 dark:text-surface-300">Playbook Rule snapshot</span>
+                      @if ((trade.rules ?? []).length > 0) {
+                        <ul class="flex flex-col gap-1">
+                          @for (rule of trade.rules; track rule.text) {
+                            <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
+                          }
+                        </ul>
+                      } @else {
+                        <span>Unscored — checklist untouched.</span>
+                      }
+                    </div>
                   </div>
                 </td>
               </tr>

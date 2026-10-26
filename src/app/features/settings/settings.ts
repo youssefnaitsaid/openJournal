@@ -26,6 +26,7 @@ import {
   weekKeyOfDay,
 } from '../../guards';
 import type { GuardFormInput } from '../../guards';
+import { allStartingBalance } from '../../portfolios';
 import { EMOTIONS, MISTAKES, SETUPS } from '../trades/trade';
 import {
   addTaxonomyValue,
@@ -39,6 +40,7 @@ import {
 import type { TaxonomyKind } from '../journal/taxonomy';
 import { TradesStore } from '../trades/trades-store';
 import { PageHero } from '../../ui/page-hero';
+import { formatDollars } from '../dashboard/dashboard-metrics';
 
 @Component({
   imports: [
@@ -82,8 +84,14 @@ export class Settings {
   protected readonly renameValue = signal('');
   protected readonly renameError = signal<string | null>(null);
 
-  // Guards + active starting balance (migrated from the Dashboard editing card).
-  readonly startingBalance = computed(() => this.store.activeBalance());
+  // Starting balance lives once per Portfolio in the Portfolios card; the All
+  // anchor is the read-only sum shown beside them.
+  readonly allAnchorBalance = computed(() =>
+    allStartingBalance(this.portfolios()),
+  );
+  readonly formatDollars = formatDollars;
+
+  // Guards edit the active Portfolio's daily and weekly brakes.
   readonly guards = computed(() => this.store.activeGuards());
   readonly guardInputs = signal<GuardFormInput>(
     toGuardFormInput(this.store.activeGuards()),
@@ -109,8 +117,6 @@ export class Settings {
   });
 
   readonly weekStatusText = computed(() => {
-    if (this.store.isAll())
-      return 'All portfolios: Guards are set per Portfolio — select one to manage them';
     if (!hasAnyGuard(this.guards())) return 'No Guards set';
     const breached = this.weekGuardBreaches();
     if (breached.length === 0) return 'This week: inside all Guards';
@@ -160,13 +166,6 @@ export class Settings {
 
   readonly toNumberOrNull = (value: string): number | null =>
     value === '' ? null : Number(value);
-
-  onBalanceNumber(value: number | null): void {
-    if (this.store.isAll() || value === null) return;
-    if (Number.isFinite(value) && value >= 0) {
-      this.store.setPortfolioBalance(this.store.activeId(), value);
-    }
-  }
 
   // Vocabulary: the taxonomy editors relocated out of Trades.
   readonly setupVocabulary = computed(() => {

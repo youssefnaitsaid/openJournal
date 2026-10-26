@@ -38,7 +38,7 @@ export const formatProfitFactor = (value: number): string =>
   Number.isFinite(value) ? value.toFixed(2) : '∞';
 
 export const formatStreaks = (m: DashboardMetrics): string =>
-  `W${m.currentWinStreak} · L${m.currentLossStreak} / Best W${m.longestWinStreak} · L${m.longestLossStreak}`;
+  `Current ${m.currentWinStreak}W · ${m.currentLossStreak}L / Best ${m.longestWinStreak}W · ${m.longestLossStreak}L`;
 
 export interface GuardStatusInput {
   dailyLoss: { spent: number; limit: number | null };
@@ -81,21 +81,23 @@ export function computeKpiBand(
   m: DashboardMetrics,
   startingBalance: number,
 ): KpiLine[] {
+  // Grouped Edge → Consistency → Account so the KPI band can slice one
+  // contiguous band into its three rule-separated groups (ticket #52).
   return [
-    { label: 'Trade win %', value: formatPercent(m.winRate) },
     { label: 'Profit factor', value: formatProfitFactor(m.profitFactor) },
-    { label: 'Day win %', value: formatPercent(m.dayWinRate) },
     {
       label: 'Avg win / loss',
       value: `${formatSignedDollars(m.avgWin)} / ${formatSignedDollars(m.avgLoss)}`,
     },
+    { label: 'Expectancy / Trade', value: formatSignedDollars(m.expectancy) },
+    { label: 'Trade win %', value: formatPercent(m.winRate) },
+    { label: 'Day win %', value: formatPercent(m.dayWinRate) },
+    { label: 'Streaks', value: formatStreaks(m) },
     { label: 'Total trades', value: `${m.totalTrades}` },
     {
       label: 'Max drawdown',
       value: `${formatDollars(m.maxDrawdown)} · ${formatPercent(m.maxDrawdownPct)}%`,
     },
-    { label: 'Streaks', value: formatStreaks(m) },
-    { label: 'Expectancy / Trade', value: formatSignedDollars(m.expectancy) },
     {
       label: 'Current balance',
       value: formatDollars(startingBalance + m.netTotal),
@@ -128,7 +130,7 @@ export interface DashboardMetrics {
 export function computeMetrics(
   trades: readonly Trade[],
   startingBalance: number,
-  recentLimit = 10,
+  recentLimit = 5,
 ): DashboardMetrics {
   const wins = trades.filter((t) => t.net > 0);
   const losses = trades.filter((t) => t.net < 0);

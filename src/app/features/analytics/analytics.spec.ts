@@ -75,10 +75,49 @@ describe('Analytics', () => {
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('R-Expectancy');
     expect(content).toContain('+0.33R');
-    expect(content).toContain('Median R');
+    expect(content).toContain('Median R-Multiple');
+    expect(content).toContain('R-Multiple sum');
     expect(content).toContain('0.00R');
     expect(content).toContain('+1.00R');
     expect(content).toContain('2 of 3');
+    const band = compiled
+      .querySelector('[aria-label="R-metrics summary"]')
+      ?.textContent?.replace(/\s+/g, ' ') ?? '';
+    // Risked Amount is capital at risk, not a signed result.
+    expect(band).toContain('$200.00');
+    expect(band).not.toContain('+$200.00');
+  });
+
+  it('presents every Analytics section with one heading treatment and the chart above the full table', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const cardHeadings = [...compiled.querySelectorAll('p-card h2')].map((h) =>
+      h.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(cardHeadings).toEqual([
+      'Breakdown by Setup',
+      'Time-pattern by Weekday',
+      'Compliance vs outcome',
+    ]);
+
+    // Every card header pairs its h2 with one supporting line; the Compliance
+    // block no longer borrows PrimeNG's header/subheader props.
+    for (const testId of ['breakdowns', 'time-patterns', 'compliance']) {
+      const card = compiled.querySelector(`[data-testid="${testId}"]`)!;
+      expect(card.querySelector('h2 + p')).not.toBeNull();
+    }
+
+    // The chart is a named subsection above the table that keeps every row.
+    const breakdowns = compiled.querySelector('[data-testid="breakdowns"]')!;
+    expect(
+      breakdowns.querySelector('h3')?.textContent?.replace(/\s+/g, ' '),
+    ).toContain('Top 10 by |Net|');
+    expect(breakdowns.textContent).toContain('the table below keeps every row');
+    expect(breakdowns.querySelector('p-chart')).not.toBeNull();
+    expect(breakdowns.querySelector('p-table')).not.toBeNull();
   });
 
   it('charts the true Top 10 by |Net| descending while the table keeps every row', async () => {
@@ -109,6 +148,7 @@ describe('Analytics', () => {
     // Hand-computed: (exit - 100) * 10 qty, ordered by |Net| descending.
     // The old Net-desc slice(0, 10) would have shown W60/W40 and dropped L280/L220.
     const chart = fixture.componentInstance.breakdownChart();
+    expect(compiled.querySelector('[data-testid="breakdowns"] p-chart')).not.toBeNull();
     expect(chart.labels).toEqual([
       'W300',
       'L280',
@@ -124,6 +164,10 @@ describe('Analytics', () => {
     expect(chart.datasets[0].data).toEqual([
       300, -280, 250, -220, 200, -180, 100, -90, 80, -70,
     ]);
+    // Outcome reads from the bar color alone: a gain and a loss never share one.
+    const barColors = chart.datasets[0].backgroundColor as readonly string[];
+    expect(barColors).toHaveLength(10);
+    expect(barColors[0]).not.toBe(barColors[1]);
     const tableRows = [
       ...compiled
         .querySelector('[data-testid="breakdowns"]')!
@@ -336,6 +380,7 @@ describe('Analytics', () => {
     expect(content).toContain('Compliance vs outcome');
     expect(content).toContain('100% followed');
     expect(content).toContain('Partial');
+    expect(content).not.toContain('No scored trades yet');
   });
 
   it('reads no scored trades yet when unscored Trades exist', async () => {
@@ -347,6 +392,37 @@ describe('Analytics', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('No scored trades yet');
+  });
+
+  it('reserves no scored trades yet for a Portfolio where no checklist was touched', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(
+      tradeInput({ asset: 'SCORED', rules: [{ text: 'a', followed: true }] }),
+    );
+    store.addTrade(
+      tradeInput({ asset: 'UNSCORED', closedAt: '2026-10-02T14:30:00.000Z' }),
+    );
+    const fixture = TestBed.createComponent(Analytics);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const compliance = () =>
+      compiled
+        .querySelector('[data-testid="compliance"]')
+        ?.textContent?.replace(/\s+/g, ' ') ?? '';
+
+    // Whole Portfolio: the scored bucket is shown, never the "yet" state.
+    expect(compliance()).toContain('100% followed');
+    expect(compliance()).not.toContain('No scored trades yet');
+
+    // The filter leaves only the unscored Trade. A checklist was touched, so
+    // the global "yet" claim would be false; the block names the filter instead.
+    store.setFilter({ asset: 'UNSCORED' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(compliance()).not.toContain('No scored trades yet');
+    expect(compliance()).toContain('No scored Trades match this filter');
+    expect(compliance()).toContain('filter bar above');
   });
 
   it('says filtered-empty on every surface when the filter cuts every Trade', async () => {
@@ -367,8 +443,14 @@ describe('Analytics', () => {
     expect(content).not.toContain('No Trades yet');
     expect(content).not.toContain('No scored trades yet');
     expect(content).not.toContain('R-Expectancy');
-    // each affected surface carries the filtered-empty message
-    expect(compiled.querySelectorAll('app-empty-state').length).toBe(3);
+    // each affected surface carries the filtered-empty message and names the
+    // filter bar above it, never a bare empty-journal claim
+    const states = [...compiled.querySelectorAll('app-empty-state')];
+    expect(states.length).toBe(3);
+    for (const state of states) {
+      expect(state.textContent).toContain('No Trades match this filter');
+      expect(state.textContent).toContain('filter bar above');
+    }
     // the global Reset is the escape
     expect(compiled.querySelector('button[aria-label="Reset filter"]')).not.toBeNull();
   });

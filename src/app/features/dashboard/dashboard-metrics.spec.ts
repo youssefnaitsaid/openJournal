@@ -94,6 +94,17 @@ describe('computeMetrics', () => {
     expect(m.recent.map((t) => t.asset)).toEqual(['FLAT', 'LOSS']);
   });
 
+  it('caps Recent Trades at five newest closes by default', () => {
+    const trades = Array.from({ length: 7 }, (_, i) =>
+      tradeFixture({
+        asset: `T${i + 1}`,
+        closedAt: `2026-10-0${i + 1}T14:30:00.000Z`,
+      }),
+    );
+    const m = computeMetrics(trades, 10000);
+    expect(m.recent.map((t) => t.asset)).toEqual(['T7', 'T6', 'T5', 'T4', 'T3']);
+  });
+
   it('reads zero drawdown on an empty journal', () => {
     const m = computeMetrics([], 10000);
     expect(m.maxDrawdown).toBe(0);
@@ -184,7 +195,7 @@ describe('computeKpiBand', () => {
     expect(asMap.get('Avg win / loss')).toBe('+$99.00 / -$105.00');
     expect(asMap.get('Total trades')).toBe('2');
     expect(asMap.get('Max drawdown')).toBe('$105.00 · 1.04%');
-    expect(asMap.get('Streaks')).toBe('W0 · L1 / Best W1 · L1');
+    expect(asMap.get('Streaks')).toBe('Current 0W · 1L / Best 1W · 1L');
     expect(asMap.get('Expectancy / Trade')).toBe('-$3.00');
     expect(asMap.get('Current balance')).toBe('$9,994.00');
   });
@@ -206,7 +217,7 @@ describe('pure formatters', () => {
 
   it('formatStreaks names current and best runs', () => {
     const m = computeMetrics([WIN_A(), WIN_B(), LOSS()], 10000);
-    expect(formatStreaks(m)).toBe('W0 · L1 / Best W2 · L1');
+    expect(formatStreaks(m)).toBe('Current 0W · 1L / Best 2W · 1L');
   });
 
   it('formatGuardStatus lists only configured limits and appends breaches', () => {

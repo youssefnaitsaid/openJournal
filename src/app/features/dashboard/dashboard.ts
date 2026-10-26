@@ -18,6 +18,7 @@ import {
   formatProfitFactor,
   formatSignedDollars,
 } from './dashboard-metrics';
+import type { KpiLine } from './dashboard-metrics';
 import { computeRMetrics } from '../analytics/analytics-metrics';
 import {
   GUARD_LABELS,
@@ -32,6 +33,12 @@ import { PageHero } from '../../ui/page-hero';
 interface GuardStatusView {
   readonly show: boolean;
   readonly text: string;
+}
+
+interface KpiGroupView {
+  readonly title: string;
+  readonly icon: string;
+  readonly lines: KpiLine[];
 }
 
 @Component({
@@ -89,15 +96,28 @@ export class Dashboard {
     };
   });
 
-  readonly chartOptions = computed(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { maxTicksLimit: 6 } },
-      y: { ticks: { maxTicksLimit: 5 } },
-    },
-  }));
+  readonly chartOptions = computed(() => {
+    // Canvas does not inherit the preset's muted text token; read it (and the
+    // content border) so axis labels and the grid clear AA in both schemes.
+    const tick = this.chartToken('--p-text-muted-color', '#64748b');
+    const grid = this.chartToken('--p-content-border-color', '#e2e8f0');
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { maxTicksLimit: 6, color: tick },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { maxTicksLimit: 5, color: tick },
+          grid: { color: grid },
+          border: { display: false },
+        },
+      },
+    };
+  });
 
   readonly metrics = computed(() =>
     computeMetrics(this.store.activeTrades(), this.startingBalance()),
@@ -106,6 +126,17 @@ export class Dashboard {
   readonly kpiBand = computed(() =>
     computeKpiBand(this.metrics(), this.startingBalance()),
   );
+
+  // One band card, three rule-separated groups; computeKpiBand orders the
+  // nine lines contiguously by group so no label is repeated in the view.
+  readonly kpiGroups = computed<readonly KpiGroupView[]>(() => {
+    const band = this.kpiBand();
+    return [
+      { title: 'Edge', icon: 'lucideZap', lines: band.slice(0, 3) },
+      { title: 'Consistency', icon: 'lucideFlame', lines: band.slice(3, 6) },
+      { title: 'Account', icon: 'lucideWallet', lines: band.slice(6, 9) },
+    ];
+  });
 
   readonly isPositive = computed(() => this.metrics().netTotal >= 0);
 

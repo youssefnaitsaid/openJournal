@@ -55,6 +55,33 @@ describe('Journal', () => {
     expect(content).toContain('-$105.00');
   });
 
+  it('opens on the latest close day of the shown month', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(component.activeDay()).toBe('2026-10-03');
+    const dayDetail = compiled.querySelector(
+      '[aria-label="Day detail"]',
+    ) as HTMLElement;
+    expect(dayDetail.textContent).toContain('TSLA');
+  });
+
+  it('shows the selected day exact Net beside the day label', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    const component = fixture.componentInstance;
+    october(fixture);
+    component.selectedDay.set('2026-10-03');
+    await fixture.whenStable();
+    expect(component.activeDayNet()).toBe(-105);
+    const compiled = fixture.nativeElement as HTMLElement;
+    const header = compiled.querySelector('[aria-label="Day detail"] > div');
+    expect(header?.textContent).toContain('-$105.00');
+  });
+
   it('paginates months and returns to this month', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
@@ -162,15 +189,27 @@ describe('Journal', () => {
     expect(link).not.toBeNull();
   });
 
-  it('summarises month Net and balance from the shared setting', async () => {
+  it('states Month Net P&L and month-end balance once inside the Month report card', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    const card = compiled.querySelector(
+      '[aria-label="Month report card"]',
+    ) as HTMLElement;
+    expect(card).not.toBeNull();
+    const content = card.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Month Net P&L');
     expect(content).toContain('-$6.00');
+    expect(content).toContain('Balance at month end');
     expect(content).toContain('9,994');
+    // The headline Net is the report's Net: no second Net metric row.
+    const labels = [...card.querySelectorAll('dt')].map(
+      (dt) => dt.textContent?.trim() ?? '',
+    );
+    expect(labels.filter((label) => label === 'Month Net P&L').length).toBe(1);
+    expect(labels).not.toContain('Net P&L');
   });
 
   it('renders user-added tag values with no code change', async () => {
@@ -184,18 +223,51 @@ describe('Journal', () => {
     expect(compiled.textContent).toContain('Opening-drive');
   });
 
-  it('tints loss days red and prefixes gains with +', async () => {
+  it('prefixes gains with + and leaves day cells untinted', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
-    expect(content).toContain('+$99.00');
-    const lossCells = [...compiled.querySelectorAll('[role="grid"] button.oj-loss')].map(
-      (el) => el.textContent?.replace(/\s+/g, ' ').trim(),
+    expect(content).toContain('+$99');
+    expect(compiled.querySelector('.oj-win, .oj-loss')).toBeNull();
+    const labels = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].map((el) => el.getAttribute('aria-label'));
+    expect(labels.some((label) => label?.includes('-$105'))).toBe(true);
+  });
+
+  it('keeps calendar tags inside a narrow cell while aria labels stay exact', async () => {
+    await seed();
+    const store = TestBed.inject(TradesStore);
+    store.addTrade(
+      tradeInput({
+        asset: 'BIG',
+        exitPrice: 224.65,
+        fees: 0,
+        closedAt: '2026-10-08T14:30:00.000Z',
+      }),
     );
-    expect(lossCells.some((t) => t?.includes('-$105.00'))).toBe(true);
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    expect(component.dayNetText(648)).toBe('+$648');
+    expect(component.dayNetText(-181.2)).toBe('-$181.20');
+    expect(component.dayNetText(1246.5)).toBe('+$1,247');
+    expect(component.dayNetText(-1003.5)).toBe('-$1,004');
+    expect(component.dayNetText(12345.67)).toBe('+$12.3K');
+    expect(component.dayNetText(-10000)).toBe('-$10K');
+    expect(component.dayNetText(0)).toBe('0');
+    const compiled = fixture.nativeElement as HTMLElement;
+    const cell = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].find((button) =>
+      button.getAttribute('aria-label')?.startsWith('Thursday, October 8'),
+    );
+    expect(cell?.querySelector('p-tag')?.textContent?.trim()).toBe('+$1,247');
+    expect(cell?.getAttribute('aria-label')).toContain('+$1,246.50');
   });
 
   it('renders local dates without raw ISO', async () => {
@@ -214,7 +286,7 @@ describe('Journal', () => {
     expect(detail).toMatch(/Oct 1, 2026/);
   });
 
-  it('shows flat days with Trades as neutral zero instead of hiding them', async () => {
+  it('shows flat days with Trades as a neutral zero instead of hiding them', async () => {
     await seed();
     const store = TestBed.inject(TradesStore);
     store.addTrade(
@@ -232,32 +304,51 @@ describe('Journal', () => {
     const cells = [...compiled.querySelectorAll('[role="grid"] button')].map((b) => {
       const el = b as HTMLElement;
       return {
-        day: el.textContent?.slice(0, 2),
-        net: el.querySelector('span.tabular-nums')?.textContent?.trim() ?? null,
-        tint: el.classList.contains('oj-win')
-          ? 'win'
-          : el.classList.contains('oj-loss')
-            ? 'loss'
-            : 'flat',
+        day: el.querySelector('span')?.textContent?.trim() ?? '',
+        net: el.querySelector('p-tag')?.textContent?.trim() ?? null,
+        tinted:
+          el.classList.contains('oj-win') || el.classList.contains('oj-loss'),
       };
     });
-    expect(cells.find((c) => c.day === '05')?.net).toBe('$0.00');
-    expect(cells.find((c) => c.day === '05')?.tint).toBe('flat');
-    expect(cells.find((c) => c.day === '01')?.tint).toBe('win');
-    expect(cells.find((c) => c.day === '03')?.tint).toBe('loss');
-    expect(cells.find((c) => c.day === '02')?.net).toBeNull();
+    expect(cells.find((c) => c.day === '5')?.net).toBe('0');
+    expect(cells.find((c) => c.day === '5')?.tinted).toBe(false);
+    expect(cells.find((c) => c.day === '1')?.net).toBe('+$99');
+    expect(cells.find((c) => c.day === '3')?.net).toBe('-$105');
+    expect(cells.find((c) => c.day === '2')?.net).toBeNull();
+    expect(cells.every((c) => !c.tinted)).toBe(true);
   });
 
-  it('renders the month report card with metrics and copy control', async () => {
+  it('drops leading zeros from calendar day numbers', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    const numbers = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].map((button) => button.textContent?.trim().match(/^\d+/)?.[0] ?? '');
+    expect(numbers).toContain('1');
+    expect(numbers).toContain('3');
+    expect(numbers).not.toContain('01');
+    expect(numbers).not.toContain('05');
+    expect(numbers.every((day) => !/^0\d/.test(day))).toBe(true);
+  });
+
+  it('renders exactly one Month report card carrying every report metric and Copy', async () => {
+    await seed();
+    const fixture = TestBed.createComponent(Journal);
+    october(fixture);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const cards = compiled.querySelectorAll('[aria-label="Month report card"]');
+    expect(cards.length).toBe(1);
+    expect(compiled.querySelector('[aria-label="Month summary"]')).toBeNull();
+    const card = cards[0] as HTMLElement;
+    const content = card.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Month report card');
     expect(content).toContain('Total Trades');
-    expect(content).toContain('Net P&L');
+    expect(content).toContain('Month Net P&L');
+    expect(content).toContain('Balance at month end');
     expect(content).toContain('Win-rate');
     expect(content).toContain('Profit Factor');
     expect(content).toContain('Best Setup');
@@ -265,7 +356,7 @@ describe('Journal', () => {
     expect(content).toContain('Top Mistake');
     expect(content).toContain('Compliance');
     expect(
-      compiled.querySelector('[aria-label="Copy month report card"]'),
+      card.querySelector('[aria-label="Copy month report card"]'),
     ).not.toBeNull();
   });
 
@@ -278,13 +369,15 @@ describe('Journal', () => {
     component.store.setFilter({ asset: 'ZZZ-no-match' });
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const card = compiled
-      .querySelector('[aria-label="Month report card"]')
-      ?.textContent?.replace(/\s+/g, ' ');
-    expect(card).toContain('Trades: 2');
+    const card = compiled.querySelector('[aria-label="Month report card"]');
+    expect(card).not.toBeNull();
+    const metric = [...(card?.querySelectorAll('div') ?? [])].find((el) =>
+      el.querySelector('dt')?.textContent?.includes('Total Trades'),
+    );
+    expect(metric?.querySelector('dd')?.textContent?.trim()).toBe('2');
   });
 
-  it('orders the page calendar-first: calendar, then day detail, then summary and report', async () => {
+  it('orders the page calendar-first: calendar, then day detail, then one Month report', async () => {
     await seed();
     const fixture = TestBed.createComponent(Journal);
     const component = fixture.componentInstance;
@@ -295,12 +388,11 @@ describe('Journal', () => {
     const landmarks = [...compiled.querySelectorAll(
       '[aria-label="Month calendar"], [aria-label="Day detail"], [aria-label="Month summary"], [aria-label="Month report card"]',
     )];
-    expect(landmarks.length).toBe(4);
+    expect(landmarks.length).toBe(3);
     const order = landmarks.map((el) => el.getAttribute('aria-label'));
     expect(order).toEqual([
       'Month calendar',
       'Day detail',
-      'Month summary',
       'Month report card',
     ]);
   });
@@ -314,7 +406,7 @@ describe('Journal', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(
       compiled.querySelector('[aria-label="Month summary"]'),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(
       compiled.querySelector('[aria-label="Month report card"]'),
     ).not.toBeNull();
@@ -324,7 +416,8 @@ describe('Journal', () => {
     expect(content).toContain('November 2026');
     expect(compiled.querySelector('[aria-label="Month summary"]')).toBeNull();
     expect(compiled.querySelector('[aria-label="Month report card"]')).toBeNull();
-    expect(content).not.toContain('Month Net');
+    expect(content).not.toContain('Month Net P&L');
+    expect(content).not.toContain('Balance at month end');
     expect(content).not.toContain('Total Trades');
     expect(
       compiled.querySelector('[aria-label="Copy month report card"]'),
@@ -414,7 +507,7 @@ describe('Journal', () => {
     expect(compiled.querySelector('[role="grid"]')).not.toBeNull();
   });
 
-  it('tints win/loss days and flags Guard breaches on the heatmap', async () => {
+  it('keeps day cells neutral and flags only the Guard-breached day', async () => {
     await seed();
     const store = TestBed.inject(TradesStore);
     store.setActiveId(DEFAULT_PORTFOLIO_ID);
@@ -426,10 +519,15 @@ describe('Journal', () => {
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    // Net sign rides the cell tint, not a text badge.
-    expect(compiled.querySelector('.oj-win, .oj-loss')).not.toBeNull();
-    // A breached day gets the icon-only guard indicator.
-    expect(compiled.querySelector('[aria-label="Guard breached"]')).not.toBeNull();
+    // The day Net owns the outcome color; the cell stays on surface tokens.
+    expect(compiled.querySelector('.oj-win, .oj-loss')).toBeNull();
+    // A breached day gets the guard signal in its accessible day label.
+    const breachedDays = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].filter((button) =>
+      button.getAttribute('aria-label')?.includes('Guard breached'),
+    );
+    expect(breachedDays.length).toBeGreaterThan(0);
     // Inside-Guard days stay silent — no badge text in the grid.
     const grid = compiled.querySelector('[aria-label="Month calendar"]')?.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(grid).not.toContain('Inside Guards');
@@ -441,7 +539,12 @@ describe('Journal', () => {
     october(fixture);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('[aria-label="Guard breached"]')).toBeNull();
+    const breachedDays = [
+      ...compiled.querySelectorAll('[role="grid"] button'),
+    ].filter((button) =>
+      button.getAttribute('aria-label')?.includes('Guard breached'),
+    );
+    expect(breachedDays).toEqual([]);
   });
 
   it('names breached daily and containing-week Guards in day detail', async () => {

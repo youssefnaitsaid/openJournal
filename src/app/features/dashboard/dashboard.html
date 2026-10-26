@@ -13,10 +13,11 @@
       </div>
       @if (guardStatus().show) {
         <div class="flex flex-wrap items-center justify-end gap-2" aria-label="Guard status">
-          <a routerLink="/settings" class="flex flex-wrap items-center justify-end gap-2">
+          <a routerLink="/settings" class="flex flex-wrap items-center justify-end gap-2 hover:underline" title="Edit Guards in Settings">
             @for (item of guardStatus().text.split(' · '); track item; let last = $last) {
               <span class="{{ last ? 'rounded-full bg-highlight px-2 py-0.5 text-xs font-semibold text-highlight' : 'rounded-full border border-surface-200 bg-surface-100 px-2 py-0.5 text-xs text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300' }}">{{ item }}</span>
             }
+            <span class="sr-only">Edit Guards in Settings</span>
           </a>
         </div>
       }
@@ -24,23 +25,23 @@
   </app-page-hero>
 
   @if (hasTrades()) {
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3" role="group" aria-label="Key metrics">
-      @for (group of [{ title: 'Edge', icon: 'lucideZap', idx: [1, 3, 7] }, { title: 'Consistency', icon: 'lucideFlame', idx: [0, 2, 6] }, { title: 'Account', icon: 'lucideWallet', idx: [4, 5, 8] }]; track group.title) {
-        <p-card>
-          <div class="flex flex-col gap-3">
+    <p-card role="group" aria-label="Key metrics">
+      <div class="grid grid-cols-1 md:grid-cols-3">
+        @for (group of kpiGroups(); track group.title) {
+          <section class="flex flex-col gap-3 border-t border-surface-200 py-4 first:border-t-0 first:pt-0 last:pb-0 md:border-t-0 md:border-l md:px-6 md:py-0 md:first:border-l-0 md:first:pl-0 md:last:pr-0 dark:border-surface-700">
             <div class="flex items-center gap-2">
               <ng-icon [name]="group.icon" class="size-5 shrink-0 text-primary" />
-              <h3 class="text-base font-semibold tracking-tight text-surface-800 dark:text-surface-100">{{ group.title }}</h3>
+              <h2 class="text-base font-semibold tracking-tight text-surface-800 dark:text-surface-100">{{ group.title }}</h2>
             </div>
             <dl class="flex flex-col gap-1.5 text-base tabular-nums">
-              @for (idx of group.idx; track idx) {
-                <div class="flex items-baseline justify-between gap-3"><dt class="text-surface-600 dark:text-surface-300">{{ kpiBand()[idx].label }}</dt><dd class="font-semibold text-surface-900 dark:text-surface-50">{{ kpiBand()[idx].value }}</dd></div>
+              @for (line of group.lines; track line.label) {
+                <div class="flex items-baseline justify-between gap-3"><dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt><dd class="font-semibold text-surface-900 dark:text-surface-50">{{ line.value }}</dd></div>
               }
             </dl>
-          </div>
-        </p-card>
-      }
-    </div>
+          </section>
+        }
+      </div>
+    </p-card>
   }
 
   @if (store.isFiltering()) {
@@ -57,12 +58,18 @@
   }
 
   @if (hasTrades()) {
-    <div class="grid grid-cols-1 items-center gap-4 lg:grid-cols-5">
-      <p-card header="Account balance" class="lg:col-span-3">
+    <div class="grid grid-cols-1 items-center gap-4 xl:grid-cols-5">
+      <p-card header="Account balance" class="min-w-0 xl:col-span-3">
         <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="20rem" ariaLabel="Account balance over time" />
       </p-card>
-      <p-card header="Recent trades" class="lg:col-span-2">
-        <p-table [value]="metrics().recent.slice(0, 5)">
+      <p-card class="min-w-0 xl:col-span-2">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-xl font-semibold tracking-tight">Recent trades</h2>
+            <a routerLink="/trades" class="text-base font-medium text-primary hover:underline">View all</a>
+          </div>
+        </ng-template>
+        <p-table [value]="metrics().recent">
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
@@ -72,7 +79,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-trade>
             <tr>
-              <td>{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</td>
+              <td>{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
               <td class="font-medium">{{ trade.asset }}</td>
               <td class="text-right"><p-tag [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
             </tr>
@@ -83,6 +90,7 @@
   } @else {
     <app-empty-state
       icon="lucideInbox"
+      [headingLevel]="2"
       title="No Trades yet"
       description="Log your first Trade to see where you stand."
       actionLabel="Log your first Trade"

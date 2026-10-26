@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -14,7 +15,6 @@ import {
   lucideSun,
   lucideTrendingDown,
   lucideTrendingUp,
-  lucideWallet,
 } from '@ng-icons/lucide';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -33,11 +33,17 @@ interface NavItem {
   readonly icon: string;
 }
 
+interface NavGroup {
+  readonly label: string;
+  readonly items: readonly NavItem[];
+}
+
 @Component({
   imports: [
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
+    NgTemplateOutlet,
     FormsModule,
     NgIcon,
     AvatarModule,
@@ -60,7 +66,6 @@ interface NavItem {
       lucideSun,
       lucideTrendingDown,
       lucideTrendingUp,
-      lucideWallet,
     }),
   ],
   selector: 'app-root',
@@ -75,18 +80,29 @@ export class App {
 
   protected readonly sidebarOpen = signal(false);
 
-  protected readonly overviewItems: readonly NavItem[] = [
-    { label: 'Dashboard', url: '/dashboard', icon: 'lucideLayoutDashboard' },
-  ];
-
-  protected readonly workspaceItems: readonly NavItem[] = [
-    { label: 'Trades', url: '/trades', icon: 'lucideArrowDownUp' },
-    { label: 'Journal', url: '/journal', icon: 'lucideBookOpen' },
-    { label: 'Analytics', url: '/analytics', icon: 'lucideChartLine' },
-  ];
-
-  protected readonly settingsItems: readonly NavItem[] = [
-    { label: 'Settings', url: '/settings', icon: 'lucideSettings' },
+  // One source for both the desktop rail and the mobile drawer, so the two
+  // navigations can never drift in order or content.
+  protected readonly navGroups: readonly NavGroup[] = [
+    {
+      label: 'Overview',
+      items: [
+        { label: 'Dashboard', url: '/dashboard', icon: 'lucideLayoutDashboard' },
+      ],
+    },
+    {
+      label: 'Workspace',
+      items: [
+        { label: 'Trades', url: '/trades', icon: 'lucideArrowDownUp' },
+        { label: 'Journal', url: '/journal', icon: 'lucideBookOpen' },
+        { label: 'Analytics', url: '/analytics', icon: 'lucideChartLine' },
+      ],
+    },
+    {
+      label: 'Configuration',
+      items: [
+        { label: 'Settings', url: '/settings', icon: 'lucideSettings' },
+      ],
+    },
   ];
 
   protected readonly portfolioOptions = computed(() => [
@@ -97,8 +113,6 @@ export class App {
   protected readonly netTotal = computed(() =>
     this.store.activeTrades().reduce((sum, trade) => sum + trade.net, 0),
   );
-
-  protected readonly tradeCount = computed(() => this.store.activeTrades().length);
 
   protected readonly formatSignedDollars = formatSignedDollars;
 

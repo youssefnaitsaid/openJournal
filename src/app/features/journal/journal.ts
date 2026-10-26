@@ -13,6 +13,7 @@ import {
 } from '@ng-icons/lucide';
 import { TradesStore } from '../trades/trades-store';
 import { buildMonth, monthSummary } from './journal-calendar';
+import type { DayCell } from './journal-calendar';
 import {
   formatDollars,
   formatSignedDollars,
@@ -29,14 +30,24 @@ import {
   formatMonthReportCard,
 } from './journal-report-card';
 import { EmptyState } from '../../ui/empty-state';
+import { PageHero } from '../../ui/page-hero';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 
+// Calendar chips are the narrowest money surface in the app, so they trade
+// cents for fit; the day table, summary, and aria labels keep exact values.
+const dayWholeDollars = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0,
+});
+const dayThousands = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1,
+});
+
 @Component({
-  imports: [DatePipe, NgIcon, EmptyState, CardModule, MessageModule, ButtonModule, TagModule, TableModule],
+  imports: [DatePipe, NgIcon, EmptyState, PageHero, CardModule, MessageModule, ButtonModule, TagModule, TableModule],
   providers: [
     provideIcons({
       lucideCalendarDays,
@@ -49,8 +60,8 @@ import { TableModule } from 'primeng/table';
     }),
   ],
   selector: 'app-journal',
-  styleUrl: './journal.css',
   templateUrl: './journal.html',
+  styleUrl: './journal.css',
 })
 export class Journal {
   readonly store = inject(TradesStore);
@@ -70,7 +81,7 @@ export class Journal {
     this.guardEvaluation().days.get(date)?.breached ?? [];
 
   readonly selectedDayBreaches = computed((): readonly GuardBreach[] => {
-    const day = this.selectedDay();
+    const day = this.activeDay();
     if (day === null) return [];
     const evaluation = this.guardEvaluation();
     return [
@@ -90,23 +101,103 @@ export class Journal {
     month: this.today.getUTCMonth(),
   });
 
-  readonly selectedDay = signal<string | null>(
-    this.today.toISOString().slice(0, 10),
-  );
+  readonly selectedDay = signal<string | null>(null);
 
   readonly dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Calendar cells name the day without a leading zero so the month scans
+  // faster; the date stays available in each cell's exact ARIA label.
+  readonly dayNumber = (date: string): number => Number(date.slice(8, 10));
 
   readonly weeks = computed(() =>
     buildMonth(this.store.activeTrades(), this.cursor().year, this.cursor().month),
   );
 
-  readonly summary = computed(() =>
-    monthSummary(
-      this.store.activeTrades(),
-      this.cursor().year,
-      this.cursor().month,
-      this.startingBalance(),
-    ),
+  private readonly monthPrefix = computed(() => {
+    const { year, month } = this.cursor();
+    return `${year}-${String(month + 1).padStart(2, '0')}`;
+  });
+
+  // A month opens on its latest close day, so the page lands on evidence
+  // instead of an empty today. An explicit selection inside the shown month
+  // always wins; navigating away falls back to the new month's latest close.
+  readonly activeDay = computed<string | null>(() => {
+    const selected = this.selectedDay();
+    if (selected !== null && selected.startsWith(this.monthPrefix())) {
+      return selected;
+    }
+    let latest: string | null = null;
+    for (const week of this.weeks()) {
+      for (const cell of week) {
+        if (
+          cell !== null &&
+          cell.trades.length > 0 &&
+          (latest === null || cell.date > latest)
+        ) {
+          latest = cell.date;
+        }
+      }
+    }
+    return latest;
+  });
+
+  readonly dayLabel = (date: string): string =>
+    new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+
+  readonly activeDayLabel = computed(() => {
+    const day = this.activeDay();
+    return day === null ? '' : this.dayLabel(day);
+  });
+
+  readonly dayAriaLabel = (cell: DayCell): string => {
+    const date = this.dayLabel(cell.date);
+    if (cell.trades.length === 0) return date;
+    const breach =
+      this.hasGuards() && this.dayBreaches(cell.date).length > 0
+        ? ', Guard breached'
+        : '';
+    return `${date}, ${formatSignedDollars(cell.dayNet)}${breach}`;
+  };
+
+  readonly dayNetSeverity = (
+    value: number,
+  ): 'success' | 'danger' | 'secondary' =>
+    value > 0 ? 'success' : value < 0 ? 'danger' : 'secondary';
+
+  // Calendar cells stay narrow: whole-dollar days drop the cents, four-figure
+  // days round to the dollar, and five-figure days compact to thousands so a
+  // tag never outgrows its cell. A flat day reads as a bare 0, matching the
+  // neutral tag; exact cents stay in the day table, summary, and aria labels.
+  readonly dayNetText = (value: number): string => {
+    if (value === 0) return '0';
+    const sign = value > 0 ? '+' : '-';
+    const abs = Math.abs(value);
+    const rounded = Math.round(abs);
+    if (rounded >= 10_000) {
+      return `${sign}$${dayThousands.format(abs / 1000)}K`;
+    }
+    if (rounded >= 1_000) {
+      return `${sign}$${dayWholeDollars.format(rounded)}`;
+    }
+    const formatted = formatSignedDollars(value);
+    return formatted.endsWith('.00') ? formatted.slice(0, -3) : formatted;
+  };
+
+  // The merged Month report states its own Net; only the month-end balance
+  // still comes from the shared month summary seam.
+  readonly monthEndBalance = computed(
+    () =>
+      monthSummary(
+        this.store.activeTrades(),
+        this.cursor().year,
+        this.cursor().month,
+        this.startingBalance(),
+      ).balanceEnd,
   );
 
   readonly reportCard = computed(() =>
@@ -152,12 +243,16 @@ export class Journal {
   );
 
   readonly selectedTrades = computed(() => {
-    const day = this.selectedDay();
+    const day = this.activeDay();
     if (day === null) return [];
     return this.store
       .activeTrades()
       .filter((t) => t.closedAt.slice(0, 10) === day);
   });
+
+  readonly activeDayNet = computed(() =>
+    this.selectedTrades().reduce((sum, trade) => sum + trade.net, 0),
+  );
 
   prev(): void {
     const { year, month } = this.cursor();
