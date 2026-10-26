@@ -403,7 +403,7 @@ export class Trades {
     this.toast.add({
       severity: 'success',
       summary: 'Trade logged',
-      life: 80000,
+      life: 8000,
     });
     this.syncChecklist(this.form.controls.setup.value);
     this.form.reset({

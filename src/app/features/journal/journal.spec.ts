@@ -354,7 +354,10 @@ describe('Journal', () => {
     expect(content).toContain('Best Setup');
     expect(content).toContain('Worst Setup');
     expect(content).toContain('Top Mistake');
+    expect(content).toContain('Emotion-before');
+    expect(content).toContain('Emotion-after');
     expect(content).toContain('Compliance');
+    expect(content).toContain('Unscored Trades');
     expect(
       card.querySelector('[aria-label="Copy month report card"]'),
     ).not.toBeNull();
@@ -587,6 +590,7 @@ describe('Journal', () => {
         'Trades: 2 · Net: -$6.00 · Win-rate: 50.00% · PF: 0.94',
         'Best Setup: Breakout (+$99.00) · Worst Setup: Opening-drive (-$105.00)',
         'Top Mistake: None-followed-plan ×1 · Compliance: — (0/2 scored)',
+        'Emotion-before: Calm ×1 · Emotion-after: Disciplined ×1 · Unscored: 2',
       ].join('\n'),
     ]);
     expect(
