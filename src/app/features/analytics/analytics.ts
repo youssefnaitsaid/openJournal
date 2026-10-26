@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ThemeService } from '../../theme';
 import { TradesStore } from '../trades/trades-store';
 import { formatDollars, formatSignedDollars } from '../dashboard/dashboard-metrics';
@@ -22,7 +22,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
 @Component({
-  imports: [FormsModule, EmptyState, FilterBar, PageHero, CardModule, ChartModule, SelectModule, TableModule, TagModule],
+  imports: [FormsModule, RouterLink, EmptyState, FilterBar, PageHero, CardModule, ChartModule, SelectModule, TableModule, TagModule],
   selector: 'app-analytics',
   styleUrl: './analytics.css',
   templateUrl: './analytics.html',

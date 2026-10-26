@@ -373,13 +373,21 @@ describe('Dashboard', () => {
     expect(compiled.textContent).not.toContain('T14:30:00.000Z');
   });
 
-  it('renders one honest onboarding card when nothing is logged', async () => {
+  it('renders one honest onboarding panel when nothing is logged', async () => {
     const store = TestBed.inject(TradesStore);
     await store.whenReady();
     const fixture = TestBed.createComponent(Dashboard);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Log your first Trade');
+    expect(compiled.querySelectorAll('app-empty-state').length).toBe(1);
+    const panel = compiled.querySelector('app-empty-state') as HTMLElement;
+    expect(panel.textContent).toContain('Log your first Trade');
+    expect(panel.textContent).toContain('Dashboard preview');
+    expect(panel.querySelector('[data-empty-preview]')).not.toBeNull();
+    expect(panel.querySelector('a[href="/journal"]')?.textContent).toContain('review the month');
+    expect(panel.querySelector('a[href="/settings"]')?.textContent).toContain(
+      'configure Playbooks',
+    );
   });
 
   it('scopes the hero to the active portfolio and sums All', async () => {

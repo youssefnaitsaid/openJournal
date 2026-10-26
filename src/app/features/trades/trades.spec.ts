@@ -210,6 +210,8 @@ describe('Trades', () => {
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('No Trades match this filter');
     expect(content).not.toContain('Log your first Trade');
+    expect(compiled.querySelector('app-filter-bar')).not.toBeNull();
+    expect(compiled.querySelector('[data-empty-preview]')).toBeNull();
     const reset = [...compiled.querySelectorAll('button')].find((b) =>
       b.textContent?.includes('Reset filters'),
     )!;
@@ -231,6 +233,15 @@ describe('Trades', () => {
     expect(content).toContain('No Trades yet');
     expect(content).toContain('Log your first Trade');
     expect(content).not.toContain('Reset filters');
+    expect(compiled.querySelectorAll('app-empty-state').length).toBe(1);
+    const panel = compiled.querySelector('app-empty-state') as HTMLElement;
+    expect(panel.textContent).toContain('Trade history preview');
+    expect(panel.querySelector('[data-empty-preview]')).not.toBeNull();
+    expect(panel.querySelector('a[href="/journal"]')?.textContent).toContain('review the month');
+    expect(panel.querySelector('a[href="/settings"]')?.textContent).toContain(
+      'configure Playbooks',
+    );
+    expect(compiled.querySelector('app-filter-bar')).toBeNull();
     const cta = [...compiled.querySelectorAll('button')].find((b) =>
       b.textContent?.includes('Log your first Trade'),
     )!;

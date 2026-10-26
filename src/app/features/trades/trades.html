@@ -298,9 +298,11 @@
       </div>
     </ng-template>
     <div>
-      <div class="mb-3">
-        <app-filter-bar />
-      </div>
+      @if (historyTotal() > 0 || store.isFiltering()) {
+        <div class="mb-3">
+          <app-filter-bar />
+        </div>
+      }
       @if (rows().length === 0 && store.isFiltering()) {
         <app-empty-state
           icon="lucideInbox"
@@ -312,13 +314,44 @@
         />
       } @else if (rows().length === 0) {
         <app-empty-state
+          layout="panel"
           icon="lucideInbox"
           [embedded]="true"
           title="No Trades yet"
           description="Log your first Trade to start the history."
           actionLabel="Log your first Trade"
           (action)="openLogForm()"
-        />
+        >
+          <figure
+            data-empty-preview
+            aria-hidden="true"
+            class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-950"
+          >
+            <figcaption class="text-sm font-medium text-surface-600 dark:text-surface-300">Trade history preview</figcaption>
+            <div class="mt-3 overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
+              <div class="grid grid-cols-5 gap-2 border-b border-surface-200 bg-surface-100 px-3 py-2 text-sm font-medium text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300">
+                <span>Asset</span>
+                <span>Side</span>
+                <span>Net P&amp;L</span>
+                <span>Setup</span>
+                <span>Grade</span>
+              </div>
+              @for (row of [1, 2, 3]; track row) {
+                <div class="grid grid-cols-5 items-center gap-2 border-b border-surface-200 px-3 py-2.5 last:border-b-0 dark:border-surface-700">
+                  <span class="h-1.5 w-3/5 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                  <span class="h-1.5 w-8 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                  <span class="h-1.5 w-10 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                  <span class="h-1.5 w-2/3 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                  <span class="h-1.5 w-4 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                </div>
+              }
+            </div>
+          </figure>
+          <p data-empty-secondary class="mt-4 text-base text-surface-600 dark:text-surface-300">
+            Then <a routerLink="/journal" class="font-medium text-primary hover:underline">review the month</a>
+            or <a routerLink="/settings" class="font-medium text-primary hover:underline">configure Playbooks</a>.
+          </p>
+        </app-empty-state>
       } @else {
         <div class="overflow-x-auto">
           <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
