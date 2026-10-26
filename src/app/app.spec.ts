@@ -35,21 +35,27 @@ describe('App', () => {
     expect(links).toContain('/settings');
   });
 
-  it('should render the brand and a sticky header', async () => {
+  it('keeps app identity in the rail and the header mobile-only', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('openJournal');
-    expect(compiled.querySelector('header')).not.toBeNull();
+    const rail = compiled.querySelector('aside');
+    expect(rail?.textContent).toContain('openJournal');
+    expect(
+      rail?.querySelector('button[aria-label="Toggle dark mode"]'),
+    ).not.toBeNull();
+    expect(
+      compiled.querySelector('header')?.classList.contains('lg:hidden'),
+    ).toBe(true);
   });
 
-  it('should toggle dark mode from the header', async () => {
+  it('should toggle dark mode from the shell', async () => {
     localStorage.removeItem('openjournal-theme-dark');
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const toggle = compiled.querySelector(
-      'button[aria-label="Toggle dark mode"]',
+      'aside button[aria-label="Toggle dark mode"]',
     ) as HTMLButtonElement;
     expect(toggle).not.toBeNull();
     const before = document.documentElement.classList.contains('dark');
@@ -149,7 +155,7 @@ describe('App', () => {
     expect(content).toContain('+$20.00');
   });
 
-  it('keeps the toolbar to app identity, the menu trigger, and the theme toggle', async () => {
+  it('keeps the mobile toolbar to app identity, the menu trigger, and the theme toggle', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
