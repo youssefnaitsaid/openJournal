@@ -915,9 +915,11 @@ describe('Trades', () => {
     expect(rows()[0]).toContain('AAPL');
   });
 
-  it('locks the log form while All is active', async () => {    const store = TestBed.inject(TradesStore);
+  it('locks the log form while All is active and offers a concrete-Portfolio picker', async () => {
+    const store = TestBed.inject(TradesStore);
     await store.whenReady();
     store.addTrade({ ...tradeInput({ asset: 'MES' }) });
+    expect(store.addPortfolio('Swing')).toBeNull();
     const fixture = TestBed.createComponent(Trades);
     const component = fixture.componentInstance;
     await fixture.whenStable();
@@ -928,10 +930,55 @@ describe('Trades', () => {
     expect(
       (compiled.querySelector('button[type="submit"]') as HTMLButtonElement).disabled,
     ).toBe(true);
-    expect(compiled.textContent).toContain('choose a Portfolio');
+    const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('All portfolios is read-only');
+    expect(content).toContain('choose a Portfolio');
+    expect(
+      compiled.querySelector('[aria-label="Portfolio for this Trade"]'),
+    ).not.toBeNull();
+    expect(component.portfolioOptions().map((option) => option.label)).toEqual([
+      'Main',
+      'Swing',
+    ]);
     component.form.setValue(validValues());
     component.onSubmit();
     expect(store.trades().length).toBe(1);
+  });
+
+  it('switches Portfolio from the locked form, preserves the draft, and saves into it', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    store.addTrade(tradeInput({ asset: 'MES' }));
+    expect(store.addPortfolio('Swing')).toBeNull();
+    const swingId = store.portfolios().find((p) => p.name === 'Swing')!.id;
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await fixture.whenStable();
+    component.openLogForm();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    component.form.setValue({ ...validValues(), asset: 'MSFT' });
+
+    component.switchPortfolio({ value: swingId });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(store.activeId()).toBe(swingId);
+    expect(component.logFormOpen()).toBe(true);
+    expect(component.form.getRawValue().asset).toBe('MSFT');
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(
+      (compiled.querySelector('button[type="submit"]') as HTMLButtonElement).disabled,
+    ).toBe(false);
+    expect(compiled.textContent).not.toContain('All portfolios is read-only');
+    expect(
+      compiled.querySelector('[aria-label="Portfolio for this Trade"]'),
+    ).toBeNull();
+
+    component.onSubmit();
+    await fixture.whenStable();
+    const saved = store.trades().find((trade) => trade.asset === 'MSFT');
+    expect(saved?.portfolioId).toBe(swingId);
   });
 
   it('shares Tag vocabulary across portfolios', async () => {
