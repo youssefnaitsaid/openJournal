@@ -176,7 +176,7 @@
          balance, the body carries every process metric, and Copy stays in the
          header. A month without closes hides the whole card. -->
     <p-card aria-label="Month report card">
-      <ng-template pTemplate="header">
+      <div class="flex flex-col gap-3">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="min-w-0">
             <h2 class="text-xl font-semibold tracking-tight">Month report card</h2>
@@ -205,50 +205,50 @@
             </ng-template>
           </p-button>
         </div>
-      </ng-template>
-      <dl class="grid gap-x-8 gap-y-4 border-t border-surface-200 pt-4 sm:grid-cols-2 dark:border-surface-700">
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Total Trades</dt>
-          <dd class="text-base font-semibold tabular-nums">{{ reportCard().totalTrades }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Win-rate</dt>
-          <dd class="text-base font-semibold tabular-nums">{{ formatPercent(reportCard().winRate) }}%</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Profit Factor</dt>
-          <dd class="text-base font-semibold tabular-nums">{{ profitFactorText(reportCard().profitFactor) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Best Setup</dt>
-          <dd class="text-base">{{ setupText(reportCard().bestSetup) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Worst Setup</dt>
-          <dd class="text-base">{{ setupText(reportCard().worstSetup) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Top Mistake</dt>
-          <dd class="text-base">{{ frequencyText(reportCard().topMistake) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-before</dt>
-          <dd class="text-base">{{ frequencyText(reportCard().topEmotionBefore) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-after</dt>
-          <dd class="text-base">{{ frequencyText(reportCard().topEmotionAfter) }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Compliance</dt>
-          <dd class="text-base">{{ complianceText() }}</dd>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <dt class="text-sm text-surface-600 dark:text-surface-300">Unscored Trades</dt>
-          <dd class="text-base font-semibold tabular-nums">{{ reportCard().unscored }}</dd>
-        </div>
-      </dl>
-      <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>
+        <dl class="grid gap-x-8 gap-y-4 border-t border-surface-200 pt-4 sm:grid-cols-2 dark:border-surface-700">
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Total Trades</dt>
+            <dd class="text-base font-semibold tabular-nums">{{ reportCard().totalTrades }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Win-rate</dt>
+            <dd class="text-base font-semibold tabular-nums">{{ formatPercent(reportCard().winRate) }}%</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Profit Factor</dt>
+            <dd class="text-base font-semibold tabular-nums">{{ profitFactorText(reportCard().profitFactor) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Best Setup</dt>
+            <dd class="text-base">{{ setupText(reportCard().bestSetup) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Worst Setup</dt>
+            <dd class="text-base">{{ setupText(reportCard().worstSetup) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Top Mistake</dt>
+            <dd class="text-base">{{ frequencyText(reportCard().topMistake) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-before</dt>
+            <dd class="text-base">{{ frequencyText(reportCard().topEmotionBefore) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion-after</dt>
+            <dd class="text-base">{{ frequencyText(reportCard().topEmotionAfter) }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Compliance</dt>
+            <dd class="text-base">{{ complianceText() }}</dd>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <dt class="text-sm text-surface-600 dark:text-surface-300">Unscored Trades</dt>
+            <dd class="text-base font-semibold tabular-nums">{{ reportCard().unscored }}</dd>
+          </div>
+        </dl>
+        <p aria-live="polite" class="sr-only">{{ copied() ? 'Report card copied to clipboard.' : '' }}</p>
+      </div>
     </p-card>
   }
 </section>
