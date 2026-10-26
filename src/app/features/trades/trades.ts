@@ -133,6 +133,19 @@ export class Trades {
     this.store.resetFilter();
   }
 
+  // Logging is locked only under the All aggregate, so the picker lists the
+  // concrete Portfolios a Trade can file into (facts: All stays read-only).
+  readonly portfolioOptions = computed(() =>
+    this.store.portfolios().map((portfolio) => ({
+      label: portfolio.name,
+      value: portfolio.id,
+    })),
+  );
+
+  switchPortfolio(event: { value: string }): void {
+    if (event?.value) this.store.setActiveId(event.value);
+  }
+
   exportCsv(): void {
     this.tradesTable()?.exportCSV();
   }

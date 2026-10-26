@@ -239,7 +239,21 @@
         <p-button type="submit" label="Log Trade" [disabled]="!store.canLog()" />
         <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="closeLogForm()" />
         @if (!store.canLog()) {
-          <p class="text-base text-surface-600 dark:text-surface-300">All portfolios is read-only — choose a Portfolio to log a Trade.</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="w-full sm:w-56">
+              <p-select
+                ariaLabel="Portfolio for this Trade"
+                inputId="log-portfolio"
+                [options]="portfolioOptions()"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Choose a Portfolio"
+                fluid
+                (onChange)="switchPortfolio($event)"
+              />
+            </div>
+            <p class="text-base text-surface-600 dark:text-surface-300">All portfolios is read-only — choose a Portfolio to log this Trade.</p>
+          </div>
         }
       </div>
     </form>
