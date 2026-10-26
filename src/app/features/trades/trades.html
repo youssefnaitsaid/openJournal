@@ -286,7 +286,7 @@
   </p-card>
   }
   <p-card>
-    <ng-template pTemplate="header">
+    <div class="flex flex-col gap-3">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <h2 class="text-xl font-semibold tracking-tight">Trade history</h2>
@@ -298,215 +298,189 @@
           </p-button>
         }
       </div>
-    </ng-template>
-    <div>
-      @if (historyTotal() > 0 || store.isFiltering()) {
-        <div class="mb-3">
-          <app-filter-bar />
-        </div>
-      }
-      @if (rows().length === 0 && store.isFiltering()) {
-        <app-empty-state
-          icon="lucideInbox"
-          [embedded]="true"
-          title="No Trades match this filter"
-          description="Every Trade in this Portfolio is cut by the active filter."
-          actionLabel="Reset filters"
-          (action)="resetFilters()"
-        />
-      } @else if (rows().length === 0) {
-        <app-empty-state
-          layout="panel"
-          icon="lucideInbox"
-          [embedded]="true"
-          title="No Trades yet"
-          description="Log your first Trade to start the history."
-          actionLabel="Log your first Trade"
-          (action)="openLogForm()"
-        >
-          <figure
-            data-empty-preview
-            aria-hidden="true"
-            class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-950"
+      <div>
+        @if (historyTotal() > 0 || store.isFiltering()) {
+          <div class="mb-3">
+            <app-filter-bar />
+          </div>
+        }
+        @if (rows().length === 0 && store.isFiltering()) {
+          <app-empty-state
+            icon="lucideInbox"
+            [embedded]="true"
+            title="No Trades match this filter"
+            description="Every Trade in this Portfolio is cut by the active filter."
+            actionLabel="Reset filters"
+            (action)="resetFilters()"
+          />
+        } @else if (rows().length === 0) {
+          <app-empty-state
+            layout="panel"
+            icon="lucideInbox"
+            [embedded]="true"
+            title="No Trades yet"
+            description="Log your first Trade to start the history."
+            actionLabel="Log your first Trade"
+            (action)="openLogForm()"
           >
-            <figcaption class="text-sm font-medium text-surface-600 dark:text-surface-300">Trade history preview</figcaption>
-            <div class="mt-3 overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
-              <div class="grid grid-cols-5 gap-2 border-b border-surface-200 bg-surface-100 px-3 py-2 text-sm font-medium text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300">
-                <span>Asset</span>
-                <span>Side</span>
-                <span>Net P&amp;L</span>
-                <span>Setup</span>
-                <span>Grade</span>
-              </div>
-              @for (row of [1, 2, 3]; track row) {
-                <div class="grid grid-cols-5 items-center gap-2 border-b border-surface-200 px-3 py-2.5 last:border-b-0 dark:border-surface-700">
-                  <span class="h-1.5 w-3/5 rounded-full bg-surface-200 dark:bg-surface-700"></span>
-                  <span class="h-1.5 w-8 rounded-full bg-surface-200 dark:bg-surface-700"></span>
-                  <span class="h-1.5 w-10 rounded-full bg-surface-200 dark:bg-surface-700"></span>
-                  <span class="h-1.5 w-2/3 rounded-full bg-surface-200 dark:bg-surface-700"></span>
-                  <span class="h-1.5 w-4 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+            <figure
+              data-empty-preview
+              aria-hidden="true"
+              class="rounded-xl border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-950"
+            >
+              <figcaption class="text-sm font-medium text-surface-600 dark:text-surface-300">Trade history preview</figcaption>
+              <div class="mt-3 overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
+                <div class="grid grid-cols-5 gap-2 border-b border-surface-200 bg-surface-100 px-3 py-2 text-sm font-medium text-surface-600 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300">
+                  <span>Asset</span>
+                  <span>Side</span>
+                  <span>Net P&amp;L</span>
+                  <span>Setup</span>
+                  <span>Grade</span>
                 </div>
-              }
-            </div>
-          </figure>
-          <p data-empty-secondary class="mt-4 text-base text-surface-600 dark:text-surface-300">
-            Then <a routerLink="/journal" class="font-medium text-primary hover:underline">review the month</a>
-            or <a routerLink="/settings" class="font-medium text-primary hover:underline">configure Playbooks</a>.
-          </p>
-        </app-empty-state>
-      } @else {
-        <div class="overflow-x-auto">
-          <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
-            <ng-template pTemplate="header">
-              <tr>
-                <th class="w-10"></th>
-                <th pSortableColumn="closedAt" class="hidden sm:table-cell">Close <p-sortIcon field="closedAt" /></th>
-                <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
-                <th pSortableColumn="side">Side <p-sortIcon field="side" /></th>
-                <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
-                <th pSortableColumn="rMultiple" class="text-right">R-Multiple <p-sortIcon field="rMultiple" /></th>
-                <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
-                <th pSortableColumn="grade">Grade <p-sortIcon field="grade" /></th>
-                <th pSortableColumn="compliance">Compliance <p-sortIcon field="compliance" /></th>
-                <th>Tags</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-trade let-expanded="expanded">
-              <tr>
-                <td>
-                  <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
-                    <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
-                  </p-button>
-                </td>
-                <td class="hidden whitespace-nowrap sm:table-cell">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
-                <td class="font-medium">{{ trade.asset }}</td>
-                <td>{{ trade.side }}</td>
-                <td class="text-right"
-                  ><p-tag
-                    [value]="formatSignedDollars(trade.net)"
-                    [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'"
-                  /></td>
-                <td class="text-right tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
-                <td>{{ trade.setup }}</td>
-                <td>
-                  @if (trade.grade !== '') {
-                    <p-tag [value]="trade.grade" severity="secondary" />
-                  }
-                </td>
-                <td>
-                  @if (trade.compliance !== null) {
-                    <p-tag [value]="formatCompliance(trade.compliance)" severity="secondary" />
-                  }
-                </td>
-                <td>
-                  <div class="flex flex-nowrap gap-1">
-                    @for (tag of trade.tags; track tag) {
-                      <span class="oj-pill">{{ tag }}</span>
-                    }
+                @for (row of [1, 2, 3]; track row) {
+                  <div class="grid grid-cols-5 items-center gap-2 border-b border-surface-200 px-3 py-2.5 last:border-b-0 dark:border-surface-700">
+                    <span class="h-1.5 w-3/5 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                    <span class="h-1.5 w-8 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                    <span class="h-1.5 w-10 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                    <span class="h-1.5 w-2/3 rounded-full bg-surface-200 dark:bg-surface-700"></span>
+                    <span class="h-1.5 w-4 rounded-full bg-surface-200 dark:bg-surface-700"></span>
                   </div>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="expandedrow" let-trade>
-              <tr>
-                <td colspan="10">
-                  <div class="flex flex-col gap-3 text-base">
-                    <dl class="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 xl:grid-cols-4">
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Closed</dt>
-                        <dd class="m-0 tabular-nums">{{ trade.closedAt | date:'MMM d, y, h:mm a' }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Open</dt>
-                        <dd class="m-0 tabular-nums">{{ trade.openedAt | date:'MMM d, y, h:mm a' }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Market</dt>
-                        <dd class="m-0">{{ trade.market }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Quantity</dt>
-                        <dd class="m-0 tabular-nums">{{ trade.quantity }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Multiplier</dt>
-                        <dd class="m-0 tabular-nums">{{ trade.multiplier }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Entry</dt>
-                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.entryPrice) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Exit</dt>
-                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.exitPrice) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Gross P&amp;L</dt>
-                        <dd class="m-0 tabular-nums">{{ formatMoney(trade.gross) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Fees</dt>
-                        <dd class="m-0 tabular-nums">{{ formatMoney(trade.fees) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Stop</dt>
-                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.stopPrice) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Take</dt>
-                        <dd class="m-0 tabular-nums">{{ formatPrice(trade.takePrice) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Risked Amount</dt>
-                        <dd class="m-0 tabular-nums">{{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion before</dt>
-                        <dd class="m-0">{{ trade.emotionBefore }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Emotion after</dt>
-                        <dd class="m-0">{{ trade.emotionAfter }}</dd>
-                      </div>
-                      <div class="flex flex-col">
-                        <dt class="text-sm text-surface-600 dark:text-surface-300">Mistake</dt>
-                        <dd class="m-0">{{ trade.mistake }}</dd>
-                      </div>
-                      @if (trade.chartUrl !== '') {
-                        <div class="flex flex-col">
-                          <dt class="text-sm text-surface-600 dark:text-surface-300">Chart</dt>
-                          <dd class="m-0">
-                            <a [href]="trade.chartUrl" target="_blank" rel="noopener" class="font-medium text-primary underline">Open chart</a>
-                          </dd>
-                        </div>
-                      }
-                    </dl>
-                    @if (trade.notes !== '') {
-                      <div class="flex flex-col gap-1">
-                        <span class="text-sm text-surface-600 dark:text-surface-300">Notes</span>
-                        <p class="m-0">{{ trade.notes }}</p>
-                      </div>
+                }
+              </div>
+            </figure>
+            <p data-empty-secondary class="mt-4 text-base text-surface-600 dark:text-surface-300">
+              Then <a routerLink="/journal" class="font-medium text-primary hover:underline">review the month</a>
+              or <a routerLink="/settings" class="font-medium text-primary hover:underline">configure Playbooks</a>.
+            </p>
+          </app-empty-state>
+        } @else {
+          <div class="overflow-x-auto">
+            <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th class="w-10"></th>
+                  <th pSortableColumn="closedAt" class="hidden sm:table-cell">Close <p-sortIcon field="closedAt" /></th>
+                  <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
+                  <th pSortableColumn="side">Side <p-sortIcon field="side" /></th>
+                  <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
+                  <th pSortableColumn="rMultiple" class="text-right">R-Multiple <p-sortIcon field="rMultiple" /></th>
+                  <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
+                  <th pSortableColumn="grade">Grade <p-sortIcon field="grade" /></th>
+                  <th pSortableColumn="compliance">Compliance <p-sortIcon field="compliance" /></th>
+                  <th>Tags</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-trade let-expanded="expanded">
+                <tr>
+                  <td>
+                    <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
+                      <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
+                    </p-button>
+                  </td>
+                  <td class="hidden whitespace-nowrap sm:table-cell">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
+                  <td class="font-medium">{{ trade.asset }}</td>
+                  <td>{{ trade.side }}</td>
+                  <td class="text-right"
+                    ><p-tag
+                      [value]="formatSignedDollars(trade.net)"
+                      [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'"
+                    /></td>
+                  <td class="text-right tabular-nums">{{ formatR(trade.rMultiple, trade.risked) }}</td>
+                  <td>{{ trade.setup }}</td>
+                  <td>
+                    @if (trade.grade !== '') {
+                      <p-tag [value]="trade.grade" severity="secondary" />
                     }
-                    <div class="flex flex-col gap-1">
-                      <span class="text-sm text-surface-600 dark:text-surface-300">Playbook Rule snapshot</span>
-                      @if ((trade.rules ?? []).length > 0) {
-                        <ul class="flex flex-col gap-1">
-                          @for (rule of trade.rules; track rule.text) {
-                            <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
-                          }
-                        </ul>
-                      } @else {
-                        <span>Unscored — checklist untouched.</span>
+                  </td>
+                  <td>
+                    @if (trade.compliance !== null) {
+                      <p-tag [value]="formatCompliance(trade.compliance)" severity="secondary" />
+                    }
+                  </td>
+                  <td>
+                    <div class="flex flex-nowrap gap-1">
+                      @for (tag of trade.tags; track tag) {
+                        <span class="oj-pill">{{ tag }}</span>
                       }
                     </div>
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-        <p class="mt-2 text-sm text-surface-600 dark:text-surface-300 2xl:hidden">Scroll sideways to see every column.</p>
-      }
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="expandedrow" let-trade>
+                <tr>
+                  <td colspan="10">
+                    <div class="flex flex-col gap-3 text-base">
+                      <dl class="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 xl:grid-cols-4">
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Window</dt>
+                          <dd class="m-0 tabular-nums">{{ trade.openedAt | date:'MMM d, h:mm a' }} → {{ trade.closedAt | date:'MMM d, h:mm a' }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Market</dt>
+                          <dd class="m-0">{{ trade.market }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Size</dt>
+                          <dd class="m-0 tabular-nums">{{ trade.quantity }} × {{ trade.multiplier }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Entry → Exit</dt>
+                          <dd class="m-0 tabular-nums">{{ formatPrice(trade.entryPrice) }} → {{ formatPrice(trade.exitPrice) }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Gross P&amp;L</dt>
+                          <dd class="m-0 tabular-nums">{{ formatMoney(trade.gross) }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Fees</dt>
+                          <dd class="m-0 tabular-nums">{{ formatMoney(trade.fees) }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Risk</dt>
+                          <dd class="m-0 tabular-nums">Stop {{ formatPrice(trade.stopPrice) }} · Take {{ formatPrice(trade.takePrice) }} · Risked {{ trade.risked === 0 ? '—' : formatMoney(trade.risked) }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Emotions</dt>
+                          <dd class="m-0">{{ trade.emotionBefore }} → {{ trade.emotionAfter }}</dd>
+                        </div>
+                        <div class="flex min-w-0 flex-col">
+                          <dt class="text-sm text-surface-600 dark:text-surface-300">Mistake</dt>
+                          <dd class="m-0">{{ trade.mistake }}</dd>
+                        </div>
+                        @if (trade.chartUrl !== '') {
+                          <div class="flex min-w-0 flex-col">
+                            <dt class="text-sm text-surface-600 dark:text-surface-300">Chart</dt>
+                            <dd class="m-0"><a [href]="trade.chartUrl" target="_blank" rel="noopener" class="font-medium text-primary underline">Open chart</a></dd>
+                          </div>
+                        }
+                      </dl>
+                      @if (trade.notes !== '') {
+                        <div class="flex flex-col gap-1">
+                          <span class="text-sm text-surface-600 dark:text-surface-300">Notes</span>
+                          <p class="m-0">{{ trade.notes }}</p>
+                        </div>
+                      }
+                      <div class="flex flex-col gap-1">
+                        <span class="text-sm text-surface-600 dark:text-surface-300">Playbook Rule snapshot</span>
+                        @if ((trade.rules ?? []).length > 0) {
+                          <ul class="flex flex-col gap-1">
+                            @for (rule of trade.rules; track rule.text) {
+                              <li><p-tag [value]="(rule.followed ? '✓ ' : '✗ ') + rule.text" [severity]="rule.followed ? 'success' : 'danger'" /></li>
+                            }
+                          </ul>
+                        } @else {
+                          <span>Unscored — checklist untouched.</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+          <p class="mt-2 text-sm text-surface-600 dark:text-surface-300 2xl:hidden">Scroll sideways to see every column.</p>
+        }
+      </div>
     </div>
   </p-card>
 </section>

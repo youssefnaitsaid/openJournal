@@ -727,19 +727,16 @@ describe('Trades', () => {
 
     // Review-first at rest: execution and process extras are not in the row.
     for (const folded of [
-      'Open',
+      'Window',
       'Market',
-      'Quantity',
-      'Multiplier',
-      'Entry',
-      'Exit',
+      'Size',
+      'Entry → Exit',
       'Gross P&L',
       'Fees',
       'Stop',
       'Take',
-      'Risked Amount',
-      'Emotion before',
-      'Emotion after',
+      'Risked',
+      'Emotions',
       'Mistake',
       'Held to target',
       'risk ≤ 1%',
@@ -756,20 +753,14 @@ describe('Trades', () => {
     await fixture.whenStable();
     const expanded = content();
     for (const label of [
-      'Closed',
-      'Open',
+      'Window',
       'Market',
-      'Quantity',
-      'Multiplier',
-      'Entry',
-      'Exit',
+      'Size',
+      'Entry → Exit',
       'Gross P&L',
       'Fees',
-      'Stop',
-      'Take',
-      'Risked Amount',
-      'Emotion before',
-      'Emotion after',
+      'Risk',
+      'Emotions',
       'Mistake',
       'Playbook Rule snapshot',
     ]) {
@@ -777,8 +768,12 @@ describe('Trades', () => {
     }
     for (const value of [
       'Futures',
+      '2 × 5',
+      '100 → 110',
       '$100.00',
       '$1.00',
+      'Stop 98',
+      'Take 115',
       '$20.00',
       'FOMO',
       'Disciplined',

@@ -65,28 +65,28 @@
         <p-chart type="line" [data]="chartData()" [options]="chartOptions()" height="20rem" ariaLabel="Account balance over time" />
       </p-card>
       <p-card class="min-w-0 xl:col-span-2">
-        <ng-template pTemplate="header">
+        <div class="flex flex-col gap-3">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-xl font-semibold tracking-tight">Recent trades</h2>
             <a routerLink="/trades" class="text-base font-medium text-primary hover:underline">View all</a>
           </div>
-        </ng-template>
-        <p-table [value]="metrics().recent">
-          <ng-template pTemplate="header">
-            <tr>
-              <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
-              <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
-              <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-trade>
-            <tr>
-              <td>{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
-              <td class="font-medium">{{ trade.asset }}</td>
-              <td class="text-right"><p-tag [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
-            </tr>
-          </ng-template>
-        </p-table>
+          <p-table [value]="metrics().recent">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="closedAt">Close date <p-sortIcon field="closedAt" /></th>
+                <th pSortableColumn="asset">Asset <p-sortIcon field="asset" /></th>
+                <th pSortableColumn="net" class="text-right">Net P&amp;L <p-sortIcon field="net" /></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-trade>
+              <tr>
+                <td>{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
+                <td class="font-medium">{{ trade.asset }}</td>
+                <td class="text-right"><p-tag [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
       </p-card>
     </div>
   } @else {
