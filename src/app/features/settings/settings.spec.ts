@@ -337,10 +337,47 @@ describe('Settings', () => {
       'entry on retest',
     ]);
     const compiled = fixture.nativeElement as HTMLElement;
-    const playbooks =
+    const playbooksCard = () =>
       compiled.querySelector('[aria-label="Playbooks"]')?.textContent ?? '';
-    expect(playbooks).toContain('risk ≤ 1%');
-    expect(playbooks).toContain('entry on retest');
+    expect(playbooksCard()).not.toContain('risk ≤ 1%');
+    const breakout = [...compiled.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Breakout'),
+    ) as HTMLButtonElement;
+    expect(breakout).toBeTruthy();
+    breakout.click();
+    await fixture.whenStable();
+    expect(playbooksCard()).toContain('risk ≤ 1%');
+    expect(playbooksCard()).toContain('entry on retest');
+  });
+
+  it('keeps a single Playbook expanded at a time', async () => {
+    const store = TestBed.inject(TradesStore);
+    await store.whenReady();
+    const fixture = TestBed.createComponent(Settings);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const toggles = [
+      ...compiled.querySelectorAll(
+        '[aria-label="Playbooks"] button[aria-expanded]',
+      ),
+    ] as HTMLButtonElement[];
+    expect(toggles.length).toBeGreaterThan(1);
+    expect(
+      toggles.filter((b) => b.getAttribute('aria-expanded') === 'true'),
+    ).toHaveLength(0);
+
+    toggles[0].click();
+    await fixture.whenStable();
+    expect(
+      toggles.filter((b) => b.getAttribute('aria-expanded') === 'true'),
+    ).toHaveLength(1);
+
+    toggles[1].click();
+    await fixture.whenStable();
+    const open = toggles.filter(
+      (b) => b.getAttribute('aria-expanded') === 'true',
+    );
+    expect(open).toEqual([toggles[1]]);
   });
 
   it('removes a Rule from a Playbook', async () => {

@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideChevronRight,
   lucidePencil,
   lucidePlus,
   lucideSlidersHorizontal,
@@ -58,6 +59,7 @@ import { formatDollars } from '../dashboard/dashboard-metrics';
   ],
   providers: [
     provideIcons({
+      lucideChevronRight,
       lucidePencil,
       lucidePlus,
       lucideSlidersHorizontal,
@@ -208,6 +210,14 @@ export class Settings {
     this.playbooks().filter((p) => p.archived),
   );
 
+  // One Playbook open at a time keeps the page scannable; the summary row
+  // carries the name + Rule count, the editor unfolds only when asked.
+  readonly expandedPlaybook = signal<string | null>(null);
+
+  togglePlaybook(name: string): void {
+    this.expandedPlaybook.update((current) => (current === name ? null : name));
+  }
+
   addPlaybookRule(name: string, value: string): void {
     const trimmed = value.trim();
     if (trimmed === '') return;
@@ -225,6 +235,7 @@ export class Settings {
 
   archivePlaybook(name: string): void {
     setPlaybookArchived(name, true);
+    if (this.expandedPlaybook() === name) this.expandedPlaybook.set(null);
   }
 
   unarchivePlaybook(name: string): void {
