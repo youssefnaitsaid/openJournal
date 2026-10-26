@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-1">
-  <div class="min-[1440px]:hidden">
+  <div class="desk:hidden">
     <button
       type="button"
       class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-base font-medium text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-800"
@@ -14,11 +14,11 @@
 
   <div
     id="filter-fields"
-    class="flex-wrap items-center gap-1 min-[1440px]:flex min-[1440px]:flex-nowrap"
-    [class.flex]="expanded()"
+    class="grid-cols-2 items-center gap-2 sm:grid-cols-3 lg:grid-cols-4 desk:grid desk:grid-cols-[13fr_13fr_8fr_12fr_10fr_9fr_12fr_9fr_13fr_auto] desk:gap-1.5"
+    [class.grid]="expanded()"
     [class.hidden]="!expanded()"
   >
-    <div class="w-31 min-w-0 shrink-0">
+    <div class="min-w-0">
       <p-floatlabel variant="in">
         <p-datepicker
           ariaLabel="From date"
@@ -34,7 +34,7 @@
         <label for="dateFrom">From</label>
       </p-floatlabel>
     </div>
-    <div class="w-31 min-w-0 shrink-0">
+    <div class="min-w-0">
       <p-floatlabel variant="in">
         <p-datepicker
           ariaLabel="To date"
@@ -50,7 +50,7 @@
         <label for="dateTo">To</label>
       </p-floatlabel>
     </div>
-    <p-floatlabel variant="in" class="w-19 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <input
         pInputText
         pSize="small"
@@ -62,7 +62,7 @@
       />
       <label for="asset">Asset</label>
     </p-floatlabel>
-    <p-floatlabel variant="in" class="w-29 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <p-select
         ariaLabel="Setup filter"
         size="small"
@@ -74,7 +74,7 @@
       />
       <label for="setup">Setup</label>
     </p-floatlabel>
-    <p-floatlabel variant="in" class="w-24 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <p-select
         ariaLabel="Side filter"
         size="small"
@@ -86,7 +86,7 @@
       />
       <label for="side">Side</label>
     </p-floatlabel>
-    <p-floatlabel variant="in" class="w-20 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <p-select
         ariaLabel="Tag filter"
         size="small"
@@ -98,7 +98,7 @@
       />
       <label for="tag">Tag</label>
     </p-floatlabel>
-    <p-floatlabel variant="in" class="w-32 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <p-select
         ariaLabel="Outcome filter"
         size="small"
@@ -110,7 +110,7 @@
       />
       <label for="outcome">Outcome</label>
     </p-floatlabel>
-    <p-floatlabel variant="in" class="w-20 min-w-0">
+    <p-floatlabel variant="in" class="min-w-0">
       <p-select
         ariaLabel="Grade filter"
         size="small"
@@ -124,7 +124,7 @@
     </p-floatlabel>
     <p-toggleButton
       ariaLabel="Needs review filter"
-      class="w-27 shrink-0"
+      class="min-w-0"
       size="small"
       onLabel="Needs review"
       offLabel="Needs review"
