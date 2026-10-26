@@ -494,8 +494,42 @@ describe('Trades', () => {
     const content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(content).toContain('Asset is required');
     expect(content).toContain('Quantity must be above zero');
+    expect(content).toContain('Entry price must be above zero');
+    expect(content).toContain('Exit price must be above zero');
     expect(content).toContain('Opened at is required');
     expect(content).toContain('Closed at is required');
+  });
+
+  it('rejects zero and negative prices with named-field messages and logs nothing', async () => {
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await component.store.whenReady();
+    component.store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    component.openLogForm();
+    fixture.detectChanges();
+
+    component.form.setValue({ ...validValues(), entryPrice: 0, exitPrice: 0 });
+    component.onSubmit();
+    await fixture.whenStable();
+    const store = TestBed.inject(TradesStore);
+    expect(store.trades().length).toBe(0);
+    const compiled = fixture.nativeElement as HTMLElement;
+    let content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Entry price must be above zero');
+    expect(content).toContain('Exit price must be above zero');
+
+    component.form.setValue({ ...validValues(), entryPrice: -5, exitPrice: 110 });
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(0);
+    content = compiled.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(content).toContain('Entry price must be above zero');
+    expect(content).not.toContain('Exit price must be above zero');
+
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(1);
   });
 
   it('offers a user-added setup in the picker without code changes', async () => {

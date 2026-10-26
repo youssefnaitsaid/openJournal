@@ -71,6 +71,17 @@ function chartUrlValidator(
   return isValidChartUrl(control.value ?? '') ? null : { chartUrl: true };
 }
 
+// 0 is the form default and would derive a Net of -Fees, so a price must be
+// a real positive print (facts: no zero-price round-trips).
+function positivePriceValidator(
+  control: AbstractControl<number | null>,
+): ValidationErrors | null {
+  const value = control.value;
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? null
+    : { positivePrice: true };
+}
+
 @Component({
   imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, FloatLabelModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, TagModule, TextareaModule, EmptyState, FilterBar, PageHero],
   providers: [
@@ -265,8 +276,8 @@ export class Trades {
     side: ['Long' as Side, Validators.required],
     quantity: [1, [Validators.required, Validators.min(1e-9)]],
     multiplier: [1, [Validators.required, Validators.min(1e-9)]],
-    entryPrice: [0, Validators.required],
-    exitPrice: [0, Validators.required],
+    entryPrice: [0, [Validators.required, positivePriceValidator]],
+    exitPrice: [0, [Validators.required, positivePriceValidator]],
     stopPrice: this.fb.control<number | null>(null),
     takePrice: this.fb.control<number | null>(null),
     riskedAmount: this.fb.control<number | null>(null),

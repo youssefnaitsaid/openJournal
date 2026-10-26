@@ -82,12 +82,18 @@
               <p-inputnumber inputId="log-entryPrice" formControlName="entryPrice" fluid />
               <label for="log-entryPrice">Entry price</label>
             </p-floatlabel>
+            @if (form.controls.entryPrice.touched && form.controls.entryPrice.invalid) {
+              <p-message severity="error">Entry price must be above zero.</p-message>
+            }
           </div>
           <div class="flex flex-col gap-1">
             <p-floatlabel variant="in">
               <p-inputnumber inputId="log-exitPrice" formControlName="exitPrice" fluid />
               <label for="log-exitPrice">Exit price</label>
             </p-floatlabel>
+            @if (form.controls.exitPrice.touched && form.controls.exitPrice.invalid) {
+              <p-message severity="error">Exit price must be above zero.</p-message>
+            }
           </div>
           <div class="flex flex-col gap-1">
             <p-floatlabel variant="in">
