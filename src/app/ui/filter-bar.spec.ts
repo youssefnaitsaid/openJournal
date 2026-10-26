@@ -103,7 +103,7 @@ describe('FilterBar', () => {
     expect(disclosure.getAttribute('aria-expanded')).toBe('true');
     // Still the same single bar: no second set of controls appeared.
     expect(compiled.querySelectorAll('p-datepicker').length).toBe(2);
-    expect(compiled.querySelectorAll('p-toggleButton').length).toBe(1);
+    expect(compiled.querySelectorAll('p-checkbox').length).toBe(1);
 
     disclosure.click();
     await fixture.whenStable();
@@ -182,15 +182,15 @@ describe('FilterBar', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     const toggle = compiled.querySelector(
-      'p-toggleButton[aria-label="Needs review filter"]',
-    ) as HTMLElement;
-    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+      '#filter-needs-review',
+    ) as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
     toggle.click();
     await fixture.whenStable();
     expect(store.filter().needsReview).toBe(true);
     expect(store.isFiltering()).toBe(true);
     expect(store.filteredTrades().map((t) => t.asset)).toEqual(['D-GRADE']);
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(toggle.checked).toBe(true);
     toggle.click();
     await fixture.whenStable();
     expect(store.filter().needsReview).toBe(false);

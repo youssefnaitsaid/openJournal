@@ -343,7 +343,7 @@ describe('Trades', () => {
     const headings = [...form.querySelectorAll('h2')].map((h) =>
       h.textContent?.replace(/\s+/g, ' ').trim(),
     );
-    expect(headings).toEqual(['Trade & execution', 'Process']);
+    expect(headings).toEqual(['Log Trade', 'Trade & execution', 'Process']);
 
     const labels = [...form.querySelectorAll<HTMLLabelElement>('label')];
     expect(labels.map((label) => label.textContent?.trim())).toEqual([

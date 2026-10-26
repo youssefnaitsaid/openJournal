@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
-import { ToggleButtonModule } from 'primeng/togglebutton';
+import { CheckboxModule } from 'primeng/checkbox';
 import { SETUPS, GRADES } from '../features/trades/trade';
 import type { Grade, Side } from '../features/trades/trade';
 import { countActiveFilterAxes } from '../features/trades/trades-filter';
@@ -27,7 +27,7 @@ import {
 const ALL = 'All';
 
 @Component({
-  imports: [FormsModule, NgIcon, ButtonModule, DatePickerModule, InputTextModule, SelectModule, TagModule, ToggleButtonModule, FloatLabelModule],
+  imports: [FormsModule, NgIcon, ButtonModule, CheckboxModule, DatePickerModule, InputTextModule, SelectModule, TagModule, FloatLabelModule],
   providers: [provideIcons({ lucideChevronDown, lucideChevronUp, lucideRotateCcw })],
   selector: 'app-filter-bar',
   templateUrl: './filter-bar.html',

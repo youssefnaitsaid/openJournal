@@ -7,7 +7,7 @@
       [attr.aria-expanded]="expanded()"
       (click)="toggleExpanded()"
     >
-      <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucideChevronDown'" class="size-4" />
+      <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucideChevronDown'" size="1rem" />
       <span>{{ disclosureLabel() }}</span>
     </button>
   </div>
@@ -122,14 +122,10 @@
       />
       <label for="grade">Grade</label>
     </p-floatlabel>
-    <p-toggleButton
-      ariaLabel="Needs review filter"
-      class="min-w-0"
-      size="small"
-      onLabel="Needs review"
-      offLabel="Needs review"
-      [(ngModel)]="needsReviewModel"
-    />
+    <div class="flex items-center gap-2">
+      <p-checkbox inputId="filter-needs-review" [binary]="true" [(ngModel)]="needsReviewModel" />
+      <label for="filter-needs-review" class="whitespace-nowrap text-base font-medium text-surface-700 dark:text-surface-200">Needs review</label>
+    </div>
     @if (store.isFiltering()) {
       <p-button
         type="button"
@@ -139,7 +135,7 @@
         [outlined]="true"
         (onClick)="reset()"
       >
-        <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" class="size-3.5" /></ng-template>
+        <ng-template pTemplate="icon"><ng-icon name="lucideRotateCcw" size="0.875rem" /></ng-template>
       </p-button>
     }
   </div>

@@ -13,8 +13,6 @@ import {
   lucideNotebookPen,
   lucideSettings,
   lucideSun,
-  lucideTrendingDown,
-  lucideTrendingUp,
 } from '@ng-icons/lucide';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -64,12 +62,9 @@ interface NavGroup {
       lucideNotebookPen,
       lucideSettings,
       lucideSun,
-      lucideTrendingDown,
-      lucideTrendingUp,
     }),
   ],
   selector: 'app-root',
-  styleUrl: './app.css',
   templateUrl: './app.html',
 })
 export class App {

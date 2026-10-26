@@ -24,7 +24,6 @@ import { TagModule } from 'primeng/tag';
 @Component({
   imports: [FormsModule, RouterLink, EmptyState, FilterBar, PageHero, CardModule, ChartModule, SelectModule, TableModule, TagModule],
   selector: 'app-analytics',
-  styleUrl: './analytics.css',
   templateUrl: './analytics.html',
 })
 export class Analytics {

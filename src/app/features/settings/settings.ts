@@ -70,7 +70,6 @@ import { formatDollars } from '../dashboard/dashboard-metrics';
     MessageService,
   ],
   selector: 'app-settings',
-  styleUrl: './settings.css',
   templateUrl: './settings.html',
 })
 export class Settings {

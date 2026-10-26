@@ -19,7 +19,7 @@
     <div class="mb-4 flex shrink-0 items-center gap-3 px-3 py-1">
       <p-avatar label="oJ" shape="circle" />
       <span class="grid flex-1 text-left leading-tight">
-        <span class="truncate text-base font-semibold tracking-wide">openJournal</span>
+        <span class="truncate text-base font-semibold tracking-tight">openJournal</span>
         <span class="truncate text-base text-surface-600 dark:text-surface-300">Trading journal</span>
       </span>
       <p-button
@@ -31,7 +31,7 @@
         (onClick)="theme.toggleDarkMode()"
       >
         <ng-template pTemplate="icon">
-          <ng-icon [name]="theme.isDark() ? 'lucideSun' : 'lucideMoon'" class="size-4" />
+          <ng-icon [name]="theme.isDark() ? 'lucideSun' : 'lucideMoon'" size="1rem" />
         </ng-template>
       </p-button>
     </div>
@@ -53,7 +53,7 @@
             severity="secondary"
             (onClick)="toggleSidebar()"
           >
-            <ng-template pTemplate="icon"><ng-icon name="lucideMenu" class="size-4" /></ng-template>
+            <ng-template pTemplate="icon"><ng-icon name="lucideMenu" size="1rem" /></ng-template>
           </p-button>
           <span class="truncate text-base font-semibold tracking-tight">openJournal</span>
         </ng-template>
@@ -67,7 +67,7 @@
             (onClick)="theme.toggleDarkMode()"
           >
             <ng-template pTemplate="icon">
-              <ng-icon [name]="theme.isDark() ? 'lucideSun' : 'lucideMoon'" class="size-4" />
+              <ng-icon [name]="theme.isDark() ? 'lucideSun' : 'lucideMoon'" size="1rem" />
             </ng-template>
           </p-button>
         </ng-template>
@@ -92,7 +92,7 @@
         (click)="closeSidebar()"
         class="flex items-center gap-2 rounded-lg px-3 py-2 text-base hover:bg-surface-100 dark:hover:bg-surface-800"
       >
-        <ng-icon [name]="item.icon" class="size-4 shrink-0" />
+        <ng-icon [name]="item.icon" size="1rem" class="shrink-0" />
         <span class="truncate">{{ item.label }}</span>
       </a>
     }

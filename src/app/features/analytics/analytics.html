@@ -1,5 +1,6 @@
 <section class="flex flex-col gap-6">
   <app-page-hero
+    aria-label="Analytics hero"
     title="Analytics"
     subtitle="Where does Net P&amp;L come from? Risk read from stored R-Multiples."
     icon="lucideChartLine"
@@ -194,7 +195,7 @@
       <div class="flex flex-col gap-3">
         <div class="min-w-0">
           <h2 class="text-xl font-semibold tracking-tight">Compliance vs outcome</h2>
-          <p class="mt-1 text-base text-surface-600 dark:text-surface-300">100% followed versus partial checklists; unscored Trades excluded</p>
+          <p class="mt-1 text-base text-surface-600 dark:text-surface-300">100% followed versus partial checklists.</p>
         </div>
         @if (filteredEmpty()) {
           <app-empty-state

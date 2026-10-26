@@ -30,9 +30,16 @@ import {
 import { EmptyState } from '../../ui/empty-state';
 import { PageHero } from '../../ui/page-hero';
 
+interface GuardStatusItem {
+  readonly text: string;
+  readonly state: boolean;
+  readonly breached: boolean;
+}
+
 interface GuardStatusView {
   readonly show: boolean;
   readonly text: string;
+  readonly items: readonly GuardStatusItem[];
 }
 
 interface KpiGroupView {
@@ -45,7 +52,6 @@ interface KpiGroupView {
   imports: [DatePipe, NgIcon, RouterLink, ButtonModule, CardModule, ChartModule, TableModule, TagModule, PageHero, EmptyState],
   providers: [provideIcons({ lucideFlame, lucideWallet, lucideZap })],
   selector: 'app-dashboard',
-  styleUrl: './dashboard.css',
   templateUrl: './dashboard.html',
 })
 export class Dashboard {
@@ -161,11 +167,11 @@ export class Dashboard {
   // read-only). Editing lives in Settings; this line never renders an input.
   readonly guardStatus = computed<GuardStatusView>(() => {
     if (this.store.isAll()) {
-      return { show: false, text: '' };
+      return { show: false, text: '', items: [] };
     }
     const guards = this.store.activeGuards();
     if (!hasAnyGuard(guards)) {
-      return { show: false, text: '' };
+      return { show: false, text: '', items: [] };
     }
     const today = new Date().toISOString().slice(0, 10);
     const week = weekKeyOfDay(today);
@@ -180,22 +186,30 @@ export class Dashboard {
       ...evaluateDayGuards(todayTrades, guards).breached,
       ...evaluateWeekGuards(weekTrades, guards).breached,
     ].map((breach) => GUARD_LABELS[breach]);
+    const text = formatGuardStatus({
+      dailyLoss: { spent: Math.max(0, -dayNet), limit: guards.daily.maxLoss },
+      dailyTrades: {
+        count: todayTrades.length,
+        limit: guards.daily.maxTrades,
+      },
+      dailyStop: guards.daily.stopTime,
+      weeklyLoss: { spent: Math.max(0, -weekNet), limit: guards.weekly.maxLoss },
+      weeklyTrades: {
+        count: weekTrades.length,
+        limit: guards.weekly.maxTrades,
+      },
+      breaches,
+    });
     return {
       show: true,
-      text: formatGuardStatus({
-        dailyLoss: { spent: Math.max(0, -dayNet), limit: guards.daily.maxLoss },
-        dailyTrades: {
-          count: todayTrades.length,
-          limit: guards.daily.maxTrades,
-        },
-        dailyStop: guards.daily.stopTime,
-        weeklyLoss: { spent: Math.max(0, -weekNet), limit: guards.weekly.maxLoss },
-        weeklyTrades: {
-          count: weekTrades.length,
-          limit: guards.weekly.maxTrades,
-        },
-        breaches,
-      }),
+      text,
+      // Limits stay neutral pills; only the trailing verdict is a state chip,
+      // so a healthy line never reads as a selected nav item.
+      items: text.split(' · ').map((segment) => ({
+        text: segment,
+        state: segment === 'Inside all Guards' || segment.startsWith('Breached:'),
+        breached: segment.startsWith('Breached:'),
+      })),
     };
   });
 

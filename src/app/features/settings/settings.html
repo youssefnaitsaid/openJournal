@@ -4,13 +4,13 @@
 <section class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <app-page-hero
     title="Settings"
-    subtitle="Configure Portfolios, Guards, Vocabulary, and Playbooks — the Operate pages only operate."
+    subtitle="Everything you configure lives here — the Operate pages only operate."
     icon="lucideSlidersHorizontal"
   />
 
   <p-card aria-label="Portfolios">
     <h2 class="text-xl font-semibold tracking-tight">Portfolios</h2>
-    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Create, rename, and delete Portfolios, each with its own starting balance. Trades are logged into the active Portfolio; All stays read-only.</p>
+    <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Create, rename, and delete Portfolios, each with its own starting balance. Trades log into the active Portfolio.</p>
 
     <div class="mt-4 flex flex-col gap-4">
       <div class="flex gap-2">
@@ -30,7 +30,7 @@
           [outlined]="true"
           (onClick)="createPortfolio()"
         >
-          <ng-template pTemplate="icon"><ng-icon name="lucidePlus" class="size-4" /></ng-template>
+          <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="1rem" /></ng-template>
         </p-button>
       </div>
       @if (portfolioError()) {
@@ -79,7 +79,7 @@
                   [text]="true"
                   (onClick)="startRename(portfolio.id)"
                 >
-                  <ng-template pTemplate="icon"><ng-icon name="lucidePencil" class="size-3.5" /></ng-template>
+                  <ng-template pTemplate="icon"><ng-icon name="lucidePencil" size="0.875rem" /></ng-template>
                 </p-button>
                 <p-button
                   type="button"
@@ -88,7 +88,7 @@
                   [text]="true"
                   (onClick)="requestDelete(portfolio.id)"
                 >
-                  <ng-template pTemplate="icon"><ng-icon name="lucideTrash2" class="size-3.5" /></ng-template>
+                  <ng-template pTemplate="icon"><ng-icon name="lucideTrash2" size="0.875rem" /></ng-template>
                 </p-button>
               </div>
               <label class="flex shrink-0 items-center justify-between gap-3 text-base sm:justify-end">
@@ -135,9 +135,9 @@
       @if (store.isAll()) {
         <p class="text-base text-surface-600 dark:text-surface-300">Guards are set per Portfolio — select one</p>
       } @else {
-        <div class="grid items-start gap-8 xl:grid-cols-2">
-          <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
-            <legend class="px-1 text-base font-semibold">Daily</legend>
+        <div class="grid items-start gap-8 border-t border-surface-200 pt-4 xl:grid-cols-2 dark:border-surface-700">
+          <fieldset class="flex flex-col gap-3">
+            <legend class="text-base font-semibold">Daily</legend>
             <p class="text-sm text-surface-600 dark:text-surface-300">Resets each UTC day.</p>
             <label class="flex flex-col gap-1 text-base">Daily loss Guard (USD)
               <p-inputnumber
@@ -171,8 +171,8 @@
             </label>
           </fieldset>
 
-          <fieldset class="flex flex-col gap-3 border-t border-surface-200 pt-4 dark:border-surface-700">
-            <legend class="px-1 text-base font-semibold">Weekly</legend>
+          <fieldset class="flex flex-col gap-3">
+            <legend class="text-base font-semibold">Weekly</legend>
             <p class="text-sm text-surface-600 dark:text-surface-300">Resets each Monday-to-Sunday UTC week.</p>
             <label class="flex flex-col gap-1 text-base">Weekly loss Guard (USD)
               <p-inputnumber
@@ -212,7 +212,9 @@
         <span class="text-base font-semibold">Setups</span>
         <div class="flex gap-2">
           <input pInputText #newSetup aria-label="New setup" placeholder="New setup…" class="min-w-0 flex-1" />
-          <p-button type="button" ariaLabel="Add setup" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('setup', newSetup.value); newSetup.value = ''" />
+          <p-button type="button" ariaLabel="Add setup" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('setup', newSetup.value); newSetup.value = ''">
+            <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="0.875rem" /></ng-template>
+          </p-button>
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of setupVocabulary(); track value) {
@@ -225,7 +227,9 @@
         <span class="text-base font-semibold">Emotions</span>
         <div class="flex gap-2">
           <input pInputText #newEmotion aria-label="New emotion" placeholder="New emotion…" class="min-w-0 flex-1" />
-          <p-button type="button" ariaLabel="Add emotion" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('emotion', newEmotion.value); newEmotion.value = ''" />
+          <p-button type="button" ariaLabel="Add emotion" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('emotion', newEmotion.value); newEmotion.value = ''">
+            <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="0.875rem" /></ng-template>
+          </p-button>
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of emotionVocabulary(); track value) {
@@ -238,7 +242,9 @@
         <span class="text-base font-semibold">Mistakes</span>
         <div class="flex gap-2">
           <input pInputText #newMistake aria-label="New mistake" placeholder="New mistake…" class="min-w-0 flex-1" />
-          <p-button type="button" ariaLabel="Add mistake" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('mistake', newMistake.value); newMistake.value = ''" />
+          <p-button type="button" ariaLabel="Add mistake" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('mistake', newMistake.value); newMistake.value = ''">
+            <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="0.875rem" /></ng-template>
+          </p-button>
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of mistakeVocabulary(); track value) {
@@ -251,7 +257,9 @@
         <span class="text-base font-semibold">Tags</span>
         <div class="flex gap-2">
           <input pInputText #newTag aria-label="New tag" placeholder="New tag, comma-separated…" class="min-w-0 flex-1" />
-          <p-button type="button" ariaLabel="Add tag" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('tag', newTag.value); newTag.value = ''" />
+          <p-button type="button" ariaLabel="Add tag" label="Add" severity="secondary" [outlined]="true" (onClick)="addVocabulary('tag', newTag.value); newTag.value = ''">
+            <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="0.875rem" /></ng-template>
+          </p-button>
         </div>
         <ul class="flex flex-wrap gap-2">
           @for (value of tagVocabulary(); track value) {
@@ -280,7 +288,8 @@
               >
                 <ng-icon
                   name="lucideChevronRight"
-                  class="size-4 shrink-0 text-surface-500 transition-transform dark:text-surface-400"
+                  size="1rem"
+                  class="shrink-0 text-surface-500 transition-transform dark:text-surface-400"
                   [class.rotate-90]="expandedPlaybook() === playbook.name"
                 />
                 <span class="truncate text-base font-semibold">{{ playbook.name }}</span>
@@ -314,7 +323,7 @@
                           [text]="true"
                           (onClick)="removePlaybookRule(playbook.name, ruleIndex)"
                         >
-                          <ng-template pTemplate="icon"><ng-icon name="lucideX" class="size-3.5" /></ng-template>
+                          <ng-template pTemplate="icon"><ng-icon name="lucideX" size="0.875rem" /></ng-template>
                         </p-button>
                       </li>
                     }
@@ -337,7 +346,7 @@
                     [outlined]="true"
                     (onClick)="addPlaybookRule(playbook.name, newRule.value); newRule.value = ''"
                   >
-                    <ng-template pTemplate="icon"><ng-icon name="lucidePlus" class="size-3.5" /></ng-template>
+                    <ng-template pTemplate="icon"><ng-icon name="lucidePlus" size="0.875rem" /></ng-template>
                   </p-button>
                 </div>
               </div>

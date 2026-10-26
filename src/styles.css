@@ -99,11 +99,9 @@
   caret-color: var(--p-primary-color);
 }
 
-/* Keyboard focus for plain anchors and the custom calendar cells. PrimeNG
-   paints its own component rings; these two are app-authored and need the
-   same visible, token-coloured ring. */
-a:focus-visible,
-.oj-cell:focus-visible {
+/* Keyboard focus for plain anchors. PrimeNG paints its own component rings;
+   this one is app-authored and needs the same visible, token-coloured ring. */
+a:focus-visible {
   outline: 2px solid var(--p-focus-ring-color);
   outline-offset: var(--p-focus-ring-offset);
   border-radius: 0.5rem;

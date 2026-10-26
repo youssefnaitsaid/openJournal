@@ -19,8 +19,6 @@ const money2 = new Intl.NumberFormat('en-US', {
 });
 const moneyAuto = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
 
-export const formatBandNumber = (value: number): string => `${value}`;
-
 export const formatPercent = (value: number): string => value.toFixed(2);
 
 export const formatSignedDollars = (value: number): string => {

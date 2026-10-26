@@ -49,13 +49,14 @@
   }
 
   @if (logFormOpen()) {
-  <p-card header="Log Trade" subheader="One closed round-trip with an entry and an exit">
+  <p-card>
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-xl font-semibold tracking-tight">Log Trade</h2>
+        <p class="text-base text-surface-600 dark:text-surface-300">One closed round-trip with an entry and an exit.</p>
+      </div>
       <section aria-labelledby="log-trade-execution-heading" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <h2 id="log-trade-execution-heading" class="text-xl font-semibold tracking-tight">Trade &amp; execution</h2>
-          <p class="text-base text-surface-600 dark:text-surface-300">The closed round-trip: Asset, Market, Side, Quantity, prices, Fees, and both timestamps.</p>
-        </div>
+        <h2 id="log-trade-execution-heading" class="text-xl font-semibold tracking-tight">Trade &amp; execution</h2>
 
         <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div class="flex flex-col gap-1">
@@ -148,7 +149,7 @@
       <section aria-labelledby="log-trade-process-heading" class="flex flex-col gap-4 border-t border-surface-200 pt-6 dark:border-surface-700">
         <div class="flex flex-col gap-1">
           <h2 id="log-trade-process-heading" class="text-xl font-semibold tracking-tight">Process</h2>
-          <p class="text-base text-surface-600 dark:text-surface-300">Setup, Grade, Emotion, Mistake, and the Playbook checklist. Reflection is optional — a blank Grade or untouched checklist logs unscored.</p>
+          <p class="text-base text-surface-600 dark:text-surface-300">Reflection is optional — a blank Grade or untouched checklist logs unscored.</p>
         </div>
 
         <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -193,7 +194,7 @@
                 {{ check.text }}
               </div>
             }
-            <span class="text-sm text-surface-600 dark:text-surface-300">Untouched checklist logs the Trade unscored, like a blank Grade. Rules are snapshotted onto the Trade at capture (ADR-0002).</span>
+            <span class="text-sm text-surface-600 dark:text-surface-300">Rules are snapshotted onto the Trade at capture (ADR-0002).</span>
             <a routerLink="/settings" class="text-base font-medium text-primary">Manage playbooks</a>
           </fieldset>
         }
@@ -209,7 +210,7 @@
             aria-controls="log-trade-optional"
             (click)="toggleMoreDetails()"
           >
-            <ng-icon [name]="moreDetailsOpen() ? 'lucideChevronUp' : 'lucideChevronDown'" class="size-4" />
+            <ng-icon [name]="moreDetailsOpen() ? 'lucideChevronUp' : 'lucideChevronDown'" size="1rem" />
             <span>{{ moreDetailsOpen() ? 'Fewer details' : 'More details' }}</span>
           </button>
         </div>
@@ -253,7 +254,7 @@
               <input pInputText id="log-tags" formControlName="tags" list="tag-options" placeholder="FOMC, earnings" class="w-full" />
               <label for="log-tags">Tags</label>
             </p-floatlabel>
-            <span class="text-sm text-surface-600 dark:text-surface-300">Comma-separated. Free labels for market events and contexts. For execution quality use Grade; for plan deviations use Mistake.</span>
+            <span class="text-sm text-surface-600 dark:text-surface-300">Comma-separated labels for market events and contexts.</span>
             <datalist id="tag-options">
               @for (t of tagOptions(); track t) { <option [value]="t"></option> }
             </datalist>
@@ -290,11 +291,10 @@
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <h2 class="text-xl font-semibold tracking-tight">Trade history</h2>
-          <p class="mt-1 text-base text-surface-600 dark:text-surface-300">Newest close first</p>
         </div>
         @if (rows().length > 0) {
           <p-button type="button" label="Export CSV" severity="secondary" [outlined]="true" (onClick)="exportCsv()">
-            <ng-template pTemplate="icon"><ng-icon name="lucideDownload" class="size-3.5" /></ng-template>
+            <ng-template pTemplate="icon"><ng-icon name="lucideDownload" size="0.875rem" /></ng-template>
           </p-button>
         }
       </div>
@@ -355,7 +355,7 @@
           </app-empty-state>
         } @else {
           <div class="overflow-x-auto">
-            <p-table #dt [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
+            <p-table #dt class="tabular-nums" [value]="rows()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" exportFilename="openjournal-trades" dataKey="id" [expandedRowKeys]="expandedTradeRows()">
               <ng-template pTemplate="header">
                 <tr>
                   <th class="w-10"></th>
@@ -366,7 +366,7 @@
                   <th pSortableColumn="rMultiple" class="text-right">R-Multiple <p-sortIcon field="rMultiple" /></th>
                   <th pSortableColumn="setup">Setup <p-sortIcon field="setup" /></th>
                   <th pSortableColumn="grade">Grade <p-sortIcon field="grade" /></th>
-                  <th pSortableColumn="compliance">Compliance <p-sortIcon field="compliance" /></th>
+                  <th pSortableColumn="compliance" class="text-right">Compliance <p-sortIcon field="compliance" /></th>
                   <th>Tags</th>
                 </tr>
               </ng-template>
@@ -374,7 +374,7 @@
                 <tr>
                   <td>
                     <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleTradeRow(trade.id)">
-                      <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" /></ng-template>
+                      <ng-template pTemplate="icon"><ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" size="0.875rem" /></ng-template>
                     </p-button>
                   </td>
                   <td class="hidden whitespace-nowrap sm:table-cell">{{ trade.closedAt | date:'MMM d, h:mm a' }}</td>
@@ -389,12 +389,12 @@
                   <td>{{ trade.setup }}</td>
                   <td>
                     @if (trade.grade !== '') {
-                      <p-tag [value]="trade.grade" severity="secondary" />
+                      <span class="oj-pill">{{ trade.grade }}</span>
                     }
                   </td>
-                  <td>
+                  <td class="text-right tabular-nums">
                     @if (trade.compliance !== null) {
-                      <p-tag [value]="formatCompliance(trade.compliance)" severity="secondary" />
+                      {{ formatCompliance(trade.compliance) }}
                     }
                   </td>
                   <td>

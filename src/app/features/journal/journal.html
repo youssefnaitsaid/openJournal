@@ -14,7 +14,7 @@
         [rounded]="true"
         (onClick)="prev()"
       >
-        <ng-template pTemplate="icon"><ng-icon name="lucideChevronLeft" class="size-4" /></ng-template>
+        <ng-template pTemplate="icon"><ng-icon name="lucideChevronLeft" size="1rem" /></ng-template>
       </p-button>
       <span aria-label="Current month" aria-live="polite" class="min-w-28 text-center text-base font-semibold tabular-nums sm:min-w-36">{{ monthLabel() }}</span>
       <p-button
@@ -25,7 +25,7 @@
         [rounded]="true"
         (onClick)="next()"
       >
-        <ng-template pTemplate="icon"><ng-icon name="lucideChevronRight" class="size-4" /></ng-template>
+        <ng-template pTemplate="icon"><ng-icon name="lucideChevronRight" size="1rem" /></ng-template>
       </p-button>
       <p-button type="button" ariaLabel="This month" label="This month" severity="secondary" [text]="true" (onClick)="goToCurrent()" />
     </div>
@@ -54,12 +54,12 @@
                 <span class="text-sm font-medium tabular-nums">{{ dayNumber(cell.date) }}</span>
                 @if (cell.trades.length > 0) {
                   <div class="flex flex-wrap items-center gap-1">
-                    <span class="journal-day-net">
+                    <span class="journal-day-net tabular-nums">
                       <p-tag [value]="dayNetText(cell.dayNet)" [severity]="dayNetSeverity(cell.dayNet)" aria-hidden="true" />
                     </span>
                     @if (hasGuards() && dayBreaches(cell.date).length > 0) {
                       <p-tag severity="warn" aria-hidden="true">
-                        <ng-template pTemplate="icon"><ng-icon name="lucideShieldAlert" class="size-3.5" /></ng-template>
+                        <ng-template pTemplate="icon"><ng-icon name="lucideShieldAlert" size="0.875rem" /></ng-template>
                       </p-tag>
                     }
                   </div>
@@ -79,7 +79,7 @@
         <span class="inline-flex flex-wrap items-center gap-2 text-base text-surface-600 dark:text-surface-300">
           {{ activeDayLabel() }}
           @if (selectedTrades().length > 0) {
-            <p-tag [value]="formatSignedDollars(activeDayNet())" [severity]="dayNetSeverity(activeDayNet())" />
+            <p-tag class="tabular-nums" [value]="formatSignedDollars(activeDayNet())" [severity]="dayNetSeverity(activeDayNet())" />
           }
         </span>
       }
@@ -100,18 +100,18 @@
       <app-empty-state
         [compact]="true"
         icon="lucideInbox"
-        title="No trades this day."
+        title="No Trades this day"
         description="Select a day with closed Trades to review them here."
       />
     } @else {
       <div class="overflow-x-auto">
-        <p-table [value]="selectedTrades()" dataKey="id" [expandedRowKeys]="expandedDayRows()">
+        <p-table class="tabular-nums" [value]="selectedTrades()" dataKey="id" [expandedRowKeys]="expandedDayRows()">
           <ng-template pTemplate="header">
             <tr>
               <th class="w-10"></th>
               <th>Asset</th>
               <th>Side</th>
-              <th class="text-right">Net</th>
+              <th class="text-right">Net P&amp;L</th>
               <th>Setup</th>
               <th>Emotion</th>
               <th>Mistake</th>
@@ -123,13 +123,13 @@
               <td>
                 <p-button type="button" [text]="true" [rounded]="true" ariaLabel="Toggle details" (onClick)="toggleDayRow(trade.id)">
                   <ng-template pTemplate="icon">
-                    <ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" class="size-3.5" />
+                    <ng-icon [name]="expanded ? 'lucideChevronDown' : 'lucideChevronRight'" size="0.875rem" />
                   </ng-template>
                 </p-button>
               </td>
               <td class="font-medium">{{ trade.asset }}</td>
               <td>{{ trade.side }}</td>
-              <td class="text-right"><p-tag [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
+              <td class="text-right"><p-tag class="tabular-nums" [value]="formatSignedDollars(trade.net)" [severity]="trade.net > 0 ? 'success' : trade.net < 0 ? 'danger' : 'secondary'" /></td>
               <td>{{ trade.setup }}</td>
               <td>{{ trade.emotionBefore }} → {{ trade.emotionAfter }}</td>
               <td>{{ trade.mistake }}</td>
@@ -201,7 +201,7 @@
             (onClick)="copyReport()"
           >
             <ng-template pTemplate="icon">
-              <ng-icon [name]="copied() ? 'lucideClipboardCheck' : 'lucideClipboardCopy'" class="size-3.5" />
+              <ng-icon [name]="copied() ? 'lucideClipboardCheck' : 'lucideClipboardCopy'" size="0.875rem" />
             </ng-template>
           </p-button>
         </div>
