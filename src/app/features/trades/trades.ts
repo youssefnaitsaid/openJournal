@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -19,6 +19,7 @@ import {
   lucideChevronUp,
   lucideDownload,
 } from '@ng-icons/lucide';
+import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -30,6 +31,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 import { GUARD_LABELS, evaluateGuards } from '../../guards';
 import type { GuardBreach } from '../../guards';
 import { EmptyState } from '../../ui/empty-state';
@@ -51,6 +53,7 @@ import type {
   RuleCheck,
   Setup,
   Side,
+  Trade,
   TradeInput,
 } from './trade';
 import { isValidChartUrl, normalizeTags } from './trade-math';
@@ -82,8 +85,10 @@ function positivePriceValidator(
     : { positivePrice: true };
 }
 
+type TradeFormDraft = ReturnType<Trades['form']['getRawValue']>;
+
 @Component({
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, FloatLabelModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, TagModule, TextareaModule, EmptyState, FilterBar, PageHero],
+  imports: [ReactiveFormsModule, FormsModule, DatePipe, RouterLink, NgIcon, TableModule, ButtonModule, FloatLabelModule, InputTextModule, InputNumberModule, CheckboxModule, MessageModule, SelectModule, CardModule, TagModule, TextareaModule, ToastModule, EmptyState, FilterBar, PageHero],
   providers: [
     provideIcons({
       lucideArrowDownUp,
@@ -92,6 +97,7 @@ function positivePriceValidator(
       lucideChevronUp,
       lucideDownload,
     }),
+    MessageService,
   ],
   selector: 'app-trades',
   styleUrl: './trades.css',
@@ -102,6 +108,7 @@ export class Trades {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(MessageService);
 
   // The log form is hidden behind the hero button until deliberately revealed
   // (the dominant task - scan/sort/filter history - owns the viewport).
@@ -110,6 +117,14 @@ export class Trades {
   // is disclosed in place; from lg up the region is always visible.
   readonly moreDetailsOpen = signal(false);
   readonly submitAttempted = signal(false);
+  // Undo keeps the exact Trade and draft from the last save; the action removes
+  // by id and restores the capture so a typo can be fixed in place.
+  private readonly lastSaved = signal<{
+    trade: Trade;
+    draft: TradeFormDraft;
+    checks: RuleCheck[];
+    checklistTouched: boolean;
+  } | null>(null);
   private readonly assetInput = viewChild<ElementRef<HTMLInputElement>>('assetInput');
   // The history table renders only once there are rows; a viewChild keeps the
   // Export action in the filter row above that branch instead of inside it.
@@ -142,6 +157,30 @@ export class Trades {
 
   resetFilters(): void {
     this.store.resetFilter();
+  }
+
+  undoLastSave(): void {
+    const saved = this.lastSaved();
+    if (!saved) return;
+    // A scope switch changes where a re-log would file; dismiss instead of
+    // restoring a draft into a different Portfolio.
+    if (this.store.activeId() !== saved.trade.portfolioId) {
+      this.dismissUndo();
+      return;
+    }
+    this.store.removeTrade(saved.trade.id);
+    this.dismissUndo();
+    this.form.setValue(saved.draft);
+    // setValue re-triggers the setup subscription, which clears the checklist.
+    this.checks.set(saved.checks.map((check) => ({ ...check })));
+    this.checklistTouched.set(saved.checklistTouched);
+    this.submitAttempted.set(false);
+    this.openLogForm();
+  }
+
+  private dismissUndo(): void {
+    this.lastSaved.set(null);
+    this.toast.clear();
   }
 
   // Logging is locked only under the All aggregate, so the picker lists the
@@ -306,6 +345,12 @@ export class Trades {
       .subscribe((setup) => {
         this.syncChecklist(setup);
       });
+    effect(() => {
+      const saved = this.lastSaved();
+      if (saved && this.store.activeId() !== saved.trade.portfolioId) {
+        this.dismissUndo();
+      }
+    });
   }
 
   onSubmit(): void {
@@ -347,7 +392,19 @@ export class Trades {
       notes: v.notes ?? '',
       tags,
     };
-    this.store.addTrade(input);
+    const trade = this.store.addTrade(input);
+    this.lastSaved.set({
+      trade,
+      draft: v,
+      checks: [...this.checks()],
+      checklistTouched: this.checklistTouched(),
+    });
+    this.toast.clear();
+    this.toast.add({
+      severity: 'success',
+      summary: 'Trade logged',
+      life: 80000,
+    });
     this.syncChecklist(this.form.controls.setup.value);
     this.form.reset({
       market: 'Stocks',

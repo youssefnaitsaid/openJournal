@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import type { ToastMessageOptions } from 'primeng/api';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Trades } from './trades';
 import { routes } from '../../app.routes';
@@ -100,6 +102,99 @@ describe('Trades', () => {
     );
     expect(rows.length).toBe(1);
     expect(rows[0]).toContain('AAPL');
+  });
+
+  it('offers a short-lived Undo that removes the saved Trade and reopens the draft', async () => {
+    const store = TestBed.inject(TradesStore);
+    setPlaybookRules('Breakout', ['risk ≤ 1%']);
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    fixture.detectChanges();
+    const toast = fixture.debugElement.injector.get(MessageService);
+    const shown: ToastMessageOptions[] = [];
+    toast.messageObserver.subscribe((message) => {
+      shown.push(...(Array.isArray(message) ? message : [message]));
+    });
+
+    const draft = validValues();
+    component.openLogForm();
+    fixture.detectChanges();
+    component.form.setValue(draft);
+    component.toggleCheck(0);
+    const savedChecks = component.checks();
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(1);
+    expect(shown).toHaveLength(1);
+    expect(shown[0]?.summary).toBe('Trade logged');
+    expect(shown[0]?.life).toBe(8000);
+
+    component.undoLastSave();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(0);
+    expect(component.logFormOpen()).toBe(true);
+    expect(component.form.getRawValue()).toEqual(draft);
+    expect(component.checks()).toEqual(savedChecks);
+    expect(component.checklistTouched()).toBe(true);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('#log-asset'),
+    ).not.toBeNull();
+  });
+
+  it('undoes a saved Trade even when the filter hides its row', async () => {
+    const store = TestBed.inject(TradesStore);
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await store.whenReady();
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    store.setFilter({ asset: 'NO-MATCH' });
+    fixture.detectChanges();
+    component.openLogForm();
+    fixture.detectChanges();
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(1);
+    expect(component.rows().some((trade) => trade.asset === 'AAPL')).toBe(false);
+
+    component.undoLastSave();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(0);
+  });
+
+  it('will not undo into a different Portfolio after the active scope changes', async () => {
+    const store = TestBed.inject(TradesStore);
+    const fixture = TestBed.createComponent(Trades);
+    const component = fixture.componentInstance;
+    await store.whenReady();
+    expect(store.addPortfolio('Swing')).toBeNull();
+    const swingId = store.portfolios().find((p) => p.name === 'Swing')!.id;
+    store.setActiveId(DEFAULT_PORTFOLIO_ID);
+    fixture.detectChanges();
+    const toast = fixture.debugElement.injector.get(MessageService);
+    const clears: (string | null)[] = [];
+    toast.clearObserver.subscribe((key) => clears.push(key));
+    component.openLogForm();
+    fixture.detectChanges();
+    component.form.setValue(validValues());
+    component.onSubmit();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(1);
+
+    const clearsBeforeSwitch = clears.length;
+    store.setActiveId(swingId);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(clears.length).toBeGreaterThan(clearsBeforeSwitch);
+    component.undoLastSave();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(store.trades().length).toBe(1);
+    expect(component.logFormOpen()).toBe(false);
   });
 
   it('shows "No Trades match this filter" with a working Reset when the filter cuts every row', async () => {

@@ -29,3 +29,9 @@
 :host ::ng-deep .p-datatable-table p-chip {
   flex: 0 0 auto;
 }
+
+/* Toast chips sit side by side; as flex roots they would stretch full-width
+   and fold the cell into a column. */
+:host ::ng-deep .p-toast-message-content {
+  justify-content: space-between;
+}

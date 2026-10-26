@@ -194,6 +194,11 @@ export class TradesStore {
     });
   }
 
+  removeTrade(id: string): void {
+    this.collection.removeOne({ id } as Partial<Trade>);
+    this.trades.update((current) => current.filter((t) => t.id !== id));
+  }
+
   addTrade(input: TradeInput): Trade {
     const active = this.activeId();
     const trade = deriveTrade(
