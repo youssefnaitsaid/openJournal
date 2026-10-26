@@ -32,14 +32,16 @@
         {{ historyTotal() }} {{ historyTotal() === 1 ? 'Trade' : 'Trades' }}
       </span>
     }
-    <div class="w-full sm:w-auto">
-      <p-button
-        type="button"
-        [label]="logFormOpen() ? 'Close' : 'Log Trade'"
-        [fluid]="true"
-        (onClick)="toggleLogForm()"
-      />
-    </div>
+    @if (historyTotal() > 0 || logFormOpen()) {
+      <div class="w-full sm:w-auto">
+        <p-button
+          type="button"
+          [label]="logFormOpen() ? 'Close' : 'Log Trade'"
+          [fluid]="true"
+          (onClick)="toggleLogForm()"
+        />
+      </div>
+    }
   </app-page-hero>
 
   @if (todayGuardLabels().length > 0) {
@@ -259,7 +261,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2 border-t border-surface-200 pt-4 dark:border-surface-700">
+      <div class="flex flex-wrap items-center gap-2 border-t border-surface-200 pt-4 pb-1 dark:border-surface-700 sm:sticky sm:bottom-0 sm:z-20 sm:bg-surface-0 sm:dark:bg-surface-900">
         <p-button type="submit" label="Log Trade" [disabled]="!store.canLog()" />
         <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="closeLogForm()" />
         @if (!store.canLog()) {
@@ -503,6 +505,7 @@
             </ng-template>
           </p-table>
         </div>
+        <p class="mt-2 text-sm text-surface-600 dark:text-surface-300 2xl:hidden">Scroll sideways to see every column.</p>
       }
     </div>
   </p-card>

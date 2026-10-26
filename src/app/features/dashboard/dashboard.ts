@@ -65,6 +65,17 @@ export class Dashboard {
     return value || fallback;
   }
 
+  // Axis labels read as "Oct 24", not the raw ISO day; the table and tooltip
+  // keep the full close stamp.
+  private shortDay(iso: string): string {
+    const date = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+  }
+
   private chartFill(stroke: string): string {
     // 8% alpha wash under the curve — enough to anchor the line, light
     // enough not to gray out the chart field; hex-only guard keeps jsdom
@@ -79,7 +90,7 @@ export class Dashboard {
     const curve = this.metrics().balanceCurve;
     const stroke = this.chartToken('--p-primary-color', '#71717a');
     return {
-      labels: curve.map((p) => p.closedAt.slice(0, 10)),
+      labels: curve.map((p) => this.shortDay(p.closedAt)),
       datasets: [
         {
           label: 'Balance',

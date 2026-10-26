@@ -19,6 +19,14 @@
    preference on first load, so system dark mode still applies. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* The filter bar's one-row layout is measured against the pinned 20rem rail
+   plus the page gutters; name that width once instead of repeating the
+   arbitrary `min-[1440px]` variant (which Tailwind emits before `lg`, so a
+   later named breakpoint would win the cascade). */
+@theme {
+  --breakpoint-desk: 90rem;
+}
+
 :root {
   color-scheme: light;
 

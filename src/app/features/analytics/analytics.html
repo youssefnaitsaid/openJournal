@@ -88,7 +88,7 @@
       } @else {
         <div class="flex flex-col gap-6">
           <!-- R-metrics KPI band in the section header (replaces the tile strip). -->
-          <dl class="grid grid-cols-1 gap-x-8 gap-y-2 border-b border-surface-200 pb-4 text-base tabular-nums sm:grid-cols-2 lg:grid-cols-3 dark:border-surface-700" aria-label="R-metrics summary">
+          <dl class="grid grid-cols-1 gap-x-8 gap-y-2 border-b border-surface-200 pb-4 text-base tabular-nums sm:grid-cols-2 xl:grid-cols-3 dark:border-surface-700" aria-label="R-metrics summary">
             @for (line of kpiBand(); track line.label) {
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-surface-600 dark:text-surface-300">{{ line.label }}</dt>
@@ -131,6 +131,7 @@
               </ng-template>
             </p-table>
           </div>
+          <p class="text-sm text-surface-600 dark:text-surface-300 xl:hidden">Scroll sideways to see every column.</p>
         </div>
       }
     </p-card>
@@ -185,6 +186,7 @@
             </ng-template>
           </p-table>
         </div>
+        <p class="text-sm text-surface-600 dark:text-surface-300 xl:hidden">Scroll sideways to see every column.</p>
       }
     </p-card>
 
@@ -240,6 +242,7 @@
               </ng-template>
             </p-table>
           </div>
+          <p class="text-sm text-surface-600 dark:text-surface-300 xl:hidden">Scroll sideways to see every column.</p>
           @if (compliance().unscored > 0) {
             <p class="text-base text-surface-600 dark:text-surface-300">{{ compliance().unscored }} unscored {{ compliance().unscored === 1 ? 'trade' : 'trades' }} excluded.</p>
           }
